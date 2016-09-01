@@ -1,0 +1,22 @@
+[package]
+name = "lewton"
+version = "0.1.0"
+authors = ["est31 <MTest31@outlook.com>"]
+description = "Pure Rust vorbis decoder"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/est31/lewton"
+keywords = ["ogg", "vorbis", "decoder", "audio"]
+readme = "README.md"
+
+[features]
+default = ["ogg", "ieee754"]
+
+[dependencies]
+byteorder = "0.5"
+ogg = { version = "0.3", optional = true }
+ieee754 = { version = "0.2", optional = true }
+
+[dev-dependencies]
+ogg = "0.3.0"
+openal-rs = "0.1"
+time = "0.1"
