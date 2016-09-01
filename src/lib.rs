@@ -36,6 +36,8 @@ macro_rules! try {
 }
 // */
 
+// The following macros are super useful for debugging
+
 macro_rules! record_residue_pre_inverse {
 	($residue_vectors:expr) => {
 // 		for v in $residue_vectors.iter() {
