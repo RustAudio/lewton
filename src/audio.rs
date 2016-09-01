@@ -704,7 +704,7 @@ impl PreviousWindowRight {
 
 // panics if the passed PreviousWindowRight struct doesn't match the info
 // from the ident header
-#[allow(unused_variables)] // As its WIP
+#[allow(unused_variables)]
 /**
 Main audio packet decoding function
 

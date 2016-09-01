@@ -313,7 +313,6 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 	return Ok(hdr);
 }
 
-#[allow(dead_code)]
 pub struct Codebook {
 	pub codebook_dimensions :u16,
 	pub codebook_entries :u32,
@@ -324,7 +323,6 @@ pub struct Codebook {
 	pub codebook_huffman_tree :VorbisHuffmanTree,
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct Residue {
 	pub residue_type :u8,
 	pub residue_begin :u32,
@@ -335,7 +333,6 @@ pub struct Residue {
 	pub residue_books :Vec<ResidueBook>,
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct Mapping {
 	pub mapping_submaps :u8,
 	pub mapping_magnitudes :Vec<u8>,
@@ -345,7 +342,6 @@ pub struct Mapping {
 	pub mapping_submap_residues :Vec<u8>,
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct ModeInfo {
 	pub mode_blockflag :bool,
 	pub mode_windowtype :u16,
@@ -358,7 +354,6 @@ pub enum Floor {
 	TypeOne(FloorTypeOne),
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct FloorTypeZero {
 	pub floor0_order :u8,
 	pub floor0_rate :u16,
@@ -369,7 +364,6 @@ pub struct FloorTypeZero {
 	pub floor0_book_list :Vec<u8>,
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct FloorTypeOne {
 	pub floor1_multiplier :u8,
 	pub floor1_partition_class :Vec<u8>,
@@ -381,14 +375,12 @@ pub struct FloorTypeOne {
 	pub floor1_x_list_sorted :Vec<(usize, u32)>,
 }
 
-#[allow(dead_code)] // As its WIP...
 pub struct ResidueBook {
 	vals_used :u8,
 	val_i :[u8; 8],
 }
 
 impl ResidueBook {
-	#[allow(dead_code)] // As its WIP...
 	pub fn get_val(&self, i :u8) -> Option<u8> {
 		if i >= 8 {
 			// This is a precondition...
@@ -434,12 +426,10 @@ pub struct SetupHeader {
 	pub modes :Vec<ModeInfo>,
 }
 
-#[allow(dead_code)]
 struct CodebookVqLookup {
 	codebook_lookup_type :u8,
 	codebook_minimum_value :f64,
 	codebook_delta_value :f64,
-	codebook_value_bits :u8,
 	codebook_sequence_p :bool,
 	codebook_multiplicands :Vec<u32>,
 }
@@ -711,7 +701,6 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 			codebook_lookup_type : codebook_lookup_type,
 			codebook_minimum_value : codebook_minimum_value,
 			codebook_delta_value : codebook_delta_value,
-			codebook_value_bits : codebook_value_bits,
 			codebook_sequence_p : codebook_sequence_p,
 			codebook_multiplicands : codebook_multiplicands,
 		})
