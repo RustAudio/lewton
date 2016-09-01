@@ -20,17 +20,17 @@ use std::io::{Read, Seek};
 use ::audio::{PreviousWindowRight, read_audio_packet};
 
 pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
-		Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
-	let pck :Packet = try!(rdr.read_packet());
-	let ident_hdr = try!(read_header_ident(&pck.data));
+        Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
+    let pck :Packet = try!(rdr.read_packet());
+    let ident_hdr = try!(read_header_ident(&pck.data));
 
-	let pck :Packet = try!(rdr.read_packet());
-	let comment_hdr = try!(read_header_comment(&pck.data));
+    let pck :Packet = try!(rdr.read_packet());
+    let comment_hdr = try!(read_header_comment(&pck.data));
 
-	let pck :Packet = try!(rdr.read_packet());
-	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels));
+    let pck :Packet = try!(rdr.read_packet());
+    let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels));
 
-	return Ok((ident_hdr, comment_hdr, setup_hdr));
+    Ok((ident_hdr, comment_hdr, setup_hdr))
 }
 
 /**
@@ -47,33 +47,33 @@ If you need support for this, you need to use the lower level methods
 instead.
 */
 pub struct OggStreamReader<'a, T: Read + Seek + 'a> {
-	rdr :&'a mut PacketReader<'a, T>,
-	pwr :PreviousWindowRight,
+    rdr :&'a mut PacketReader<'a, T>,
+    pwr :PreviousWindowRight,
 
-	pub ident_hdr :IdentHeader,
-	pub comment_hdr :CommentHeader,
-	pub setup_hdr :SetupHeader,
+    pub ident_hdr :IdentHeader,
+    pub comment_hdr :CommentHeader,
+    pub setup_hdr :SetupHeader,
 }
 
 impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
-	/// Constructs a new OggStreamReader from a given PacketReader.
-	pub fn new(rdr :&'a mut PacketReader<'a, T>) ->
-			Result<OggStreamReader<'a, T>, VorbisError> {
-		let (ident_hdr, comment_hdr, setup_hdr) = try!(read_headers(rdr));
-		return Ok(OggStreamReader {
-			rdr : rdr,
-			pwr : PreviousWindowRight::new(),
-			ident_hdr : ident_hdr,
-			comment_hdr : comment_hdr,
-			setup_hdr : setup_hdr,
-		});
-	}
-	/// Reads and decompresses an audio packet from the stream.
-	pub fn read_decompressed_packet(&mut self) ->
-			Result<(Vec<Vec<i16>>, usize), VorbisError> {
-		let pck = try!(self.rdr.read_packet());
-		let pck_len = pck.data.len();
-		return Ok((try!(read_audio_packet(&self.ident_hdr,
-			&self.setup_hdr, &pck.data, &mut self.pwr)), pck_len));
-	}
+    /// Constructs a new OggStreamReader from a given PacketReader.
+    pub fn new(rdr :&'a mut PacketReader<'a, T>) ->
+            Result<OggStreamReader<'a, T>, VorbisError> {
+        let (ident_hdr, comment_hdr, setup_hdr) = try!(read_headers(rdr));
+        Ok(OggStreamReader {
+            rdr : rdr,
+            pwr : PreviousWindowRight::new(),
+            ident_hdr : ident_hdr,
+            comment_hdr : comment_hdr,
+            setup_hdr : setup_hdr,
+        })
+    }
+    /// Reads and decompresses an audio packet from the stream.
+    pub fn read_decompressed_packet(&mut self) ->
+            Result<(Vec<Vec<i16>>, usize), VorbisError> {
+        let pck = try!(self.rdr.read_packet());
+        let pck_len = pck.data.len();
+        Ok((try!(read_audio_packet(&self.ident_hdr,
+            &self.setup_hdr, &pck.data, &mut self.pwr)), pck_len))
+    }
 }
