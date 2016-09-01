@@ -6,6 +6,12 @@ Vorbis decoder written in pure Rust.
 
 [crates.io](https://crates.io/crates/lewton)
 
+To give the decoder a try, you can do:
+```sh
+cargo run --example player /path/to/your/audio_file.ogg
+```
+It will then play back the audio.
+
 If you want to know how to use this crate, look at the examples folder,
 or read the docs of the `inside_ogg` module.
 
