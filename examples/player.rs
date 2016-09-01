@@ -1,10 +1,8 @@
 // Vorbis decoder written in Rust
 //
-// Copyright (c) 2016 est31 <MTest31@outlook.com>
-// and contributors. All rights reserved.
-// Licensed under MIT license, or Apache 2 license,
-// at your option. Please see the LICENSE file
-// attached to this source distribution for details.
+// This example file is licensed
+// under the CC-0 license:
+// https://creativecommons.org/publicdomain/zero/1.0/
 
 extern crate openal;
 extern crate lewton;
