@@ -6,6 +6,9 @@ Vorbis decoder written in pure Rust.
 
 [crates.io](https://crates.io/crates/lewton)
 
+If you want to know how to use this crate, look at the examples folder,
+or read the docs of the `inside_ogg` module.
+
 Some parts were created with help from the public domain
 [stb_vorbis](http://nothings.org/stb_vorbis/) decoder implementation.
 
