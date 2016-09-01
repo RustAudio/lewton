@@ -705,6 +705,11 @@ impl PreviousWindowRight {
 // panics if the passed PreviousWindowRight struct doesn't match the info
 // from the ident header
 #[allow(unused_variables)] // As its WIP
+/**
+Main audio packet decoding function
+
+Pass your info to this function to get your raw packet data decoded.
+*/
 pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
 		-> Result<Vec<Vec<i16>>, AudioReadError> {
 	let mut rdr = BitpackCursor::new(packet);

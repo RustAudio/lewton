@@ -12,6 +12,11 @@
 
 /*!
 A `vorbis` decoder, written in Rust.
+
+If you "just" want to decode `ogg/vorbis` files, take a look into
+the `inside_ogg` module (make sure you haven't disabled the `ogg` feature).
+
+For different use cases, see the other modules.
 */
 
 extern crate byteorder;

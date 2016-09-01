@@ -7,9 +7,13 @@
 // attached to this source distribution for details.
 
 /*!
+Cached header info
+
 This mod contains logic to generate and deal with
 data derived from header information
 that's used later in the decode process.
+
+The caching is done to speed up decoding.
 */
 
 pub struct TwiddleFactors {
