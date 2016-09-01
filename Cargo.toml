@@ -17,6 +17,6 @@ ogg = { version = "0.3", optional = true }
 ieee754 = { version = "0.2", optional = true }
 
 [dev-dependencies]
-ogg = "0.3.0"
+ogg = "0.3"
 openal-rs = "0.1"
 time = "0.1"
