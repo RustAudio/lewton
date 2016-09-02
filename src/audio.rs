@@ -70,9 +70,19 @@ impl fmt::Display for AudioReadError {
 	}
 }
 
+pub enum FloorSpecialCase {
+	Unused,
+}
+
+impl From<()> for FloorSpecialCase {
+	fn from(_ :()) -> Self {
+		return FloorSpecialCase::Unused;
+	}
+}
+
 // Returns Err if the floor is "unused"
 pub fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
-		fl :&FloorTypeOne) -> Result<Vec<u32>, ()> {
+		fl :&FloorTypeOne) -> Result<Vec<u32>, FloorSpecialCase> {
 	// TODO perhaps it means invalid audio packet if reading the nonzero
 	// flag doesn't succeed bc end of packet. Perhaps it does not.
 	if !try!(rdr.read_bit_flag()) {
@@ -412,7 +422,7 @@ pub fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 
 pub fn floor_decode<'a>(rdr :&mut BitpackCursor,
 		ident :&IdentHeader, mapping :&Mapping, codebooks :&Vec<Codebook>,
-		floors :&'a Vec<Floor>) -> Vec<(Option<Vec<u32>>, &'a Floor)> {
+		floors :&'a Vec<Floor>) -> Result<Vec<(Option<Vec<u32>>, &'a Floor)>, ()> {
 	let mut decoded_floor_infos = Vec::with_capacity(ident.audio_channels as usize);
 	for i in 0 .. ident.audio_channels as usize {
 		let submap_number = mapping.mapping_mux[i] as usize;
@@ -429,7 +439,7 @@ pub fn floor_decode<'a>(rdr :&mut BitpackCursor,
 		};
 		decoded_floor_infos.push((floor_res.ok(), floor));
 	}
-	return decoded_floor_infos;
+	return Ok(decoded_floor_infos);
 }
 
 fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
@@ -734,8 +744,8 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 		})
 	}
 	// Decode the floors
-	let decoded_floor_infos = floor_decode(&mut rdr, ident, mapping,
-		&setup.codebooks, &setup.floors);
+	let decoded_floor_infos = try!(floor_decode(&mut rdr, ident, mapping,
+		&setup.codebooks, &setup.floors));
 
 	// Now calculate the no_residue vector
 	let mut no_residue = Vec::with_capacity(ident.audio_channels as usize);
