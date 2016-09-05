@@ -19,8 +19,8 @@ use std::fmt;
 use std::cmp::min;
 use ::ilog;
 use ::bitpacking::BitpackCursor;
-use ::header::{Codebook, Floor, FloorTypeOne, HuffmanVqReadErr,
-	IdentHeader, Mapping, Residue, SetupHeader};
+use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
+	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -70,14 +70,152 @@ impl fmt::Display for AudioReadError {
 	}
 }
 
+pub enum DecodedFloor<'a> {
+	TypeZero(Vec<f32>, u64, &'a FloorTypeZero),
+	TypeOne(Vec<u32>, &'a FloorTypeOne),
+	Unused,
+}
+
+impl <'a> DecodedFloor<'a> {
+	fn is_unused(&self) -> bool {
+		match self {
+			&DecodedFloor::Unused => true,
+			_ => false,
+		}
+	}
+}
+
 pub enum FloorSpecialCase {
 	Unused,
+	PacketUndecodable,
 }
 
 impl From<()> for FloorSpecialCase {
 	fn from(_ :()) -> Self {
+		// () always means end of packet condition in the places
+		// the conversion is used.
 		return FloorSpecialCase::Unused;
 	}
+}
+
+impl From<HuffmanVqReadErr> for FloorSpecialCase {
+	fn from(e :HuffmanVqReadErr) -> Self {
+		use ::header::HuffmanVqReadErr::*;
+		use self::FloorSpecialCase::*;
+		match e {
+			EndOfPacket => Unused,
+			// Undecodable per spec, see paragraph about
+			// VQ lookup type zero in section 3.3.
+			NoVqLookupForCodebook => PacketUndecodable,
+		}
+	}
+}
+
+// Note that the output vector contains the cosine values of the coefficients,
+// not the bare values like in the spec. This is in order to optimize.
+pub fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
+		fl :&FloorTypeZero) -> Result<(Vec<f32>, u64), FloorSpecialCase> {
+	// TODO this needs to become 128 bits wide, not just 64,
+	// as floor0_amplitude_bits can be up to 127.
+	let amplitude = try!(rdr.read_dyn_u64(fl.floor0_amplitude_bits));
+	if amplitude > 0 {
+		let booknumber = try!(rdr.read_dyn_u32(
+			::ilog(fl.floor0_number_of_books as u64) - 1));
+		match fl.floor0_book_list.get(booknumber as usize) {
+			// Undecodable per spec
+			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
+			Some(codebook_idx) => {
+				let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
+				let mut last = 0.0;
+				let codebook = &codebooks[*codebook_idx as usize];
+				loop {
+					let mut last_new = last;
+					let temp_vector = try!(rdr.read_huffman_vq(codebook));
+					if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
+						// Little optimisation: we don't have to care about the >= case here
+						for &e in temp_vector {
+							coefficients.push((last + e as f32).cos());
+							last_new = e as f32;
+						}
+					} else {
+						for &e in temp_vector {
+							coefficients.push((last + e as f32).cos());
+							last_new = e as f32;
+							// This rule makes sure that coefficients doesn't get
+							// larger than floor0_order and saves an allocation
+							// in this case
+							if coefficients.len() == fl.floor0_order as usize {
+								return Ok((coefficients, amplitude));
+							}
+						}
+					}
+					last = last_new;
+					if coefficients.len() >= fl.floor0_order as usize {
+						return Ok((coefficients, amplitude));
+					}
+				}
+			},
+		}
+	} else {
+		// This channel is unused in this frame,
+		// its all zeros.
+		try!(Err(FloorSpecialCase::Unused));
+	}
+	unreachable!();
+}
+
+pub fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
+		fl :&FloorTypeZero, blockflag :bool, n :u16) -> Vec<f32> {
+	let cached_bark_cos_omega =
+		&fl.cached_bark_cos_omega[blockflag as usize];
+	let mut i = 0;
+	let mut output = Vec::with_capacity(n as usize);
+	let lfv_common_term = amplitude as f32 * fl.floor0_amplitude_offset as f32 /
+		((1 << fl.floor0_amplitude_bits) - 1) as f32;
+	while i < n as usize {
+		let cos_omega = cached_bark_cos_omega[i];
+
+		// Compute p and q
+		let (p_upper_border, q_upper_border) =
+		if fl.floor0_order & 1 == 1 {
+			((fl.floor0_order as usize - 3) / 2,
+				(fl.floor0_order as usize - 1) / 2)
+		} else {
+			let v = (fl.floor0_order as usize - 2) / 2;
+			(v, v)
+		};
+		let (mut p, mut q) =
+		if fl.floor0_order & 1 == 1 {
+			(1.0 - cos_omega * cos_omega, 0.25)
+		} else {
+			((1.0 - cos_omega) / 2.0, (1.0 + cos_omega) / 2.0)
+		};
+		for j in 0 .. p_upper_border {
+			let pm = cos_coefficients[2 * j + 1] - cos_omega;
+			p *= 4.0 * pm * pm;
+		}
+		for j in 0 .. q_upper_border {
+			let qm = cos_coefficients[2 * j] - cos_omega;
+			q *= 4.0 * qm * qm;
+		}
+
+		// Compute linear_floor_value
+		let linear_floor_value = (0.11512925 *
+			(lfv_common_term / (p+q).sqrt() - fl.floor0_amplitude_offset as f32)
+		).exp();
+
+		// Write into output
+		let mut iteration_condition = cos_omega;
+		while cos_omega == iteration_condition {
+			output.push(linear_floor_value);
+			i += 1;
+			iteration_condition = match cached_bark_cos_omega.get(i) {
+				Some(v) => *v,
+				None => break,
+			};
+		}
+	}
+	return output;
 }
 
 // Returns Err if the floor is "unused"
@@ -422,22 +560,33 @@ pub fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 
 pub fn floor_decode<'a>(rdr :&mut BitpackCursor,
 		ident :&IdentHeader, mapping :&Mapping, codebooks :&Vec<Codebook>,
-		floors :&'a Vec<Floor>) -> Result<Vec<(Option<Vec<u32>>, &'a Floor)>, ()> {
+		floors :&'a Vec<Floor>) -> Result<Vec<DecodedFloor<'a>>, ()> {
 	let mut decoded_floor_infos = Vec::with_capacity(ident.audio_channels as usize);
 	for i in 0 .. ident.audio_channels as usize {
 		let submap_number = mapping.mapping_mux[i] as usize;
 		let floor_number = mapping.mapping_submap_floors[submap_number];
 		let floor = &floors[floor_number as usize];
+		use self::FloorSpecialCase::*;
 		let floor_res = match floor {
-			&Floor::TypeZero(_) => {
-				// TODO replace this panic with an Err return
-				panic!("Floor 0 encountered, but floor 0 is not implemented!")
+			&Floor::TypeZero(ref fl) => {
+				match floor_zero_decode(rdr, codebooks, fl) {
+					Ok((coeff, amp)) => DecodedFloor::TypeZero(coeff, amp, fl),
+					Err(Unused) => DecodedFloor::Unused,
+					Err(PacketUndecodable) => try!(Err(())),
+				}
+				// TODO fix bugs in floor 0 implementation and remove this panic.
+				panic!("Floor type 0 implementation is buggy. \
+					To prevent hearing damage, we panic in this place.");
 			},
 			&Floor::TypeOne(ref fl) => {
-				floor_one_decode(rdr, codebooks, fl)
+				match floor_one_decode(rdr, codebooks, fl) {
+					Ok(dfl) => DecodedFloor::TypeOne(dfl, fl),
+					Err(Unused) => DecodedFloor::Unused,
+					Err(PacketUndecodable) => try!(Err(())),
+				}
 			},
 		};
-		decoded_floor_infos.push((floor_res.ok(), floor));
+		decoded_floor_infos.push(floor_res);
 	}
 	return Ok(decoded_floor_infos);
 }
@@ -750,7 +899,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	// Now calculate the no_residue vector
 	let mut no_residue = Vec::with_capacity(ident.audio_channels as usize);
 	for fl in &decoded_floor_infos {
-		no_residue.push(fl.0.is_none());
+		no_residue.push(fl.is_unused());
 	}
 	// and also propagate
 	for (&mag, &angle) in
@@ -813,31 +962,20 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 
 	// Dot product
 	let mut audio_spectri = Vec::with_capacity(ident.audio_channels as usize);
-	for (residue_vector, &(ref chan_decoded_floor, floor)) in
+	for (residue_vector, chan_decoded_floor) in
 			residue_vectors.iter().zip(decoded_floor_infos.iter()) {
 		let mut floor_decoded :Vec<f32> = match chan_decoded_floor {
-			&Some(ref floor_y) => {
-				match floor {
-					&Floor::TypeZero(_) => {
-						panic!("Floor 0 encountered!")
-						// TODO implement floor 0 some day
-						//
-						// Note: DO NOT replace this with an Err() return if
-						// you replace the panic in floor_decode() with
-						// an Err return: Then we still expect the packet to be
-						// dropped before this match arm is reached,
-						// panicking here will then still be totally the right
-						// thing to do.
-					},
-					&Floor::TypeOne(ref fl) => {
-						let (floor1_final_y, floor1_step2_flag) =
-							floor_one_curve_compute_amplitude(floor_y, fl);
-						floor_one_curve_synthesis(floor1_final_y,
-							floor1_step2_flag, fl, n / 2)
-					},
-				}
+			&DecodedFloor::TypeZero(ref coefficients, amplitude, ref fl) => {
+				floor_zero_compute_curve(coefficients, amplitude,
+					fl, mode.mode_blockflag, n / 2)
 			},
-			&None => {
+			&DecodedFloor::TypeOne(ref floor_y, ref fl) => {
+				let (floor1_final_y, floor1_step2_flag) =
+					floor_one_curve_compute_amplitude(floor_y, fl);
+				floor_one_curve_synthesis(floor1_final_y,
+					floor1_step2_flag, fl, n / 2)
+			},
+			&DecodedFloor::Unused => {
 				// Generate zero'd floor of length n/2
 				vec![0.; (n / 2) as usize]
 			},

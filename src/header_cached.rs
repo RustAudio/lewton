@@ -123,3 +123,34 @@ fn test_compute_bitreverse() {
 		28,  92,  60, 124];
 	assert_eq!(br, cmp_arr);
 }
+
+#[inline]
+fn bark(x :f32) -> f32 {
+	13.1 * (0.00074 * x).atan() + 2.24 * (0.0000000185*x*x).atan() + 0.0001 * x
+}
+
+/// Precomputes bark map values used by floor type 0 packets
+///
+/// Precomputes the cos(omega) values for use by floor type 0 computation.
+///
+/// Note that there is one small difference to the spec: the output
+/// vec is n elements long, not n+1. The last element (at index n)
+/// is -1 in the spec, we lack it. Users of the result of this function
+/// implementation should use it "virtually".
+pub fn compute_bark_map_cos_omega(n :u16, floor0_rate :u16,
+		floor0_bark_map_size :u16) -> Vec<f32> {
+	let mut res = Vec::with_capacity(n as usize);
+	let hfl = floor0_rate as f32 / 2.0;
+	let hfl_dn = hfl / n as f32;
+	let foobar_const_part = floor0_bark_map_size as f32 / bark(hfl);
+	// Bark map size minus 1:
+	let bms_m1 = floor0_bark_map_size as f32 - 1.0;
+	let omega_factor = ::std::f32::consts::PI / floor0_bark_map_size as f32;
+	for i in 0 .. n {
+		let foobar = (bark(i as f32 * hfl_dn) * foobar_const_part).floor();
+		let map_elem = foobar.min(bms_m1);
+		let cos_omega = (map_elem * omega_factor).cos();
+		res.push(cos_omega);
+	}
+	return res;
+}

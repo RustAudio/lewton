@@ -323,6 +323,7 @@ impl <'a> BitpackCursor <'a> {
 	uk_dynamic_reader!(read_dyn_u8,  u8,  8);
 	uk_dynamic_reader!(read_dyn_u16, u16, 16);
 	uk_dynamic_reader!(read_dyn_u32, u32, 32);
+	uk_dynamic_reader!(read_dyn_u64, u64, 64);
 
 	// Signed non-dynamic reader methods
 

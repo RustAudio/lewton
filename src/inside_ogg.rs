@@ -28,7 +28,8 @@ pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 	let comment_hdr = try!(read_header_comment(&pck.data));
 
 	let pck :Packet = try!(rdr.read_packet());
-	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels));
+	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
+		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
 	return Ok((ident_hdr, comment_hdr, setup_hdr));
 }

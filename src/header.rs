@@ -27,7 +27,7 @@ use ::huffman_tree::{VorbisHuffmanTree, HuffmanError};
 use std::io::{Cursor, ErrorKind, Read, Error};
 use byteorder::{ReadBytesExt, LittleEndian};
 use std::string::FromUtf8Error;
-use header_cached::CachedBlocksizeDerived;
+use header_cached::{CachedBlocksizeDerived, compute_bark_map_cos_omega};
 
 /// Errors that can occur during Header decoding
 #[derive(Debug)]
@@ -362,6 +362,7 @@ pub struct FloorTypeZero {
 	pub floor0_amplitude_offset :u8,
 	pub floor0_number_of_books :u8,
 	pub floor0_book_list :Vec<u8>,
+	pub cached_bark_cos_omega :[Vec<f32>; 2],
 }
 
 pub struct FloorTypeOne {
@@ -720,7 +721,8 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 
 /// Reads a Floor which is part of the setup header packet.
 /// The `codebook_cnt` param is required to check for compliant streams
-fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16) -> Result<Floor, HeaderReadError> {
+fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) ->
+		Result<Floor, HeaderReadError> {
 	let floor_type = try!(rdr.read_u16());
 	match floor_type {
 		0 => {
@@ -728,6 +730,14 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16) -> Result<Floor, Heade
 			let floor0_rate = try!(rdr.read_u16());
 			let floor0_bark_map_size = try!(rdr.read_u16());
 			let floor0_amplitude_bits = try!(rdr.read_u6());
+			if floor0_amplitude_bits > 64 {
+				// Unfortunately the audio decoder part
+				// doesn't support values > 64 because rust has no
+				// 128 bit integers yet.
+				// TODO when support is added, remove this
+				// check.
+				try!(Err(HeaderReadError::HeaderBadFormat));
+			}
 			let floor0_amplitude_offset = try!(rdr.read_u8());
 			let floor0_number_of_books = try!(rdr.read_u4()) + 1;
 			let mut floor0_book_list = Vec::with_capacity(
@@ -743,6 +753,12 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16) -> Result<Floor, Heade
 				floor0_amplitude_offset : floor0_amplitude_offset,
 				floor0_number_of_books : floor0_number_of_books,
 				floor0_book_list : floor0_book_list,
+				cached_bark_cos_omega : [
+					compute_bark_map_cos_omega(1 << (blocksizes.0 - 1),
+						floor0_rate, floor0_bark_map_size),
+					compute_bark_map_cos_omega(1 << (blocksizes.1 - 1),
+						floor0_rate, floor0_bark_map_size),
+				]
 			}))
 		},
 		1 => {
@@ -1005,7 +1021,8 @@ fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo
 	});
 }
 
-pub fn read_header_setup(packet :&[u8], audio_channels :u8) -> Result<SetupHeader, HeaderReadError> {
+pub fn read_header_setup(packet :&[u8], audio_channels :u8, blocksizes :(u8, u8)) ->
+		Result<SetupHeader, HeaderReadError> {
 	let mut rdr = BitpackCursor::new(packet);
 	let hd_id = try!(read_header_begin(&mut rdr));
 	if hd_id != 5 {
@@ -1036,7 +1053,7 @@ pub fn read_header_setup(packet :&[u8], audio_channels :u8) -> Result<SetupHeade
 	let vorbis_floor_count :u8 = try!(rdr.read_u6()) + 1;
 	let mut floors = Vec::with_capacity(vorbis_floor_count as usize);
 	for _ in 0 .. vorbis_floor_count {
-		floors.push(try!(read_floor(&mut rdr, vorbis_codebook_count)));
+		floors.push(try!(read_floor(&mut rdr, vorbis_codebook_count, blocksizes)));
 	}
 
 	// 4. Read the residue values
