@@ -573,7 +573,7 @@ pub fn floor_decode<'a>(rdr :&mut BitpackCursor,
 					Ok((coeff, amp)) => DecodedFloor::TypeZero(coeff, amp, fl),
 					Err(Unused) => DecodedFloor::Unused,
 					Err(PacketUndecodable) => try!(Err(())),
-				}
+				};
 				// TODO fix bugs in floor 0 implementation and remove this panic.
 				panic!("Floor type 0 implementation is buggy. \
 					To prevent hearing damage, we panic in this place.");
