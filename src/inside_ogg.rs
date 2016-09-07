@@ -78,3 +78,91 @@ impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
 			&self.setup_hdr, &pck.data, &mut self.pwr)), pck_len));
 	}
 }
+
+
+#[cfg(feature = "async_ogg")]
+mod async_utils {
+
+	use ogg::{AdvanceAndSeekBack, Packet};
+	use ::inside_ogg::OggStreamReader;
+	use std::io::{Read, Seek};
+	use header::*;
+	use VorbisError;
+	use ogg::PacketReader;
+	use ::audio::PreviousWindowRight;
+
+	/// Async ready creator utility to read headers out of an
+	/// ogg stream.
+	///
+	/// This struct is async ready, meaning that it keeps its
+	/// internal state consistent even if some calls to underlying
+	/// read result with non fatal errors like the `WouldBlock` error
+	/// kind.
+	///
+	/// This allows trivial wrapping with your favourite async framework.
+	///
+	/// All into_* functions it uses are ready to be used for async operation.
+	pub struct HeadersReader<'a, T: Read + Seek + AdvanceAndSeekBack + 'a> {
+		rdr :&'a mut PacketReader<'a, T>,
+
+		ident_hdr :Option<IdentHeader>,
+		comment_hdr :Option<CommentHeader>,
+		setup_hdr :Option<SetupHeader>,
+	}
+
+	impl <'a, T: Read + Seek + AdvanceAndSeekBack + 'a> HeadersReader<'a, T> {
+		pub fn new(rdr :&'a mut PacketReader<'a, T>) ->
+				HeadersReader<'a, T> {
+			return HeadersReader {
+				rdr : rdr,
+				ident_hdr : None,
+				comment_hdr : None,
+				setup_hdr : None,
+			};
+		}
+		fn wrk(&mut self) -> Result<(), VorbisError> {
+			if self.ident_hdr.is_none() {
+				let pck :Packet = try!(self.rdr.read_packet());
+				self.ident_hdr = Some(try!(read_header_ident(&pck.data)));
+			}
+			if self.comment_hdr.is_none() {
+				let pck :Packet = try!(self.rdr.read_packet());
+				self.comment_hdr = Some(try!(read_header_comment(&pck.data)));
+			}
+			if self.setup_hdr.is_none() {
+				let pck :Packet = try!(self.rdr.read_packet());
+				let ident_hdr = self.ident_hdr.as_ref().unwrap();
+				self.setup_hdr = Some(try!(read_header_setup(&pck.data,
+					ident_hdr.audio_channels, (ident_hdr.blocksize_0, ident_hdr.blocksize_1))));
+			}
+			return Ok(());
+		}
+
+		/// Reads the headers and initializes an OggStreamReader with them
+		///
+		/// This function is async-ready, meaning that it will keep the internal
+		/// state consistent, and pass through any WouldBlock error kind errors.
+		pub fn into_ogg_stream_reader(mut self) -> Result<OggStreamReader<'a, T>, VorbisError> {
+			try!(self.wrk());
+			return Ok(OggStreamReader {
+				rdr : self.rdr,
+				pwr : PreviousWindowRight::new(),
+				ident_hdr : self.ident_hdr.unwrap(),
+				comment_hdr : self.comment_hdr.unwrap(),
+				setup_hdr : self.setup_hdr.unwrap(),
+			});
+		}
+		/// Reads the headers and returns them
+		///
+		/// This function is async-ready, meaning that it will keep the internal
+		/// state consistent, and pass through any WouldBlock error kind errors.
+		pub fn into_header_triple(mut self)
+				-> Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
+			try!(self.wrk());
+			return Ok((self.ident_hdr.unwrap(), self.comment_hdr.unwrap(), self.setup_hdr.unwrap()));
+		}
+	}
+}
+
+#[cfg(feature = "async_ogg")]
+pub use self::async_utils::HeadersReader as HeadersReader;
