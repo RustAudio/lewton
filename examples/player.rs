@@ -7,7 +7,6 @@
 extern crate openal;
 extern crate lewton;
 extern crate byteorder;
-extern crate time;
 extern crate ogg;
 
 use std::env;
@@ -17,7 +16,7 @@ use ogg::PacketReader;
 use lewton::inside_ogg::read_headers;
 use std::fs::File;
 use std::thread::sleep;
-use time::{Duration, get_time};
+use std::time::{Instant, Duration};
 use openal::al;
 use openal::alc;
 
@@ -57,7 +56,7 @@ fn run() -> Result<(), VorbisError> {
 	// For development you might want to set it to false
 	let do_playing = true;
 	let mut start_play_time = None;
-	let start_decode_time = get_time();
+	let start_decode_time = Instant::now();
 	loop {
 		print!("Reading packet no {}... ", n);
 		n += 1;
@@ -108,9 +107,10 @@ fn run() -> Result<(), VorbisError> {
 		source.queue_buffer(&buffer);
 		len_play += pck_data[0].len() as f32 / ident_hdr.audio_sample_rate as f32;
 		if n == 100 {
-			let cur = get_time();
-			if (cur - start_decode_time).num_milliseconds() <
-					(len_play * 1000.0) as i64 {
+			let cur = Instant::now();
+			if (cur - start_decode_time).as_secs() * 1000 +
+					(cur - start_decode_time).subsec_nanos() as u64 / 1_000_000 <
+					(len_play * 1000.0) as u64 {
 				if do_playing {
 					start_play_time = Some(cur);
 					source.play();
@@ -118,19 +118,19 @@ fn run() -> Result<(), VorbisError> {
 			}
 		}
 	}
-	let total_duration = Duration::milliseconds((len_play * 1000.0) as i64);
+	let total_duration = Duration::from_millis((len_play * 1000.0) as u64);
 	let sleep_duration = total_duration - match start_play_time {
 			None => {
 				if do_playing {
 					source.play();
 				}
-				Duration::milliseconds(0)
+				Duration::from_millis(0)
 			},
-			Some(t) => (get_time() - t)
+			Some(t) => (Instant::now() - t)
 		};
 	println!("The piece is {} s long.", len_play);
 	if do_playing {
-		sleep((sleep_duration.to_std()).expect("Duration range error"));
+		sleep(sleep_duration);
 	}
 
 	ctx.destroy();
