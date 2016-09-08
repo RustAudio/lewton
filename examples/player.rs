@@ -108,9 +108,7 @@ fn run() -> Result<(), VorbisError> {
 		len_play += pck_data[0].len() as f32 / ident_hdr.audio_sample_rate as f32;
 		if n == 100 {
 			let cur = Instant::now();
-			if (cur - start_decode_time).as_secs() * 1000 +
-					(cur - start_decode_time).subsec_nanos() as u64 / 1_000_000 <
-					(len_play * 1000.0) as u64 {
+			if cur - start_decode_time < Duration::from_millis((len_play * 1000.0) as u64) {
 				if do_playing {
 					start_play_time = Some(cur);
 					source.play();
