@@ -22,3 +22,4 @@ ieee754 = { version = "0.2", optional = true }
 ogg = "~0.3.3"
 openal-rs = "0.1"
 time = "0.1"
+rand = "0.3"

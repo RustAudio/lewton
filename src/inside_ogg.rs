@@ -110,7 +110,7 @@ mod async_utils {
 	///
 	/// This allows trivial wrapping with your favourite async framework.
 	///
-	/// All into_* functions it uses are ready to be used for async operation.
+	/// All functions this struct has are ready to be used for operation with async I/O.
 	pub struct HeadersReader<'a, T: Read + Seek + AdvanceAndSeekBack + 'a> {
 		rdr :&'a mut PacketReader<'a, T>,
 
@@ -129,7 +129,15 @@ mod async_utils {
 				setup_hdr : None,
 			};
 		}
-		fn wrk(&mut self) -> Result<(), VorbisError> {
+		/// Tries to advance the header read process
+		///
+		/// Call this function to try to advance the header read process.
+		/// Once it returns `Ok(())`, the header reading is done. After that
+		/// you may call the into_ functions.
+		///
+		/// This function is async-ready, meaning that it will keep the internal
+		/// state consistent, and pass through any WouldBlock error kind errors.
+		pub fn try_read_headers(&mut self) -> Result<(), VorbisError> {
 			if self.ident_hdr.is_none() {
 				let pck :Packet = try!(self.rdr.read_packet());
 				self.ident_hdr = Some(try!(read_header_ident(&pck.data)));
@@ -147,28 +155,24 @@ mod async_utils {
 			return Ok(());
 		}
 
-		/// Reads the headers and initializes an OggStreamReader with them
+		/// Initializes an OggStreamReader with the headers that have been read
 		///
-		/// This function is async-ready, meaning that it will keep the internal
-		/// state consistent, and pass through any WouldBlock error kind errors.
-		pub fn into_ogg_stream_reader(mut self) -> Result<OggStreamReader<'a, T>, VorbisError> {
-			try!(self.wrk());
-			return Ok(OggStreamReader {
+		/// Panics if the header reading process is not finished yet.
+		pub fn into_ogg_stream_reader(mut self) -> OggStreamReader<'a, T> {
+			return OggStreamReader {
 				rdr : self.rdr,
 				pwr : PreviousWindowRight::new(),
 				ident_hdr : self.ident_hdr.unwrap(),
 				comment_hdr : self.comment_hdr.unwrap(),
 				setup_hdr : self.setup_hdr.unwrap(),
-			});
+			};
 		}
-		/// Reads the headers and returns them
+		/// Returns the headers that have been read
 		///
-		/// This function is async-ready, meaning that it will keep the internal
-		/// state consistent, and pass through any WouldBlock error kind errors.
-		pub fn into_header_triple(mut self)
-				-> Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
-			try!(self.wrk());
-			return Ok((self.ident_hdr.unwrap(), self.comment_hdr.unwrap(), self.setup_hdr.unwrap()));
+		/// Panics if the header reading process is not finished yet.
+		pub fn into_header_triple(self)
+				-> (IdentHeader, CommentHeader, SetupHeader) {
+			return (self.ident_hdr.unwrap(), self.comment_hdr.unwrap(), self.setup_hdr.unwrap());
 		}
 	}
 }
