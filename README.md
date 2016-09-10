@@ -12,8 +12,10 @@ cargo run --example player /path/to/your/audio_file.ogg
 ```
 It will then play back the audio.
 
-If you want to know how to use this crate, look at the examples folder,
-or read the docs of the `inside_ogg` module.
+If you want to know how to use this crate, look at the examples folder.
+
+This crate has a low level API for per-packet decoding in the `audio` and `header` modules,
+and a high level API for ogg/vorbis streams in the `inside_ogg` module.
 
 Some parts were created with help from the public domain
 [stb_vorbis](http://nothings.org/stb_vorbis/) decoder implementation.
