@@ -44,8 +44,6 @@ pub fn run() -> Result<(), VorbisError> {
 			Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
 				if e.kind() == ErrorKind::UnexpectedEof => {
 				println!("Seems to be the end."); break; },
-			Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
-				if e.kind() == ErrorKind::WouldBlock => continue,
 			Err(e) => {
 				panic!("OGG stream decode failure: {}", e);
 			},
