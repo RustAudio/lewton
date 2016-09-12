@@ -15,15 +15,22 @@ use std::env;
 use std::fs::File;
 
 use ogg::PacketReader;
+use lewton::VorbisError;
 use lewton::inside_ogg::*;
+use std::time::{Duration, Instant};
 
 use vorbis::Decoder as NativeDecoder;
 
 fn main() {
-	run();
+	let command_name = env::args().nth(1).expect("No command found.");
+	match command_name.as_ref() {
+		"vals" =>  run_vals(),
+		"perf" =>  run_perf(),
+		_ => println!("Error: invalid command"),
+	}
 }
 
-fn run() {
+fn run_perf() {
 	macro_rules! try {
 		($expr:expr) => (match $expr {
 			$crate::std::result::Result::Ok(val) => val,
@@ -32,7 +39,73 @@ fn run() {
 			}
 		})
 	}
-	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
+	let file_path = env::args().nth(2).expect("Please specify a file to open via arg.");
+	println!("Opening file: {}", file_path);
+
+	let mut n_native = 0;
+
+	let f_n = try!(File::open(file_path.clone()));
+	let dec = try!(NativeDecoder::new(f_n));
+	let mut native_it = dec.into_packets();
+	let start_native_decode = Instant::now();
+
+	loop {
+		n_native += 1;
+		let native_decoded = try!(match native_it.next() { Some(v) => v,
+			None => { break }});
+	}
+	let native_decode_duration = Instant::now() - start_native_decode;
+
+	println!("Time to decode {} packets with libvorbis: {}",
+		n_native, get_duration_seconds(&native_decode_duration));
+
+	let mut n = 0;
+	let mut f_r = try!(File::open(file_path));
+	let mut pck_rdr = PacketReader::new(&mut f_r);
+	let mut ogg_rdr :OggStreamReader<_> = try!(OggStreamReader::new(&mut pck_rdr));
+
+	let start_decode = Instant::now();
+
+	// Reading and discarding the first empty packet
+	// The native decoder does this itself.
+	try!(ogg_rdr.read_decompressed_packet());
+
+	println!("Sample rate: {}", ogg_rdr.ident_hdr.audio_sample_rate);
+
+	loop {
+		n += 1;
+		use std::io::ErrorKind;
+		use ogg::OggReadError;
+		match ogg_rdr.read_decompressed_packet() {
+			Ok(p) => p,
+			Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
+				if e.kind() == ErrorKind::UnexpectedEof => {
+				println!("Seems to be the end."); break; },
+			Err(e) => {
+				panic!("OGG stream decode failure: {}", e);
+			},
+		};
+	}
+	let decode_duration = Instant::now() - start_decode;
+
+	println!("Time to decode {} packets with lewton: {}",
+		n, get_duration_seconds(&decode_duration));
+}
+
+fn get_duration_seconds(dur :&Duration) -> f64 {
+	return dur.as_secs() as f64 + (dur.subsec_nanos() as f64) / 1_000_000_000.0;
+}
+
+fn run_vals() {
+	macro_rules! try {
+		($expr:expr) => (match $expr {
+			$crate::std::result::Result::Ok(val) => val,
+			$crate::std::result::Result::Err(err) => {
+				panic!("Error: {:?}", err)
+			}
+		})
+	}
+	let file_path = env::args().nth(2).expect("Please specify a file to open via arg.");
 	println!("Opening file: {}", file_path);
 	let     f_n = try!(File::open(file_path.clone()));
 	let mut f_r = try!(File::open(file_path));
