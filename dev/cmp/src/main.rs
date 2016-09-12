@@ -165,7 +165,7 @@ fn run_vals() {
 		};
 		let mut diffs = 0;
 		for (s,n) in dc_iter.zip(native_decoded.data.iter()) {
-			let diff = s - n;
+			let diff = *s as i32 - *n as i32;
 			// +- 1 deviation is allowed.
 			if diff.abs() > 1 {
 				diffs += 1;
