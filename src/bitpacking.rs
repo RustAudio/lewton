@@ -23,7 +23,7 @@ and doesn't even have a builtin single byte type.
 */
 
 
-use ::huffman_tree::VorbisHuffmanTree;
+use ::huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
 
 /// A Cursor on slices to read numbers and bitflags, bit aligned.
 pub struct BitpackCursor <'a> {
@@ -157,6 +157,96 @@ macro_rules! bpc_read_body {
 		$selfarg.bit_cursor = bit_cursor_after;
 		//println!(" => {:?}", res);
 		Ok(res)
+	}
+} }
+}
+
+// The main macro to peek bit aligned
+// Note that `$octetnum` is the number of octets in $bitnum ($bitnum / 8 rounded down)
+macro_rules! bpc_peek_body {
+( $rettype:ident, $bitnum:expr, $octetnum:expr, $selfarg:expr ) => { {
+	let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
+	let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
+	let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
+
+	if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
+		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={}+1)",
+			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+			$selfarg.byte_cursor, $selfarg.bit_cursor,
+			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+			1 + octetnum_rounded_up]);// */
+		if $selfarg.byte_cursor + 1 + octetnum_rounded_up > $selfarg.inner.len() {
+			//println!(" => Out of bounds :\\");
+			return Err(());
+		}
+		let buf = &$selfarg.inner[$selfarg.byte_cursor
+			.. $selfarg.byte_cursor + 1 + octetnum_rounded_up];
+		let mut res :$rettype = buf[0] as $rettype;
+		res >>= $selfarg.bit_cursor;
+		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+		for i in 1 .. octetnum_rounded_up {
+			res |= (buf[i] as $rettype) << cur_bit_cursor;
+			cur_bit_cursor += 8;
+		}
+		let last_bits = buf[octetnum_rounded_up] & mask_bits(bit_cursor_after);
+		res |= (last_bits as $rettype) << cur_bit_cursor;
+		//println!(" => {:?}", res);
+		Ok(res)
+	} else {
+		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={})",
+			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+			$selfarg.byte_cursor, $selfarg.bit_cursor,
+			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+			octetnum_rounded_up]);// */
+		if $selfarg.byte_cursor + octetnum_rounded_up > $selfarg.inner.len() {
+			//println!(" => Out of bounds :\\");
+			return Err(());
+		}
+		let buf = &$selfarg.inner[$selfarg.byte_cursor ..
+			$selfarg.byte_cursor + octetnum_rounded_up];
+		let mut res :$rettype = buf[0] as $rettype;
+		res >>= $selfarg.bit_cursor;
+		if $bitnum <= 8 {
+			res &= mask_bits($bitnum) as $rettype;
+		}
+		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+		for i in 1 .. octetnum_rounded_up - 1 {
+			res |= (buf[i] as $rettype) << cur_bit_cursor;
+			cur_bit_cursor += 8;
+		}
+		if $bitnum > 8 {
+			let last_bits = buf[octetnum_rounded_up - 1] & bmask_bits(bit_cursor_after);
+			res |= (last_bits as $rettype) << cur_bit_cursor;
+		}
+		//println!(" => {:?}", res);
+		Ok(res)
+	}
+} }
+}
+
+// The main macro to advance bit aligned
+// Note that `$octetnum` is the number of octets in $bitnum ($bitnum / 8 rounded down)
+macro_rules! bpc_advance_body {
+( $bitnum:expr, $octetnum:expr, $selfarg:expr ) => { {
+	let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
+	let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
+	let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
+
+	if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
+		$selfarg.byte_cursor += octetnum_rounded_up;
+		$selfarg.bit_cursor = bit_cursor_after;
+		//println!(" => {:?}", res);
+		Ok(())
+	} else {
+		$selfarg.byte_cursor += $octetnum;
+		$selfarg.byte_cursor += ($selfarg.bit_cursor == 8 - ($bitnum % 8)) as usize;
+		$selfarg.bit_cursor = bit_cursor_after;
+		//println!(" => {:?}", res);
+		Ok(())
 	}
 } }
 }
@@ -379,11 +469,44 @@ impl <'a> BitpackCursor <'a> {
 		}
 	}
 
+	/// Peeks 8 bits of non read yet content without advancing the reader
+	#[inline]
+	pub fn peek_u8(&self) -> Result<u8, ()> {
+		bpc_peek_body!(u8, 8, 1, self)
+	}
+
+	// Advances the reader by the given number of bits (up to 8).
+	pub fn advance_dyn_u8(&mut self, bit_num :u8) -> Result<(), ()> {
+		let octet_num :usize = (bit_num / 8) as usize;
+		if bit_num == 0 {
+			// TODO: one day let bpc_advance_body handle this,
+			// if its smartly doable in there.
+			// For why it is required, see comment in the
+			// test_bitpacking_reader_empty function.
+			return Ok(());
+		}
+		assert!(bit_num <= 8);
+		bpc_advance_body!(bit_num, octet_num, self)
+	}
+
 	/// Reads a huffman word using the codebook abstraction
 	pub fn read_huffman(&mut self, tree :&VorbisHuffmanTree) -> Result<u32, ()> {
-		let mut iter = tree.iter();
 		//let mut c :usize = 0;
 		//let mut w :usize = 0;
+		let mut iter = match self.peek_u8() {
+			Ok(data) => match tree.lookup_peeked_data(8, data as u32) {
+				PeekedDataLookupResult::Iter(advance, iter) => {
+					try!(self.advance_dyn_u8(advance));
+					iter
+				},
+				PeekedDataLookupResult::PayloadFound(advance, payload) => {
+					try!(self.advance_dyn_u8(advance));
+					return Ok(payload);
+				},
+			},
+			Err(_) => tree.iter(),
+		};
+
 		loop {
 			let b = try!(self.read_bit_flag());
 			/*

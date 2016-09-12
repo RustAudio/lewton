@@ -130,9 +130,47 @@ pub enum HuffmanError {
 	InvalidSingleEntry,
 }
 
+#[derive(Clone, Copy)]
+enum UnrolledLookupEntry {
+	/// The specified entry was found in the lookup array
+	///
+	/// First param: offset by which to advance the reader
+	/// Second param: the payload
+	HasEntry(u8, u32),
+	/// Seems the given input is inconclusive and not complete yet.
+	///
+	/// The argument contains a hint that is an offset inside desc_prog
+	/// to help to advance the reader.
+	InconclusiveWithHint(u32),
+	/// Seems the given input is inconclusive and not complete yet.
+	Inconclusive,
+}
+
+pub enum PeekedDataLookupResult<'l> {
+	/// The supplied info is not enough to result in a payload directly.
+	///
+	/// First param is the number of bits to advance.
+	///
+	/// The returned iterator has state up to the count of bits that could be used.
+	Iter(u8, VorbisHuffmanIter<'l>),
+	/// The supplied info is enough to map to a payload
+	///
+	/// First param is the number of bits to advance. Second is payload.
+	PayloadFound(u8, u32),
+}
+
 /// Huffman tree representation
 pub struct VorbisHuffmanTree {
+	// Format: three bytes per non leaf node, one byte per leaf node.
+	// First byte is the payload container,
+	// second and third point to the indices inside the vector that
+	// have left and right children.
+	// If the node is a leaf the highest bit of the payload container 0,
+	// if it has children the bit is 1. If its a leaf the lower 31 bits of the
+	// payload container form the actual payload.
 	desc_prog :Vec<u32>,
+
+	unrolled_entries :[UnrolledLookupEntry; 256],
 }
 
 impl VorbisHuffmanTree {
@@ -165,7 +203,12 @@ impl VorbisHuffmanTree {
 			let encoded_len = codebook_codeword_lengths[decoded];
 			if encoded_len == 1 {
 				// Return a vorbis tree that returns decoded for any single bit input
-				return Ok(VorbisHuffmanTree { desc_prog :vec![1u32 << 31, 3, 3, decoded as u32] });
+				return Ok(VorbisHuffmanTree {
+					desc_prog :vec![1u32 << 31, 3, 3, decoded as u32],
+					unrolled_entries :[
+						UnrolledLookupEntry::HasEntry(1, decoded as u32); 256
+					],
+				});
 			} else {
 				// Single entry codebooks must have 1 as their only length entry
 				try!(Err(HuffmanError::InvalidSingleEntry))
@@ -207,13 +250,88 @@ impl VorbisHuffmanTree {
 		}
 		assert_eq!(traverse(&simple_tree, &mut desc_prog), 0);
 
+		// Third step: generate unrolled entries array
+		// Also by pre_order traversal.
+		//
+		// This gives us a speedup over desc_prog as reading the unrolled
+		// entries should involve less branching and less lookups overall.
+		let mut unrolled_entries = [UnrolledLookupEntry::Inconclusive; 256];
+		fn uroll_traverse(tree :& HuffTree,
+				unrolled_entries :&mut [UnrolledLookupEntry; 256],
+				prefix :u32, prefix_idx :u8,
+				desc_prog :&[u32], desc_prog_idx :u32) {
+			let has_children = tree.l.is_some() || tree.r.is_some();
+
+			if has_children {
+				// There are children.
+				// We'd like to recurse deeper. Can we?
+				if prefix_idx == 8 {
+					// No we can't.
+					// The tree is too deep.
+					unrolled_entries[prefix as usize] =
+						UnrolledLookupEntry::InconclusiveWithHint(desc_prog_idx);
+				} else {
+					// Recurse deeper.
+					uroll_traverse(tree.l.as_ref().unwrap(),
+						unrolled_entries,
+						prefix + (0 << prefix_idx), prefix_idx + 1,
+						desc_prog, desc_prog[desc_prog_idx as usize + 1]);
+					uroll_traverse(tree.r.as_ref().unwrap(),
+						unrolled_entries,
+						prefix + (1 << prefix_idx), prefix_idx + 1,
+						desc_prog, desc_prog[desc_prog_idx as usize + 2]);
+				}
+			} else {
+				// No children, fill the entries in the range according to
+				// the prefix we have.
+				let payload = tree.payload.unwrap();
+				let it = 1 << prefix_idx;
+				let mut i = prefix as usize;
+				for _ in 1 .. (1u16 << (8 - prefix_idx)) {
+					unrolled_entries[i] =
+						UnrolledLookupEntry::HasEntry(prefix_idx, payload);
+					i += it;
+				}
+			}
+		}
+		uroll_traverse(&simple_tree,
+			&mut unrolled_entries, 0, 0, &desc_prog, 0);
+
 		// Now we are done, return the result
-		return Ok(VorbisHuffmanTree { desc_prog :desc_prog });
+		return Ok(VorbisHuffmanTree {
+			desc_prog :desc_prog,
+			unrolled_entries :unrolled_entries,
+		});
 	}
 
 	/// Returns an iterator over this tree.
 	pub fn iter<'l>(&'l self) -> VorbisHuffmanIter<'l> {
 		return VorbisHuffmanIter { desc_prog :&self.desc_prog, pos :0 };
+	}
+
+	/// Resolves a given number of peeked bits.
+	///
+	/// Returns whether the data given is enough to uniquely identify a
+	/// tree element, or whether only an iterator that's progressed by
+	/// a given amount can be returned. Also, info is returned about how
+	/// far the reader can be advanced.
+	pub fn lookup_peeked_data<'l>(&'l self, bit_count :u8, peeked_data :u32)
+			-> PeekedDataLookupResult<'l> {
+		if bit_count > 8 {
+			panic!("Bit count {} larger than allowed 8", bit_count);
+		}
+		use self::UnrolledLookupEntry::*;
+		use self::PeekedDataLookupResult::*;
+		return match self.unrolled_entries[peeked_data as usize] {
+			// If cnt_to_remove is bigger than bit_count the result is inconclusive.
+			// Return in this case.
+			HasEntry(cnt_to_remove, payload) if cnt_to_remove <= bit_count
+				=> PayloadFound(cnt_to_remove, payload),
+			InconclusiveWithHint(hint)
+				=> Iter(8, VorbisHuffmanIter { desc_prog : &self.desc_prog, pos : hint }),
+			_
+				=> Iter(0, VorbisHuffmanIter { desc_prog : &self.desc_prog, pos : 0 }),
+		};
 	}
 }
 
