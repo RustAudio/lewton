@@ -60,7 +60,7 @@ fn run_perf() {
 	}
 	let native_decode_duration = Instant::now() - start_native_decode;
 
-	println!("Time to decode {} packets with libvorbis: {}",
+	println!("Time to decode {} packets with libvorbis: {} s",
 		n_native, get_duration_seconds(&native_decode_duration));
 
 	let mut n = 0;
@@ -92,7 +92,7 @@ fn run_perf() {
 	}
 	let decode_duration = Instant::now() - start_decode;
 
-	println!("Time to decode {} packets with lewton: {}",
+	println!("Time to decode {} packets with lewton: {} s",
 		n, get_duration_seconds(&decode_duration));
 	println!("Ratio of difference: {:.2}x",
 		get_duration_seconds(&decode_duration) /
