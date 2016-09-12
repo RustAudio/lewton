@@ -24,9 +24,11 @@ use vorbis::Decoder as NativeDecoder;
 fn main() {
 	let command_name = env::args().nth(1).expect("No command found.");
 	match command_name.as_ref() {
-		"vals" =>  run_vals(),
-		"perf" =>  run_perf(),
-		_ => println!("Error: invalid command"),
+		"vals" =>  run_vals(), // Comparison of the output
+		"perf" =>  run_perf(), // Comparison of speed
+		_ => println!("Error: invalid command.\n\
+		Usage: <Command> <Filename>. Valid commands are \
+		'vals' for output comparison and 'perf' for speed comparison."),
 	}
 }
 
