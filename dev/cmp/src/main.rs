@@ -94,6 +94,9 @@ fn run_perf() {
 
 	println!("Time to decode {} packets with lewton: {}",
 		n, get_duration_seconds(&decode_duration));
+	println!("Ratio of difference: {:.2}x",
+		get_duration_seconds(&decode_duration) /
+		get_duration_seconds(&native_decode_duration));
 }
 
 fn get_duration_seconds(dur :&Duration) -> f64 {
