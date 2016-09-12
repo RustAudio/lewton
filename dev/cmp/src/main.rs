@@ -53,8 +53,10 @@ fn run_perf() {
 
 	loop {
 		n_native += 1;
-		let native_decoded = try!(match native_it.next() { Some(v) => v,
-			None => { break }});
+		try!(match native_it.next() {
+			Some(v) => v,
+			None => { break }
+		});
 	}
 	let native_decode_duration = Instant::now() - start_native_decode;
 
