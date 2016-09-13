@@ -70,7 +70,7 @@ impl fmt::Display for AudioReadError {
 	}
 }
 
-pub enum DecodedFloor<'a> {
+enum DecodedFloor<'a> {
 	TypeZero(Vec<f32>, u64, &'a FloorTypeZero),
 	TypeOne(Vec<u32>, &'a FloorTypeOne),
 	Unused,
@@ -85,7 +85,7 @@ impl <'a> DecodedFloor<'a> {
 	}
 }
 
-pub enum FloorSpecialCase {
+enum FloorSpecialCase {
 	Unused,
 	PacketUndecodable,
 }
@@ -113,7 +113,7 @@ impl From<HuffmanVqReadErr> for FloorSpecialCase {
 
 // Note that the output vector contains the cosine values of the coefficients,
 // not the bare values like in the spec. This is in order to optimize.
-pub fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
+fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 		fl :&FloorTypeZero) -> Result<(Vec<f32>, u64), FloorSpecialCase> {
 	// TODO this needs to become 128 bits wide, not just 64,
 	// as floor0_amplitude_bits can be up to 127.
@@ -164,7 +164,7 @@ pub fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 	unreachable!();
 }
 
-pub fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
+fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
 		fl :&FloorTypeZero, blockflag :bool, n :u16) -> Vec<f32> {
 	let cached_bark_cos_omega =
 		&fl.cached_bark_cos_omega[blockflag as usize];
@@ -219,7 +219,7 @@ pub fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
 }
 
 // Returns Err if the floor is "unused"
-pub fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
+fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 		fl :&FloorTypeOne) -> Result<Vec<u32>, FloorSpecialCase> {
 	// TODO perhaps it means invalid audio packet if reading the nonzero
 	// flag doesn't succeed bc end of packet. Perhaps it does not.
@@ -391,7 +391,7 @@ fn test_render_point() {
 	assert_eq!(render_point(70, 20, 128, 67, 90), 36);
 }
 
-pub fn floor_one_curve_compute_amplitude(floor1_y :&Vec<u32>, fl :&FloorTypeOne) -> (Vec<u32>, Vec<bool>) {
+fn floor_one_curve_compute_amplitude(floor1_y :&Vec<u32>, fl :&FloorTypeOne) -> (Vec<u32>, Vec<bool>) {
 	let v = vec![256, 128, 86, 64];
 	let range = v[(fl.floor1_multiplier - 1) as usize] as i32;
 	let mut floor1_step2_flag = Vec::new();
@@ -526,7 +526,7 @@ fn render_line(x0 :u32, y0 :u32, x1 :u32, y1 :u32, v :&mut Vec<u32>) {
 	}
 }
 
-pub fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
+fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 		floor1_step2_flag :Vec<bool>, fl :&FloorTypeOne, n :u16) -> Vec<f32> {
 	let floor1_final_y_s = |i :usize| { floor1_final_y[fl.floor1_x_list_sorted[i].0] };
 	let floor1_x_list_s = |i :usize| { fl.floor1_x_list_sorted[i].1 };
@@ -558,7 +558,7 @@ pub fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 	return rf;
 }
 
-pub fn floor_decode<'a>(rdr :&mut BitpackCursor,
+fn floor_decode<'a>(rdr :&mut BitpackCursor,
 		ident :&IdentHeader, mapping :&Mapping, codebooks :&Vec<Codebook>,
 		floors :&'a Vec<Floor>) -> Result<Vec<DecodedFloor<'a>>, ()> {
 	let mut decoded_floor_infos = Vec::with_capacity(ident.audio_channels as usize);
@@ -710,7 +710,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 
 // Ok means "fine" (or end of packet, but thats "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
-pub fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
+fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f64>, ()> {
 
 	let ch = do_not_decode_flag.len();

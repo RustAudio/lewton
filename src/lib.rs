@@ -101,13 +101,13 @@ macro_rules! read_codeword {
 }
 
 pub mod header;
-pub mod header_cached;
-pub mod huffman_tree;
+mod header_cached;
+mod huffman_tree;
 mod imdct;
 #[cfg(test)]
 mod imdct_test;
 pub mod audio;
-pub mod bitpacking;
+mod bitpacking;
 #[cfg(feature = "ogg")]
 pub mod inside_ogg;
 
