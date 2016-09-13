@@ -8,6 +8,7 @@ repository = "https://github.com/est31/lewton"
 keywords = ["ogg", "vorbis", "decoder", "audio"]
 documentation = "https://docs.rs/lewton/0.1.0"
 readme = "README.md"
+changelog = "CHANGELOG.md"
 
 [features]
 default = ["ogg", "ieee754"]
