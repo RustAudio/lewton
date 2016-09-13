@@ -20,6 +20,8 @@ and a high level API for ogg/vorbis streams in the `inside_ogg` module.
 Some parts were created with help from the public domain
 [stb_vorbis](http://nothings.org/stb_vorbis/) decoder implementation.
 
+## Use of unsafe
+
 It contains no unsafe code per default.
 However, in order to meet this goal, it uses a separate crate just for two one liner functions.
 If you can't live with this nodejs-ism, but can live with `unsafe` "tainting" the codebase, you can disable the `ieee754` feature.
