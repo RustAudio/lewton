@@ -302,6 +302,7 @@ macro_rules! uk_dynamic_reader {
 }
 }
 
+#[allow(dead_code)]
 fn float32_unpack(val :u32) -> f64 {
 	let sgn = (val & 0x80000000) as u64;
 	let mut exp = (val & 0x7fe00000) as u64 >> 21;
@@ -313,6 +314,7 @@ fn float32_unpack(val :u32) -> f64 {
 	return ::transmution_stuff::f64_transmute(v);
 }
 
+#[allow(dead_code)]
 fn float32_unpack_to_32_directly(val :u32) -> f32 {
 	let sgn = (val & 0x80000000) as u32;
 	let mut exp = (val & 0x7fe00000) as u32 >> 21;
@@ -366,6 +368,8 @@ fn test_float32_unpack_to_32_directly() {
 	assert_eq!(float32_unpack_to_32_directly(3780634624),  -1530.000000);
 }
 
+// allow some code that is only used in the tests
+#[allow(dead_code)]
 impl <'a> BitpackCursor <'a> {
 
 	/// Creates a new `BitpackCursor` for the given data array
