@@ -1021,6 +1021,10 @@ fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo
 	});
 }
 
+/// Reading the setup header.
+///
+/// The audio channel and blocksize info needed by the function
+/// can be obtained from the ident header.
 pub fn read_header_setup(packet :&[u8], audio_channels :u8, blocksizes :(u8, u8)) ->
 		Result<SetupHeader, HeaderReadError> {
 	let mut rdr = BitpackCursor::new(packet);
