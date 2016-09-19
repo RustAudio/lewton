@@ -592,7 +592,7 @@ fn floor_decode<'a>(rdr :&mut BitpackCursor,
 }
 
 fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
-		resid :&Residue, vec_v :&mut [f64]) -> Result<(), HuffmanVqReadErr> {
+		resid :&Residue, vec_v :&mut [f32]) -> Result<(), HuffmanVqReadErr> {
 	if resid.residue_type == 0 {
 		let codebook_dimensions = codebook.codebook_dimensions as usize;
 		let step = resid.residue_partition_size as usize / codebook_dimensions;
@@ -617,7 +617,7 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 }
 
 fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
-		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f64>, ()> {
+		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f32>, ()> {
 
 	let ch = do_not_decode_flag.len();
 	let actual_size = (cur_blocksize / 2) as usize;
@@ -711,7 +711,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 // Ok means "fine" (or end of packet, but thats "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
 fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
-		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f64>, ()> {
+		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f32>, ()> {
 
 	let ch = do_not_decode_flag.len();
 	let vec_size = (cur_blocksize / 2) as usize;
@@ -751,7 +751,7 @@ fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 	}
 }
 
-fn inverse_couple(m :f64, a :f64) -> (f64, f64) {
+fn inverse_couple(m :f32, a :f32) -> (f32, f32) {
 	if m > 0. {
 		if a > 0. {
 			(m, m - a)
@@ -927,7 +927,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 			Ok(v) => v,
 			Err(_) => return Err(AudioReadError::AudioBadFormat),
 		};
-		// The vectors Vec<f64> now contains the do_not_decode_flag.len()
+		// The vectors Vec<f32> now contains the do_not_decode_flag.len()
 		// many decoded residue vectors, each vector occupying n/2 scalars.
 		let mut ch = 0;
 		for (j, &mapping_mux_j) in mapping.mapping_mux.iter().enumerate() {
@@ -990,7 +990,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 
 		// Now do the multiplication
 		for (fl_sc, r_sc) in floor_decoded.iter_mut().zip(residue_vector.iter()) {
-			*fl_sc *= *r_sc as f32;
+			*fl_sc *= *r_sc;
 		}
 		audio_spectri.push(floor_decoded);
 	}

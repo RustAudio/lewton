@@ -318,7 +318,7 @@ pub struct Codebook {
 	pub codebook_entries :u32,
 
 	// None if codebook_lookup_type == 0
-	pub codebook_vq_lookup_vec :Option<Vec<f64>>,
+	pub codebook_vq_lookup_vec :Option<Vec<f32>>,
 
 	pub codebook_huffman_tree :VorbisHuffmanTree,
 }
@@ -429,8 +429,8 @@ pub struct SetupHeader {
 
 struct CodebookVqLookup {
 	codebook_lookup_type :u8,
-	codebook_minimum_value :f64,
-	codebook_delta_value :f64,
+	codebook_minimum_value :f32,
+	codebook_delta_value :f32,
 	codebook_sequence_p :bool,
 	codebook_multiplicands :Vec<u32>,
 }
@@ -443,7 +443,7 @@ struct CodebookVqLookup {
 /// Returns `codebook_entries` many vectors,
 /// each being `codebook_dimensions` scalars wide),
 /// all stored in one Vec.
-fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook_dimensions :u16) -> Vec<f64> {
+fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook_dimensions :u16) -> Vec<f32> {
 	let mut value_vectors = Vec::with_capacity(
 		codebook_entries as usize * codebook_dimensions as usize);
 	if lup.codebook_lookup_type == 1 {
@@ -454,7 +454,7 @@ fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook
 			for _ in 0 .. codebook_dimensions {
 				let multiplicand_offset = (lookup_offset / index_divisor as u32) as usize %
 					codebook_lookup_values;
-				let vec_elem = lup.codebook_multiplicands[multiplicand_offset] as f64 *
+				let vec_elem = lup.codebook_multiplicands[multiplicand_offset] as f32 *
 					lup.codebook_delta_value + lup.codebook_minimum_value + last;
 				if lup.codebook_sequence_p {
 					last = vec_elem;
@@ -468,7 +468,7 @@ fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook
 		for lookup_offset in 0 .. codebook_entries {
 			let mut multiplicand_offset :usize = lookup_offset as usize * codebook_dimensions as usize;
 			for _ in 0 .. codebook_dimensions {
-				let vec_elem = lup.codebook_multiplicands[multiplicand_offset] as f64 *
+				let vec_elem = lup.codebook_multiplicands[multiplicand_offset] as f32 *
 					lup.codebook_delta_value + lup.codebook_minimum_value + last;
 				if lup.codebook_sequence_p {
 					last = vec_elem;
@@ -496,13 +496,13 @@ pub enum HuffmanVqReadErr {
 
 impl <'a> BitpackCursor <'a> {
 	/// Reads a huffman word using the codebook abstraction via a VQ context
-	pub fn read_huffman_vq<'b>(&mut self, b :&'b Codebook) -> Result<&'b[f64], HuffmanVqReadErr> {
+	pub fn read_huffman_vq<'b>(&mut self, b :&'b Codebook) -> Result<&'b[f32], HuffmanVqReadErr> {
 
 		let idx = match self.read_huffman(&b.codebook_huffman_tree) {
 			Ok(v) => v as usize,
 			Err(_) => return Err(HuffmanVqReadErr::EndOfPacket),
 		};
-		let codebook_vq_lookup_vec :&Vec<f64> = match b.codebook_vq_lookup_vec.as_ref() {
+		let codebook_vq_lookup_vec :&Vec<f32> = match b.codebook_vq_lookup_vec.as_ref() {
 			Some(ref v) => v,
 			None => return Err(HuffmanVqReadErr::NoVqLookupForCodebook),
 		};
@@ -684,8 +684,8 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 	if codebook_lookup_type == 0 {
 		None
 	} else {
-		let codebook_minimum_value = try!(rdr.read_f32());
-		let codebook_delta_value = try!(rdr.read_f32());
+		let codebook_minimum_value = try!(rdr.read_f32_lossy());
+		let codebook_delta_value = try!(rdr.read_f32_lossy());
 		let codebook_value_bits = try!(rdr.read_u4()) + 1;
 		let codebook_sequence_p = try!(rdr.read_bit_flag());
 		let codebook_lookup_values :u64 = if codebook_lookup_type == 1 {
