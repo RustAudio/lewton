@@ -29,6 +29,7 @@ fn main() {
 
 fn run_perf() {
 	let file_path = env::args().nth(2).expect("Please specify a file to open via arg.");
+	println!("Opening file: {}", file_path);
 	let (decode_duration, native_decode_duration, n) = cmp_perf(&file_path);
 
 	println!("Time to decode {} packets with lewton: {} s",
@@ -40,6 +41,7 @@ fn run_perf() {
 
 fn run_vals() {
 	let file_path = env::args().nth(2).expect("Please specify a file to open via arg.");
+	println!("Opening file: {}", file_path);
 	let (pcks_with_diffs, n) = cmp_output(&file_path);
 	if pcks_with_diffs > 0 {
 		println!("Total number of packets with differences: {} of {} ({}%)",

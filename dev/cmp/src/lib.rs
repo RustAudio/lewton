@@ -29,7 +29,6 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 			}
 		})
 	}
-	println!("Opening file: {}", file_path);
 
 	let mut n_native = 0;
 
@@ -94,7 +93,6 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 			}
 		})
 	}
-	println!("Opening file: {}", file_path);
 	let     f_n = try!(File::open(file_path.clone()));
 	let mut f_r = try!(File::open(file_path));
 
@@ -108,7 +106,6 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 		println!("Stream error: {} channels are too many!",
 			ogg_rdr.ident_hdr.audio_channels);
 	}
-	println!("Sample rate: {}", ogg_rdr.ident_hdr.audio_sample_rate);
 
 	// Now the fun starts..
 	let mut native_it = dec.into_packets();

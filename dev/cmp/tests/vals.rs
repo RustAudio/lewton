@@ -33,16 +33,16 @@ fn test_vals() {
 	println!("");
 	test_assets::download_test_files(&asset_defs,
 		"test-assets", true).unwrap();
+	println!("");
 	macro_rules! cmp_output {
 		($str:expr, $max_diff:expr) => {
-			print!("Comparing output for file {} ", $str);
-			let (diff_pck_count, _) = cmp::cmp_output($str);
+			print!("Comparing output for {} ", $str);
+			let (diff_pck_count, _) = cmp::cmp_output(&format!("test-assets/{}", $str));
 			println!(": {} differing packets of allowed {}.", diff_pck_count, $max_diff);
 			assert!(diff_pck_count <= $max_diff);
 		};
 	}
-	cmp_output!("test-assets/bwv_1043_vivace.ogg", 197);
-	cmp_output!("test-assets/bwv_543_fuge.ogg", 7);
-	cmp_output!("test-assets/maple_leaf_rag.ogg", 5);
-	panic!();
+	cmp_output!("bwv_1043_vivace.ogg", 197);
+	cmp_output!("bwv_543_fuge.ogg", 7);
+	cmp_output!("maple_leaf_rag.ogg", 5);
 }
