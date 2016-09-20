@@ -29,6 +29,12 @@ fn test_vals() {
 			hash : format!("f66f18de6bc79126f13d96831619d68ddd56f9527e50e1058be0754b479ee350"),
 			url : format!("https://upload.wikimedia.org/wikipedia/commons/e/e9/Maple_Leaf_Rag_-_played_by_Scott_Joplin_1916_sample.ogg"),
 		},
+		TestAssetDef {
+			filename : format!("hoelle_rache.ogg"),
+			hash : format!("bbdf0a8d4c151aee5a21fb71ed86894b1aae5c7dba9ea767f7af6c0f752915c2"),
+			url : format!("https://upload.wikimedia.org/wikipedia/commons/7/7d/Der_Hoelle_Rache.ogg"),
+		},
+
 	];
 	println!("");
 	test_assets::download_test_files(&asset_defs,
@@ -45,4 +51,5 @@ fn test_vals() {
 	cmp_output!("bwv_1043_vivace.ogg", 197);
 	cmp_output!("bwv_543_fuge.ogg", 7);
 	cmp_output!("maple_leaf_rag.ogg", 5);
+	cmp_output!("hoelle_rache.ogg", 281);
 }
