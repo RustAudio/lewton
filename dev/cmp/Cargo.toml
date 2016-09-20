@@ -9,3 +9,4 @@ lewton = { path = "../../" }
 ogg = "~0.3.3"
 vorbis = "0.0"
 time = "0.1"
+test-assets = "0.1"
