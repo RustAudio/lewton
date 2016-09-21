@@ -34,6 +34,11 @@ fn test_vals() {
 			hash : format!("bbdf0a8d4c151aee5a21fb71ed86894b1aae5c7dba9ea767f7af6c0f752915c2"),
 			url : format!("https://upload.wikimedia.org/wikipedia/commons/7/7d/Der_Hoelle_Rache.ogg"),
 		},
+		TestAssetDef {
+			filename : format!("thingy-floor0.ogg"),
+			hash : format!("02b9e94764db30b876964eba2d0a813dedaecdbfa978a13dc9cef9bdc1f4e9ee"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/abd0dbdb6803f9a591e9491d033d889812e877ae/tests/data/thingy-floor0.ogg"),
+		},
 
 	];
 	println!("");
@@ -52,4 +57,5 @@ fn test_vals() {
 	cmp_output!("bwv_543_fuge.ogg", 7);
 	cmp_output!("maple_leaf_rag.ogg", 5);
 	cmp_output!("hoelle_rache.ogg", 281);
+	cmp_output!("thingy-floor0.ogg", 306);
 }
