@@ -120,7 +120,7 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 	let amplitude = try!(rdr.read_dyn_u64(fl.floor0_amplitude_bits));
 	if amplitude > 0 {
 		let booknumber = try!(rdr.read_dyn_u32(
-			::ilog(fl.floor0_number_of_books as u64) - 1));
+			::ilog(fl.floor0_number_of_books as u64)));
 		match fl.floor0_book_list.get(booknumber as usize) {
 			// Undecodable per spec
 			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
@@ -149,7 +149,7 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 							}
 						}
 					}
-					last = last_new;
+					last += last_new;
 					if coefficients.len() >= fl.floor0_order as usize {
 						return Ok((coefficients, amplitude));
 					}
@@ -190,11 +190,11 @@ fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
 		} else {
 			((1.0 - cos_omega) / 2.0, (1.0 + cos_omega) / 2.0)
 		};
-		for j in 0 .. p_upper_border {
+		for j in 0 .. p_upper_border + 1 {
 			let pm = cos_coefficients[2 * j + 1] - cos_omega;
 			p *= 4.0 * pm * pm;
 		}
-		for j in 0 .. q_upper_border {
+		for j in 0 .. q_upper_border + 1 {
 			let qm = cos_coefficients[2 * j] - cos_omega;
 			q *= 4.0 * qm * qm;
 		}
@@ -573,10 +573,7 @@ fn floor_decode<'a>(rdr :&mut BitpackCursor,
 					Ok((coeff, amp)) => DecodedFloor::TypeZero(coeff, amp, fl),
 					Err(Unused) => DecodedFloor::Unused,
 					Err(PacketUndecodable) => try!(Err(())),
-				};
-				// TODO fix bugs in floor 0 implementation and remove this panic.
-				panic!("Floor type 0 implementation is buggy. \
-					To prevent hearing damage, we panic in this place.");
+				}
 			},
 			&Floor::TypeOne(ref fl) => {
 				match floor_one_decode(rdr, codebooks, fl) {
