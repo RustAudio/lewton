@@ -298,8 +298,8 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 			// Well there is not much we can do but gracefully ignore their stuff.
 			None => continue // try!(Err(HeaderReadError::HeaderBadFormat))
 		};
-		let (key_eq, val) = comment.split_at(eq_idx);
-		let (key, _) = key_eq.split_at(eq_idx - 1);
+		let (key_eq, val) = comment.split_at(eq_idx + 1);
+		let (key, _) = key_eq.split_at(eq_idx);
 		comment_list.push((String::from(key), String::from(val)));
 	}
 	let framing = try!(rdr.read_u8());
