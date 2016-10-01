@@ -53,9 +53,9 @@ fn test_vals() {
 			assert!(diff_pck_count <= $max_diff);
 		};
 	}
-	cmp_output!("bwv_1043_vivace.ogg", 197);
-	cmp_output!("bwv_543_fuge.ogg", 7);
-	cmp_output!("maple_leaf_rag.ogg", 5);
-	cmp_output!("hoelle_rache.ogg", 281);
-	cmp_output!("thingy-floor0.ogg", 306);
+	cmp_output!("bwv_1043_vivace.ogg", 0);
+	cmp_output!("bwv_543_fuge.ogg", 0);
+	cmp_output!("maple_leaf_rag.ogg", 0);
+	cmp_output!("hoelle_rache.ogg", 0);
+	cmp_output!("thingy-floor0.ogg", 1);
 }

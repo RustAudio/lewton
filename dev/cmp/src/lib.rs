@@ -117,45 +117,64 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 	let mut pcks_with_diffs = 0;
 
+	// This parameter is useful when we only want to check whether the
+	// actually returned data are the same, regardless of where the
+	// two implementations put packet borders.
+	// Of course, when debugging bugs which modify the size of packets
+	// you usually want to set this flag to false so that you don't
+	// suffer from the "carry over" effect of errors.
+	let ignore_packet_borders :bool = true;
+
+	let mut native_dec_data = Vec::new();
+	let mut dec_data = Vec::new();
 	loop {
 		n += 1;
-		let native_decoded = try!(match native_it.next() { Some(v) => v,
+
+		let mut native_decoded = try!(match native_it.next() { Some(v) => v,
 			None => { break }});
-		let (pck_decompressed, _) = try!(ogg_rdr.read_decompressed_packet());
+		native_dec_data.append(&mut native_decoded.data);
+		let (mut pck_decompressed, _) = try!(ogg_rdr.read_decompressed_packet());
 
 		// Asserting some very basic things:
 		assert_eq!(native_decoded.rate, ogg_rdr.ident_hdr.audio_sample_rate as u64);
 		assert_eq!(native_decoded.channels, ogg_rdr.ident_hdr.audio_channels as u16);
 
-		let decompressed_len = pck_decompressed.iter().fold(0, |s, e| s + e.len());
-
-		let mut samples :Vec<i16> = Vec::with_capacity(pck_decompressed[0].len() * ogg_rdr.ident_hdr.audio_channels as usize);
-
-		let dc_iter = if ogg_rdr.ident_hdr.audio_channels == 1 {
-			pck_decompressed[0].iter()
+		// Fill dec_data with stuff from this packet
+		if ogg_rdr.ident_hdr.audio_channels == 1 {
+			dec_data.append(&mut pck_decompressed[0]);
 		} else {
-			// Fill samples with stuff
 			for (ls, rs) in pck_decompressed[0].iter().zip(pck_decompressed[1].iter()) {
-				samples.push(*ls);
-				samples.push(*rs);
+				dec_data.push(*ls);
+				dec_data.push(*rs);
 			}
-			samples.iter()
 		};
 		let mut diffs = 0;
-		for (s,n) in dc_iter.zip(native_decoded.data.iter()) {
+		for (s,n) in dec_data.iter().zip(native_dec_data.iter()) {
 			let diff = *s as i32 - *n as i32;
 			// +- 1 deviation is allowed.
 			if diff.abs() > 1 {
 				diffs += 1;
 			}
 		}
-		if diffs > 0 || decompressed_len != native_decoded.data.len() {
+
+		let native_dec_len = native_dec_data.len();
+		let dec_len = dec_data.len();
+
+		if diffs > 0 || (!ignore_packet_borders && dec_len != native_dec_len) {
 			/*
 			print!("Differences found in packet no {}... ", n);
-			print!("{} {}", decompressed_len, native_decoded.data.len());
+			print!("ours={} native={}", dec_len, native_dec_len);
 			println!(" (diffs {})", diffs);
 			*/
 			pcks_with_diffs += 1;
+		}
+
+		if ignore_packet_borders {
+			native_dec_data.drain(..::std::cmp::min(native_dec_len, dec_len));
+			dec_data.drain(..::std::cmp::min(native_dec_len, dec_len));
+		} else {
+			native_dec_data.truncate(0);
+			dec_data.truncate(0);
 		}
 	}
 	return (pcks_with_diffs, n);
