@@ -1028,8 +1028,9 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 			((n * 3 - bs_0_exp) >> 2, (n * 3 + bs_0_exp) >> 2)
 		};
 
-	/*println!("n={} left_win_(start={}, end={}, n={})",
-		n, left_win_start, left_win_end, left_n); // */
+	/*println!("n={} prev_win_flag={:?} left_win_(start={}, end={}, n={}) right_win(start={}, end={})",
+		n, previous_next_window_flag, left_win_start, left_win_end, left_n,
+		right_win_start, right_win_end); // */
 
 	// Overlap add and store last half
 	// in PreviousWindowRight
