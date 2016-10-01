@@ -31,24 +31,18 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 		})
 	}
 
-	let mut n_native = 0;
-
 	let f_n = try!(File::open(file_path.clone()));
 	let dec = try!(NativeDecoder::new(f_n));
 	let mut native_it = dec.into_packets();
 	let start_native_decode = Instant::now();
 
 	loop {
-		n_native += 1;
 		try!(match native_it.next() {
 			Some(v) => v,
 			None => { break }
 		});
 	}
 	let native_decode_duration = Instant::now() - start_native_decode;
-
-	println!("Time to decode {} packets with libvorbis: {} s",
-		n_native, get_duration_seconds(&native_decode_duration));
 
 	let mut n = 0;
 	let mut f_r = try!(File::open(file_path));
@@ -61,8 +55,6 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	// The native decoder does this itself.
 	try!(ogg_rdr.read_decompressed_packet());
 
-	println!("Sample rate: {}", ogg_rdr.ident_hdr.audio_sample_rate);
-
 	loop {
 		n += 1;
 		use std::io::ErrorKind;
@@ -70,8 +62,7 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 		match ogg_rdr.read_decompressed_packet() {
 			Ok(p) => p,
 			Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
-				if e.kind() == ErrorKind::UnexpectedEof => {
-				println!("Seems to be the end."); break; },
+				if e.kind() == ErrorKind::UnexpectedEof => { break; },
 			Err(e) => {
 				panic!("OGG stream decode failure: {}", e);
 			},
@@ -183,7 +174,6 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 use self::test_assets::TestAssetDef;
 
-#[allow(dead_code)]
 pub fn get_asset_defs() -> [TestAssetDef; 5] {
 	return [
 		TestAssetDef {
