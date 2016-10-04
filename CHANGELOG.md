@@ -18,3 +18,14 @@ Initial release.
 * Implemented a tool to compare our speed and output with libvorbis.
   To see how correct this crate is, cd to `dev/cmp` and do `cargo run --release vals /path/to/test_file.ogg`.
   For speed tests, swap "vals" with "perf".
+
+# Release 0.3 - October 4, 2016
+
+* Added support for floor 0. It is not used in practice anymore,
+  but now all features of the vorbis format are supported.
+* Improved the API for reading decoded packets.
+* Fixed a bug in comment header parsing.
+* Various minor simplifications.
+* Improved the cmp tool. You can now compare our output to libvorbis
+  with `cargo test --release -- --nocapture`,
+  and our speed with `cargo run --release bench`.
