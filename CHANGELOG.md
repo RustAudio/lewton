@@ -29,3 +29,8 @@ Initial release.
 * Improved the cmp tool. You can now compare our output to libvorbis
   with `cargo test --release -- --nocapture`,
   and our speed with `cargo run --release bench`.
+
+## Release 0.4 - October 4, 2016
+
+* Updated ogg.
+* Made the `inside_ogg` API own the reader.

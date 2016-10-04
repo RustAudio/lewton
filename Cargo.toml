@@ -1,12 +1,12 @@
 [package]
 name = "lewton"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["est31 <MTest31@outlook.com>"]
 description = "Pure Rust vorbis decoder"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/est31/lewton"
 keywords = ["ogg", "vorbis", "decoder", "audio"]
-documentation = "https://docs.rs/lewton/0.3.0"
+documentation = "https://docs.rs/lewton/0.4.0"
 readme = "README.md"
 
 [features]
