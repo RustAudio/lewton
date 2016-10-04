@@ -44,9 +44,8 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	let native_decode_duration = Instant::now() - start_native_decode;
 
 	let mut n = 0;
-	let mut f_r = try!(File::open(file_path));
-	let mut pck_rdr = PacketReader::new(&mut f_r);
-	let mut ogg_rdr :OggStreamReader<_> = try!(OggStreamReader::new(&mut pck_rdr));
+	let f_r = try!(File::open(file_path));
+	let mut ogg_rdr = try!(OggStreamReader::new(PacketReader::new(f_r)));
 
 	let start_decode = Instant::now();
 
@@ -74,13 +73,12 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 			}
 		})
 	}
-	let     f_n = try!(File::open(file_path.clone()));
-	let mut f_r = try!(File::open(file_path));
+	let f_n = try!(File::open(file_path.clone()));
+	let f_r = try!(File::open(file_path));
 
 	let dec = try!(NativeDecoder::new(f_n));
 
-	let mut pck_rdr = PacketReader::new(&mut f_r);
-	let mut ogg_rdr :OggStreamReader<_> = try!(OggStreamReader::new(&mut pck_rdr));
+	let mut ogg_rdr = try!(OggStreamReader::new(PacketReader::new(f_r)));
 
 	if ogg_rdr.ident_hdr.audio_channels > 2 {
 		// We haven't implemented interleave code for more than two channels

@@ -15,10 +15,10 @@ async_ogg = ["ogg", "ogg/async"]
 
 [dependencies]
 byteorder = "0.5"
-ogg = { version = "~0.3.3", optional = true }
+ogg = { version = "0.4", optional = true }
 ieee754 = { version = "0.2", optional = true }
 
 [dev-dependencies]
-ogg = "~0.3.3"
+ogg = "0.4"
 openal-rs = "0.1"
 rand = "0.3"

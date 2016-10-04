@@ -52,8 +52,8 @@ in the case of ogv, is not supported.
 If you need support for this, you need to use the lower level methods
 instead.
 */
-pub struct OggStreamReader<'a, T: Read + Seek + 'a> {
-	rdr :&'a mut PacketReader<'a, T>,
+pub struct OggStreamReader<T: Read + Seek> {
+	rdr :PacketReader<T>,
 	pwr :PreviousWindowRight,
 
 	pub ident_hdr :IdentHeader,
@@ -63,15 +63,15 @@ pub struct OggStreamReader<'a, T: Read + Seek + 'a> {
 	last_packet_was_last_ever :bool,
 }
 
-impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
+impl<T: Read + Seek> OggStreamReader<T> {
 	/// Constructs a new OggStreamReader from a given PacketReader.
 	///
 	/// Please note that this function doesn't work well with async
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
-	pub fn new(rdr :&'a mut PacketReader<'a, T>) ->
-			Result<OggStreamReader<'a, T>, VorbisError> {
-		let (ident_hdr, comment_hdr, setup_hdr) = try!(read_headers(rdr));
+	pub fn new(mut rdr :PacketReader<T>) ->
+			Result<OggStreamReader<T>, VorbisError> {
+		let (ident_hdr, comment_hdr, setup_hdr) = try!(read_headers(&mut rdr));
 		return Ok(OggStreamReader {
 			rdr : rdr,
 			pwr : PreviousWindowRight::new(),
@@ -80,6 +80,9 @@ impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
 			setup_hdr : setup_hdr,
 			last_packet_was_last_ever : false,
 		});
+	}
+	pub fn into_inner(self) -> PacketReader<T> {
+		self.rdr
 	}
 	/// Reads and decompresses an audio packet from the stream.
 	///
@@ -167,17 +170,16 @@ mod async_utils {
 	/// This allows trivial wrapping with your favourite async framework.
 	///
 	/// All functions this struct has are ready to be used for operation with async I/O.
-	pub struct HeadersReader<'a, T: Read + Seek + AdvanceAndSeekBack + 'a> {
-		rdr :&'a mut PacketReader<'a, T>,
+	pub struct HeadersReader<T: Read + Seek + AdvanceAndSeekBack> {
+		rdr :PacketReader<T>,
 
 		ident_hdr :Option<IdentHeader>,
 		comment_hdr :Option<CommentHeader>,
 		setup_hdr :Option<SetupHeader>,
 	}
 
-	impl <'a, T: Read + Seek + AdvanceAndSeekBack + 'a> HeadersReader<'a, T> {
-		pub fn new(rdr :&'a mut PacketReader<'a, T>) ->
-				HeadersReader<'a, T> {
+	impl <T: Read + Seek + AdvanceAndSeekBack> HeadersReader<T> {
+		pub fn new(rdr :PacketReader<T>) -> Self {
 			return HeadersReader {
 				rdr : rdr,
 				ident_hdr : None,
@@ -214,7 +216,7 @@ mod async_utils {
 		/// Initializes an OggStreamReader with the headers that have been read
 		///
 		/// Panics if the header reading process is not finished yet.
-		pub fn into_ogg_stream_reader(mut self) -> OggStreamReader<'a, T> {
+		pub fn into_ogg_stream_reader(self) -> OggStreamReader<T> {
 			return OggStreamReader {
 				rdr : self.rdr,
 				pwr : PreviousWindowRight::new(),
@@ -230,6 +232,10 @@ mod async_utils {
 		pub fn into_header_triple(self)
 				-> (IdentHeader, CommentHeader, SetupHeader) {
 			return (self.ident_hdr.unwrap(), self.comment_hdr.unwrap(), self.setup_hdr.unwrap());
+		}
+
+		pub fn into_inner(self) -> PacketReader<T> {
+			return self.rdr;
 		}
 	}
 }

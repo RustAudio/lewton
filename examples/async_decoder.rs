@@ -70,10 +70,9 @@ mod stuff {
 		let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 		println!("Opening file: {}", file_path);
 		let mut f = RandomWouldBlock(try!(File::open(file_path)));
-		let mut br = OggBufReader::new(&mut f);
-		let mut pck_rdr = PacketReader::new(&mut br);
+		let br = OggBufReader::new(&mut f);
 
-		let mut hrdr = HeadersReader::new(&mut pck_rdr);
+		let mut hrdr = HeadersReader::new(PacketReader::new(br));
 		try!(continue_trying!(hrdr.try_read_headers()));
 		let mut srr = hrdr.into_ogg_stream_reader();
 

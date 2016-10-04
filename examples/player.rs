@@ -29,11 +29,10 @@ fn main() {
 fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
-	let mut f = try!(File::open(file_path));
+	let f = try!(File::open(file_path));
 
 	// Prepare the reading
-	let mut prdr = PacketReader::new(&mut f);
-	let mut srr = try!(OggStreamReader::new(&mut prdr));
+	let mut srr = try!(OggStreamReader::new(PacketReader::new(f)));
 
 	// Prepare the playback.
 	let device = alc::Device::open(None).expect("Could not open device");

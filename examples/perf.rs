@@ -26,10 +26,9 @@ use std::time::Instant;
 pub fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
-	let mut f = try!(File::open(file_path));
-	let mut pck_rdr = PacketReader::new(&mut f);
+	let f = try!(File::open(file_path));
 
-	let mut srr = try!(OggStreamReader::new(&mut pck_rdr));
+	let mut srr = try!(OggStreamReader::new(PacketReader::new(f)));
 
 	println!("Sample rate: {}", srr.ident_hdr.audio_sample_rate);
 
