@@ -19,7 +19,7 @@ Initial release.
   To see how correct this crate is, cd to `dev/cmp` and do `cargo run --release vals /path/to/test_file.ogg`.
   For speed tests, swap "vals" with "perf".
 
-# Release 0.3 - October 4, 2016
+## Release 0.3 - October 4, 2016
 
 * Added support for floor 0. It is not used in practice anymore,
   but now all features of the vorbis format are supported.
