@@ -114,7 +114,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 		let mut native_decoded = try!(match native_it.next() { Some(v) => v,
 			None => break,});
 		native_dec_data.append(&mut native_decoded.data);
-		let mut pck_decompressed = match try!(ogg_rdr.read_dec_packet()) {
+		let mut pck_decompressed = match try!(ogg_rdr.read_dec_packet_itl()) {
 			Some(v) => v,
 			None => break, // TODO tell calling code about this condition
 		};
@@ -124,14 +124,9 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 		assert_eq!(native_decoded.channels, ogg_rdr.ident_hdr.audio_channels as u16);
 
 		// Fill dec_data with stuff from this packet
-		if ogg_rdr.ident_hdr.audio_channels == 1 {
-			dec_data.append(&mut pck_decompressed[0]);
-		} else {
-			for (ls, rs) in pck_decompressed[0].iter().zip(pck_decompressed[1].iter()) {
-				dec_data.push(*ls);
-				dec_data.push(*rs);
-			}
-		};
+
+		dec_data.append(&mut pck_decompressed);
+
 		let mut diffs = 0;
 		for (s,n) in dec_data.iter().zip(native_dec_data.iter()) {
 			let diff = *s as i32 - *n as i32;

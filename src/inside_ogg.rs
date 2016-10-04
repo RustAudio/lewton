@@ -96,8 +96,51 @@ impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
 		}
 		let pck = try!(self.rdr.read_packet());
 		self.last_packet_was_last_ever = pck.last_packet;
-		return Ok(Some(try!(read_audio_packet(&self.ident_hdr,
-			&self.setup_hdr, &pck.data, &mut self.pwr))));
+		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+			&self.setup_hdr, &pck.data, &mut self.pwr));
+		return Ok(Some(decoded_pck));
+	}
+	/// Reads and decompresses an audio packet from the stream (interleaved).
+	///
+	/// On read errors, it returns Err(e) with the error.
+	///
+	/// On success, it either returns None, when the end of the
+	/// stream has been reached, or Some(packet_data),
+	/// with the data of the decompressed packet.
+	///
+	/// Unlike `read_dec_packet`, this function returns the
+	/// interleaved samples.
+	pub fn read_dec_packet_itl(&mut self) ->
+			Result<Option<Vec<i16>>, VorbisError> {
+		if self.last_packet_was_last_ever {
+			// We've reached the end of the stream
+			return Ok(None);
+		}
+		let pck = try!(self.rdr.read_packet());
+		self.last_packet_was_last_ever = pck.last_packet;
+		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+			&self.setup_hdr, &pck.data, &mut self.pwr));
+		// Now interleave
+		// TODO make int sample generation and
+		// interleaving one step.
+		let channel_count = decoded_pck.len();
+		// Note that a channel count of 0 is forbidden
+		// by the spec and the header decoding code already
+		// checks for that.
+		let samples_interleaved = if channel_count == 1 {
+			// Because decoded_pck[0] doesn't work...
+			decoded_pck.into_iter().next().unwrap()
+		} else {
+			let len = decoded_pck[0].len();
+			let mut samples = Vec::with_capacity(len * channel_count);
+			for i in 0 .. len {
+				for ref chan in decoded_pck.iter() {
+					samples.push(chan[i]);
+				}
+			}
+			samples
+		};
+		return Ok(Some(samples_interleaved));
 	}
 }
 
