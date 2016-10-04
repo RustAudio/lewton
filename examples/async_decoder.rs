@@ -83,23 +83,11 @@ mod stuff {
 		let mut n = 0;
 		let mut len_play = 0.0;
 		let start_decode_time = Instant::now();
-		loop {
-			use std::io::ErrorKind;
-			let pck = match srr.read_decompressed_packet() {
-				Ok(p) => p,
-				Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
-					if e.kind() == ErrorKind::UnexpectedEof => {
-					println!("Seems to be the end."); break; },
-				Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
-					if e.kind() == ErrorKind::WouldBlock => continue,
-				Err(e) => {
-					panic!("OGG stream decode failure: {}", e);
-				},
-			};
+		while let Some(pck) = try!(continue_trying!(srr.read_dec_packet())) {
 			n += 1;
 			// This is guaranteed by the docs
-			assert_eq!(pck.0.len(), srr.ident_hdr.audio_channels as usize);
-			len_play += pck.0[0].len() as f32 / srr.ident_hdr.audio_sample_rate as f32;
+			assert_eq!(pck.len(), srr.ident_hdr.audio_channels as usize);
+			len_play += pck[0].len() as f32 / srr.ident_hdr.audio_sample_rate as f32;
 		}
 		let decode_duration = Instant::now() - start_decode_time;
 		println!("The piece is {} s long ({} packets).", len_play, n);

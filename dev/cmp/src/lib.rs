@@ -15,7 +15,6 @@ extern crate test_assets;
 use std::fs::File;
 
 use ogg::PacketReader;
-use lewton::VorbisError;
 use lewton::inside_ogg::*;
 use std::time::{Duration, Instant};
 
@@ -39,7 +38,7 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	loop {
 		try!(match native_it.next() {
 			Some(v) => v,
-			None => { break }
+			None => break,
 		});
 	}
 	let native_decode_duration = Instant::now() - start_native_decode;
@@ -53,20 +52,10 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 
 	// Reading and discarding the first empty packet
 	// The native decoder does this itself.
-	try!(ogg_rdr.read_decompressed_packet());
+	try!(ogg_rdr.read_dec_packet());
 
-	loop {
+	while let Some(_) = try!(ogg_rdr.read_dec_packet()) {
 		n += 1;
-		use std::io::ErrorKind;
-		use ogg::OggReadError;
-		match ogg_rdr.read_decompressed_packet() {
-			Ok(p) => p,
-			Err(VorbisError::OggError(OggReadError::ReadError(ref e)))
-				if e.kind() == ErrorKind::UnexpectedEof => { break; },
-			Err(e) => {
-				panic!("OGG stream decode failure: {}", e);
-			},
-		};
 	}
 	let decode_duration = Instant::now() - start_decode;
 	return (decode_duration, native_decode_duration, n);
@@ -105,7 +94,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 	// Reading and discarding the first empty packet
 	// The native decoder does this itself.
-	try!(ogg_rdr.read_decompressed_packet());
+	try!(ogg_rdr.read_dec_packet());
 
 	let mut pcks_with_diffs = 0;
 
@@ -123,9 +112,12 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 		n += 1;
 
 		let mut native_decoded = try!(match native_it.next() { Some(v) => v,
-			None => { break }});
+			None => break,});
 		native_dec_data.append(&mut native_decoded.data);
-		let (mut pck_decompressed, _) = try!(ogg_rdr.read_decompressed_packet());
+		let mut pck_decompressed = match try!(ogg_rdr.read_dec_packet()) {
+			Some(v) => v,
+			None => break, // TODO tell calling code about this condition
+		};
 
 		// Asserting some very basic things:
 		assert_eq!(native_decoded.rate, ogg_rdr.ident_hdr.audio_sample_rate as u64);

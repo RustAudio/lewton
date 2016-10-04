@@ -59,6 +59,8 @@ pub struct OggStreamReader<'a, T: Read + Seek + 'a> {
 	pub ident_hdr :IdentHeader,
 	pub comment_hdr :CommentHeader,
 	pub setup_hdr :SetupHeader,
+
+	last_packet_was_last_ever :bool,
 }
 
 impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
@@ -76,15 +78,26 @@ impl<'a, T: Read + Seek + 'a> OggStreamReader<'a, T> {
 			ident_hdr : ident_hdr,
 			comment_hdr : comment_hdr,
 			setup_hdr : setup_hdr,
+			last_packet_was_last_ever : false,
 		});
 	}
 	/// Reads and decompresses an audio packet from the stream.
-	pub fn read_decompressed_packet(&mut self) ->
-			Result<(Vec<Vec<i16>>, usize), VorbisError> {
+	///
+	/// On read errors, it returns Err(e) with the error.
+	///
+	/// On success, it either returns None, when the end of the
+	/// stream has been reached, or Some(packet_data),
+	/// with the data of the decompressed packet.
+	pub fn read_dec_packet(&mut self) ->
+			Result<Option<Vec<Vec<i16>>>, VorbisError> {
+		if self.last_packet_was_last_ever {
+			// We've reached the end of the stream
+			return Ok(None);
+		}
 		let pck = try!(self.rdr.read_packet());
-		let pck_len = pck.data.len();
-		return Ok((try!(read_audio_packet(&self.ident_hdr,
-			&self.setup_hdr, &pck.data, &mut self.pwr)), pck_len));
+		self.last_packet_was_last_ever = pck.last_packet;
+		return Ok(Some(try!(read_audio_packet(&self.ident_hdr,
+			&self.setup_hdr, &pck.data, &mut self.pwr))));
 	}
 }
 
@@ -165,6 +178,7 @@ mod async_utils {
 				ident_hdr : self.ident_hdr.unwrap(),
 				comment_hdr : self.comment_hdr.unwrap(),
 				setup_hdr : self.setup_hdr.unwrap(),
+				last_packet_was_last_ever : false,
 			};
 		}
 		/// Returns the headers that have been read
