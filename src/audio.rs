@@ -847,6 +847,10 @@ fn f32_to_i16_samples(v :&[f32], r :&mut Vec<i16>) {
 	}
 }
 
+/// The right part of the previous window
+///
+/// This is the only state that needs to be changed
+/// once the headers are read.
 pub struct PreviousWindowRight {
 	data :Option<Vec<Vec<f32>>>,
 }
