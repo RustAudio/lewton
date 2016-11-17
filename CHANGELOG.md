@@ -34,3 +34,7 @@ Initial release.
 
 * Updated ogg.
 * Made the `inside_ogg` API own the reader.
+
+## Release 0.4.1 - November 17, 2016
+
+* Fixed a panic issue with reading huffman trees.
