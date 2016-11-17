@@ -294,8 +294,10 @@ impl VorbisHuffmanTree {
 				}
 			}
 		}
-		uroll_traverse(&simple_tree,
-			&mut unrolled_entries, 0, 0, &desc_prog, 0);
+		if cnt > 0 {
+			uroll_traverse(&simple_tree,
+				&mut unrolled_entries, 0, 0, &desc_prog, 0);
+		}
 
 		// Now we are done, return the result
 		return Ok(VorbisHuffmanTree {
@@ -408,6 +410,13 @@ fn test_huffman_tree() {
 	VorbisHuffmanTree::load_from_array(vec![
 		1,   2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
 		17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 32]).unwrap();
+}
+
+#[test]
+fn test_issue_8() {
+	// regression test for issue 8
+	// make sure that it doesn't panic.
+	let _ = VorbisHuffmanTree::load_from_array(vec![0; 625]);
 }
 
 #[test]
