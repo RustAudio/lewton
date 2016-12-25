@@ -6,8 +6,6 @@
 
 extern crate lewton;
 extern crate byteorder;
-extern crate ogg;
-
 
 fn main() {
 	match run() {
@@ -18,7 +16,6 @@ fn main() {
 
 use std::env;
 use lewton::VorbisError;
-use ogg::PacketReader;
 use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;
 use std::time::Instant;
@@ -28,7 +25,7 @@ pub fn run() -> Result<(), VorbisError> {
 	println!("Opening file: {}", file_path);
 	let f = try!(File::open(file_path));
 
-	let mut srr = try!(OggStreamReader::new(PacketReader::new(f)));
+	let mut srr = try!(OggStreamReader::new(f));
 
 	println!("Sample rate: {}", srr.ident_hdr.audio_sample_rate);
 

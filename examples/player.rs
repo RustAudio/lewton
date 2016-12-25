@@ -7,12 +7,10 @@
 extern crate openal;
 extern crate lewton;
 extern crate byteorder;
-extern crate ogg;
 
 use std::env;
 use lewton::VorbisError;
 use lewton::inside_ogg::OggStreamReader;
-use ogg::PacketReader;
 use std::fs::File;
 use std::thread::sleep;
 use std::time::{Instant, Duration};
@@ -32,7 +30,7 @@ fn run() -> Result<(), VorbisError> {
 	let f = try!(File::open(file_path));
 
 	// Prepare the reading
-	let mut srr = try!(OggStreamReader::new(PacketReader::new(f)));
+	let mut srr = try!(OggStreamReader::new(f));
 
 	// Prepare the playback.
 	let device = alc::Device::open(None).expect("Could not open device");

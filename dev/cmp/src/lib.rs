@@ -8,13 +8,11 @@
 
 extern crate lewton;
 extern crate time;
-extern crate ogg;
 extern crate vorbis;
 extern crate test_assets;
 
 use std::fs::File;
 
-use ogg::PacketReader;
 use lewton::inside_ogg::*;
 use std::time::{Duration, Instant};
 
@@ -45,7 +43,7 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 
 	let mut n = 0;
 	let f_r = try!(File::open(file_path));
-	let mut ogg_rdr = try!(OggStreamReader::new(PacketReader::new(f_r)));
+	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
 
 	let start_decode = Instant::now();
 
@@ -78,7 +76,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 	let dec = try!(NativeDecoder::new(f_n));
 
-	let mut ogg_rdr = try!(OggStreamReader::new(PacketReader::new(f_r)));
+	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
 
 	if ogg_rdr.ident_hdr.audio_channels > 2 {
 		// We haven't implemented interleave code for more than two channels

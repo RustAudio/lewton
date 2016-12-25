@@ -64,12 +64,24 @@ pub struct OggStreamReader<T: Read + Seek> {
 }
 
 impl<T: Read + Seek> OggStreamReader<T> {
-	/// Constructs a new OggStreamReader from a given PacketReader.
+	/// Constructs a new OggStreamReader from a given implementation of `Read + Seek`.
 	///
 	/// Please note that this function doesn't work well with async
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
-	pub fn new(mut rdr :PacketReader<T>) ->
+	pub fn new(rdr :T) ->
+			Result<OggStreamReader<T>, VorbisError> {
+		OggStreamReader::from_ogg_reader(PacketReader::new(rdr))
+	}
+	/// Constructs a new OggStreamReader from a given Ogg PacketReader.
+	///
+	/// The `new` function is a nice wrapper around this function that
+	/// also creates the ogg reader.
+	///
+	/// Please note that this function doesn't work well with async
+	/// I/O. In order to support this use case, enable the `async_ogg` feature,
+	/// and use the `HeadersReader` struct instead.
+	pub fn from_ogg_reader(mut rdr :PacketReader<T>) ->
 			Result<OggStreamReader<T>, VorbisError> {
 		let (ident_hdr, comment_hdr, setup_hdr) = try!(read_headers(&mut rdr));
 		return Ok(OggStreamReader {

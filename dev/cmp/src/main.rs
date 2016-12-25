@@ -8,7 +8,6 @@
 
 extern crate lewton;
 extern crate time;
-extern crate ogg;
 extern crate vorbis;
 extern crate test_assets;
 
