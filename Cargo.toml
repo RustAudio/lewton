@@ -14,7 +14,7 @@ default = ["ogg", "ieee754"]
 async_ogg = ["ogg", "ogg/async"]
 
 [dependencies]
-byteorder = "0.5"
+byteorder = "1.0"
 ogg = { version = "0.4", optional = true }
 ieee754 = { version = "0.2", optional = true }
 
