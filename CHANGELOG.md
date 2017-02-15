@@ -38,3 +38,8 @@ Initial release.
 ## Release 0.4.1 - November 17, 2016
 
 * Fixed a panic issue with reading huffman trees.
+
+## Release 0.5 - February 15, 2016
+
+* New, more convenient, constructor for OggStreamReader.
+* Updated to Byteorder 1.0.
