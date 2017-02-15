@@ -6,6 +6,7 @@ description = "Pure Rust vorbis decoder"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/est31/lewton"
 keywords = ["ogg", "vorbis", "decoder", "audio"]
+categories = ["compression", "multimedia::audio", "multimedia::encoding"]
 documentation = "https://docs.rs/lewton/0.4.1"
 readme = "README.md"
 
