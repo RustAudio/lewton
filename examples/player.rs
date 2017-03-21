@@ -51,6 +51,8 @@ fn run() -> Result<(), VorbisError> {
 	let mut len_play = 0.0;
 	let mut start_play_time = None;
 	let start_decode_time = Instant::now();
+	let sample_channels = srr.ident_hdr.audio_channels as f32 *
+		srr.ident_hdr.audio_sample_rate as f32;
 	while let Some(pck_samples) = try!(srr.read_dec_packet_itl()) {
 		println!("Decoded packet no {}, with {} samples.", n, pck_samples.len());
 		n += 1;
@@ -64,7 +66,7 @@ fn run() -> Result<(), VorbisError> {
 			buffer.buffer_data(format, &pck_samples, sample_rate)
 		}
 		source.queue_buffer(&buffer);
-		len_play += pck_samples.len() as f32 / srr.ident_hdr.audio_sample_rate as f32;
+		len_play += pck_samples.len() as f32 / sample_channels;
 		// If we are faster than realtime, we can already start playing now.
 		if n == 100 {
 			let cur = Instant::now();
