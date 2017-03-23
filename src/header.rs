@@ -188,7 +188,7 @@ pub struct IdentHeader {
 	pub bitrate_minimum :i32,
 	pub blocksize_0 :u8,
 	pub blocksize_1 :u8,
-	pub cached_bs_derived :[CachedBlocksizeDerived; 2],
+	pub(crate) cached_bs_derived :[CachedBlocksizeDerived; 2],
 }
 
 /**
@@ -313,7 +313,7 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 	return Ok(hdr);
 }
 
-pub struct Codebook {
+pub(crate) struct Codebook {
 	pub codebook_dimensions :u16,
 	pub codebook_entries :u32,
 
@@ -323,7 +323,7 @@ pub struct Codebook {
 	pub codebook_huffman_tree :VorbisHuffmanTree,
 }
 
-pub struct Residue {
+pub(crate) struct Residue {
 	pub residue_type :u8,
 	pub residue_begin :u32,
 	pub residue_end :u32,
@@ -333,7 +333,7 @@ pub struct Residue {
 	pub residue_books :Vec<ResidueBook>,
 }
 
-pub struct Mapping {
+pub(crate) struct Mapping {
 	pub mapping_submaps :u8,
 	pub mapping_magnitudes :Vec<u8>,
 	pub mapping_angles :Vec<u8>,
@@ -342,19 +342,19 @@ pub struct Mapping {
 	pub mapping_submap_residues :Vec<u8>,
 }
 
-pub struct ModeInfo {
+pub(crate) struct ModeInfo {
 	pub mode_blockflag :bool,
 	pub mode_windowtype :u16,
 	pub mode_transformtype :u16,
 	pub mode_mapping :u8,
 }
 
-pub enum Floor {
+pub(crate) enum Floor {
 	TypeZero(FloorTypeZero),
 	TypeOne(FloorTypeOne),
 }
 
-pub struct FloorTypeZero {
+pub(crate) struct FloorTypeZero {
 	pub floor0_order :u8,
 	pub floor0_rate :u16,
 	pub floor0_bark_map_size :u16,
@@ -365,7 +365,7 @@ pub struct FloorTypeZero {
 	pub cached_bark_cos_omega :[Vec<f32>; 2],
 }
 
-pub struct FloorTypeOne {
+pub(crate) struct FloorTypeOne {
 	pub floor1_multiplier :u8,
 	pub floor1_partition_class :Vec<u8>,
 	pub floor1_class_dimensions :Vec<u8>,
@@ -376,7 +376,7 @@ pub struct FloorTypeOne {
 	pub floor1_x_list_sorted :Vec<(usize, u32)>,
 }
 
-pub struct ResidueBook {
+pub(crate) struct ResidueBook {
 	vals_used :u8,
 	val_i :[u8; 8],
 }
@@ -420,11 +420,11 @@ impl ResidueBook {
 }
 
 pub struct SetupHeader {
-	pub codebooks :Vec<Codebook>,
-	pub floors :Vec<Floor>,
-	pub residues :Vec<Residue>,
-	pub mappings :Vec<Mapping>,
-	pub modes :Vec<ModeInfo>,
+	pub(crate) codebooks :Vec<Codebook>,
+	pub(crate) floors :Vec<Floor>,
+	pub(crate) residues :Vec<Residue>,
+	pub(crate) mappings :Vec<Mapping>,
+	pub(crate) modes :Vec<ModeInfo>,
 }
 
 struct CodebookVqLookup {
@@ -489,14 +489,14 @@ fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook
 /// the decoder might have to reject packages with the
 /// NoVqLookupForCodebook variant, but have to treat EndOfPacket
 /// as normal occurence.
-pub enum HuffmanVqReadErr {
+pub(crate) enum HuffmanVqReadErr {
 	EndOfPacket,
 	NoVqLookupForCodebook,
 }
 
 impl <'a> BitpackCursor <'a> {
 	/// Reads a huffman word using the codebook abstraction via a VQ context
-	pub fn read_huffman_vq<'b>(&mut self, b :&'b Codebook) -> Result<&'b[f32], HuffmanVqReadErr> {
+	pub(crate) fn read_huffman_vq<'b>(&mut self, b :&'b Codebook) -> Result<&'b[f32], HuffmanVqReadErr> {
 
 		let idx = match self.read_huffman(&b.codebook_huffman_tree) {
 			Ok(v) => v as usize,
