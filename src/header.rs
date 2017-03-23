@@ -180,11 +180,33 @@ fn test_read_hdr_begin() {
 	assert_eq!(read_header_begin(&mut rdr), Err(HeaderReadError::NotVorbisHeader));
 }
 
+/**
+Representation for the identification header
+
+The identification header is the first of the three
+headers inside each vorbis stream.
+
+It covers basic information about the stream.
+*/
 pub struct IdentHeader {
+	/// The number of audio channels in the stream
 	pub audio_channels :u8,
+	/// The sample rate of the stream
 	pub audio_sample_rate :u32,
+	/// The maximum bit rate of the stream
+	///
+	/// Note that this value is only a hint
+	/// and may be off by a large amount.
 	pub bitrate_maximum :i32,
+	/// The nominal bit rate of the stream
+	///
+	/// Note that this value is only a hint
+	/// and may be off by a large amount.
 	pub bitrate_nominal :i32,
+	/// The minimum bit rate of the stream
+	///
+	/// Note that this value is only a hint
+	/// and may be off by a large amount.
 	pub bitrate_minimum :i32,
 	pub blocksize_0 :u8,
 	pub blocksize_1 :u8,
@@ -257,8 +279,23 @@ fn test_read_header_ident() {
 	assert_eq!(hdr.blocksize_1, 11);
 }
 
+/**
+Representation of the comment header
+
+The comment header is the second of the three
+headers inside each vorbis stream.
+
+It contains text comment metadata
+about the stream, encoded as key-value pairs,
+and the vendor name.
+*/
 pub struct CommentHeader {
+	/// An identification string of the
+	/// software/library that encoded
+	/// the stream.
 	pub vendor :String,
+	/// A key-value list of the comments
+	/// attached to the stream.
 	pub comment_list :Vec<(String, String)>,
 }
 
