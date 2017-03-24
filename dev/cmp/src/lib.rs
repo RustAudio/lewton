@@ -1,6 +1,6 @@
 // Vorbis decoder written in Rust
 //
-// Copyright (c) 2016 est31 <MTest31@outlook.com>
+// Copyright (c) 2016-2017 est31 <MTest31@outlook.com>
 // and contributors. All rights reserved.
 // Licensed under MIT license, or Apache 2 license,
 // at your option. Please see the LICENSE file
@@ -15,6 +15,7 @@ use std::fs::File;
 
 use lewton::inside_ogg::*;
 use std::time::{Duration, Instant};
+use std::io::{Cursor, Read};
 
 use vorbis::Decoder as NativeDecoder;
 
@@ -28,8 +29,13 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 		})
 	}
 
-	let f_n = try!(File::open(file_path.clone()));
-	let dec = try!(NativeDecoder::new(f_n));
+	// Read the file to memory to create fairer playing ground
+	let mut f = try!(File::open(file_path));
+	let mut file_buf = Vec::new();
+	try!(f.read_to_end(&mut file_buf));
+
+	let r_n = Cursor::new(&file_buf);
+	let dec = try!(NativeDecoder::new(r_n));
 	let mut native_it = dec.into_packets();
 	let start_native_decode = Instant::now();
 
@@ -42,8 +48,8 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	let native_decode_duration = Instant::now() - start_native_decode;
 
 	let mut n = 0;
-	let f_r = try!(File::open(file_path));
-	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
+	let r_r = Cursor::new(&file_buf);
+	let mut ogg_rdr = try!(OggStreamReader::new(r_r));
 
 	let start_decode = Instant::now();
 
