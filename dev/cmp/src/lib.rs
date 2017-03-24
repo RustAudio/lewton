@@ -35,10 +35,9 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	try!(f.read_to_end(&mut file_buf));
 
 	let r_n = Cursor::new(&file_buf);
+	let start_native_decode = Instant::now();
 	let dec = try!(NativeDecoder::new(r_n));
 	let mut native_it = dec.into_packets();
-	let start_native_decode = Instant::now();
-
 	loop {
 		try!(match native_it.next() {
 			Some(v) => v,
@@ -49,9 +48,8 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 
 	let mut n = 0;
 	let r_r = Cursor::new(&file_buf);
-	let mut ogg_rdr = try!(OggStreamReader::new(r_r));
-
 	let start_decode = Instant::now();
+	let mut ogg_rdr = try!(OggStreamReader::new(r_r));
 
 	// Reading and discarding the first empty packet
 	// The native decoder does this itself.
