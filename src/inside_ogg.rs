@@ -60,6 +60,8 @@ pub struct OggStreamReader<T: Read + Seek> {
 	pub comment_hdr :CommentHeader,
 	pub setup_hdr :SetupHeader,
 
+	absgp_of_last_read :Option<u64>,
+
 	last_packet_was_last_ever :bool,
 }
 
@@ -91,6 +93,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			comment_hdr : comment_hdr,
 			setup_hdr : setup_hdr,
 			last_packet_was_last_ever : false,
+			absgp_of_last_read : None,
 		});
 	}
 	pub fn into_inner(self) -> PacketReader<T> {
@@ -113,6 +116,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		self.last_packet_was_last_ever = pck.last_packet;
 		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
+		self.absgp_of_last_read = Some(pck.absgp_page);
 		return Ok(Some(decoded_pck));
 	}
 	/// Reads and decompresses an audio packet from the stream (interleaved).
@@ -135,6 +139,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		self.last_packet_was_last_ever = pck.last_packet;
 		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
+		self.absgp_of_last_read = Some(pck.absgp_page);
 		// Now interleave
 		// TODO make int sample generation and
 		// interleaving one step.
@@ -156,6 +161,11 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			samples
 		};
 		return Ok(Some(samples_interleaved));
+	}
+
+	/// Returns the absolute granule position of the last read page.
+	pub fn get_last_absgp(&self) -> Option<u64> {
+		self.absgp_of_last_read
 	}
 }
 
@@ -236,6 +246,7 @@ mod async_utils {
 				comment_hdr : self.comment_hdr.unwrap(),
 				setup_hdr : self.setup_hdr.unwrap(),
 				last_packet_was_last_ever : false,
+				absgp_of_last_read : None,
 			};
 		}
 		/// Returns the headers that have been read
