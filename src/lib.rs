@@ -8,6 +8,7 @@
 
 #![deny(unsafe_code)]
 #![cfg_attr(test, deny(warnings))]
+#![cfg_attr(feature = "nightly", feature(float_bits_conv))]
 #![allow(unused_parens)]
 
 /*!
@@ -176,7 +177,7 @@ impl From<OggReadError> for VorbisError {
 	}
 }
 
-#[cfg(not(feature = "ieee754"))]
+#[cfg(not(any(feature = "ieee754", feature = "nightly")))]
 #[allow(unsafe_code)]
 /**
 This mod contains all unsafe code used in the whole library.
@@ -201,6 +202,17 @@ mod transmution_stuff {
 mod transmution_stuff {
 	use ieee754::Ieee754;
 
+	pub fn f64_transmute(f :u64) -> f64 {
+		f64::from_bits(f)
+	}
+
+	pub fn f32_transmute(f :u32) -> f32 {
+		f32::from_bits(f)
+	}
+}
+
+#[cfg(feature = "nightly")]
+mod transmution_stuff {
 	pub fn f64_transmute(f :u64) -> f64 {
 		f64::from_bits(f)
 	}
