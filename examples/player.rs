@@ -4,7 +4,7 @@
 // under the CC-0 license:
 // https://creativecommons.org/publicdomain/zero/1.0/
 
-extern crate openal;
+extern crate alto;
 extern crate lewton;
 extern crate byteorder;
 
@@ -14,8 +14,7 @@ use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;
 use std::thread::sleep;
 use std::time::{Instant, Duration};
-use openal::al;
-use openal::alc;
+use alto::{Alto, Mono, Stereo, SourceTrait};
 
 fn main() {
 	match run() {
@@ -33,11 +32,12 @@ fn run() -> Result<(), VorbisError> {
 	let mut srr = try!(OggStreamReader::new(f));
 
 	// Prepare the playback.
-	let device = alc::Device::open(None).expect("Could not open device");
-	let ctx = device.create_context(&[]).expect("Could not create context");
-	ctx.make_current();
-	let source = al::Source::gen();
-	let sample_rate = srr.ident_hdr.audio_sample_rate as al::ALsizei;
+	let al = Alto::load_default().expect("Could not load alto");
+	let device = al.open(None).expect("Could not open device");
+	let cxt = device.new_context(None).expect("Could not create context");
+	let mut str_src = cxt.new_streaming_source()
+		.expect("could not create streaming src");
+	let sample_rate = srr.ident_hdr.audio_sample_rate as i32;
 
 	if srr.ident_hdr.audio_channels > 2 {
 		// the openal crate can't process these many channels directly
@@ -56,30 +56,29 @@ fn run() -> Result<(), VorbisError> {
 	while let Some(pck_samples) = try!(srr.read_dec_packet_itl()) {
 		println!("Decoded packet no {}, with {} samples.", n, pck_samples.len());
 		n += 1;
-		let buffer = al::Buffer::gen();
-		let format = if srr.ident_hdr.audio_channels == 1 {
-			al::Format::Mono16
-		} else {
-			al::Format::Stereo16
-		};
-		unsafe {
-			buffer.buffer_data(format, &pck_samples, sample_rate)
-		}
-		source.queue_buffer(&buffer);
+		let mut buf = cxt.new_buffer().expect("Could not create buffer");
+		match srr.ident_hdr.audio_channels {
+			1 => buf.set_data::<Mono<i16>,_>(&pck_samples, sample_rate),
+			2 => buf.set_data::<Stereo<i16>,_>(&pck_samples, sample_rate),
+			n => panic!("unsupported number of channels: {}", n),
+		}.unwrap();
+
+		str_src.queue_buffer(buf);
+
 		len_play += pck_samples.len() as f32 / sample_channels;
 		// If we are faster than realtime, we can already start playing now.
 		if n == 100 {
 			let cur = Instant::now();
 			if cur - start_decode_time < Duration::from_millis((len_play * 1000.0) as u64) {
 				start_play_time = Some(cur);
-				source.play();
+				str_src.play().expect("can't play");
 			}
 		}
 	}
 	let total_duration = Duration::from_millis((len_play * 1000.0) as u64);
 	let sleep_duration = total_duration - match start_play_time {
 			None => {
-				source.play();
+				str_src.play().expect("can't play");
 				Duration::from_millis(0)
 			},
 			Some(t) => (Instant::now() - t)
@@ -87,7 +86,5 @@ fn run() -> Result<(), VorbisError> {
 	println!("The piece is {} s long.", len_play);
 	sleep(sleep_duration);
 
-	ctx.destroy();
-	device.close().ok().expect("Unable to close device");
 	Ok(())
 }
