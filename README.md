@@ -22,9 +22,13 @@ Some parts were created with help from the public domain
 
 ## Use of unsafe
 
-It contains no unsafe code per default.
-However, in order to meet this goal, it uses a separate crate just for two one liner functions.
-If you can't live with this nodejs-ism, but can live with `unsafe` "tainting" the codebase, you can disable the `ieee754` feature.
+The crate contains one line of unsafe code, to be able to parse floats.
+If you feel that even this single use is too much, you can
+enable the `ieee754` feature, or alternatively the `nightly` feature,
+but note that the `ieee754` feature just uses an external crate for that
+functionality (and as of now is broken on latest Rust nightly),
+and the `nightly` feature uses an unstable Rust feature and therefore
+requires Rust nightly.
 
 ## About the history of this crate
 
