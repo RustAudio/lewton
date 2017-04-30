@@ -39,7 +39,13 @@ Initial release.
 
 * Fixed a panic issue with reading huffman trees.
 
-## Release 0.5 - February 15, 2016
+## Release 0.5 - February 15, 2017
 
 * New, more convenient, constructor for OggStreamReader.
 * Updated to Byteorder 1.0.
+
+## Release 0.5.1 - April 30, 2017
+
+* Bugfix to work on newest Rust nightly/beta
+* Bugfix to work with the alto crate instead of openal-rs which has been yanked
+* Bugfix in the player example for duration calculation
