@@ -63,7 +63,9 @@ fn run() -> Result<(), VorbisError> {
 			n => panic!("unsupported number of channels: {}", n),
 		}.unwrap();
 
-		str_src.queue_buffer(buf);
+		if str_src.queue_buffer(buf).is_err() {
+			panic!("queuing buffer failed!");
+		}
 
 		len_play += pck_samples.len() as f32 / sample_channels;
 		// If we are faster than realtime, we can already start playing now.
