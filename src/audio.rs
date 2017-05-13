@@ -886,13 +886,6 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	} else {
 		None
 	};
-	// ENdofpacketisnOrmal macro. Local replacement for try.
-	macro_rules! eno {
-		($expr:expr) => (match $expr {
-			$crate::std::result::Result::Ok(val) => val,
-			$crate::std::result::Result::Err(err) => return
-		})
-	}
 	// Decode the floors
 	let decoded_floor_infos = try!(floor_decode(&mut rdr, ident, mapping,
 		&setup.codebooks, &setup.floors));
