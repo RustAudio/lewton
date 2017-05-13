@@ -80,28 +80,6 @@ macro_rules! record_post_mdct {
 	}
 }
 
-/**
-Reads (part of) a codeword using the given `VorbisHuffmanIter` struct,
-and the given `BitpackCursor` (or anything else with a `read_bit_flag()` method),
-and evaluates to the read codeword, or returns an `Err`.
-*/
-/*
-Usage example:
-	let t = try!(VorbisHuffmanTree::load_from_array(vec![1, 2, 3, 4, 4]));
-	let mut iter = t.iter();
-	let a :u32 = read_codeword!(iter, rdr);
-	println!("{:?}", a);
-*/
-macro_rules! read_codeword {
-	($iter:expr, $cursor:expr) => { {
-		let mut s :Option<u32> = None;
-		while s.is_none() {
-			s = $iter.next(try!($cursor.read_bit_flag()));
-		}
-		s.unwrap()
-	} }
-}
-
 pub mod header;
 mod header_cached;
 mod huffman_tree;
