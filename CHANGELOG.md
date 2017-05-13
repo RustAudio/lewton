@@ -49,3 +49,7 @@ Initial release.
 * Bugfix to work on newest Rust nightly/beta
 * Bugfix to work with the alto crate instead of openal-rs which has been yanked
 * Bugfix in the player example for duration calculation
+
+## Release 0.5.2 - May 13, 2017
+
+* Removed two unused macros to prevent warnings about them
