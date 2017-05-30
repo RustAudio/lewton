@@ -160,6 +160,15 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	pub fn get_last_absgp(&self) -> Option<u64> {
 		self.absgp_of_last_read
 	}
+
+	/// Seeks to the specified absolute granule position
+	pub fn seek_absgp(&mut self, absgp :u64) -> Result<(), VorbisError> {
+		try!(self.rdr.seek_absgp(None, absgp));
+		// Reset the internal state after the seek
+		self.absgp_of_last_read = None;
+		self.pwr = PreviousWindowRight::new();
+		Ok(())
+	}
 }
 
 
