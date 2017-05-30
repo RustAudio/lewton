@@ -26,13 +26,13 @@ use ::audio::{PreviousWindowRight, read_audio_packet};
 /// and use the `HeadersReader` struct instead.
 pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 		Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
-	let pck :Packet = try!(rdr.read_packet());
+	let pck :Packet = try!(rdr.read_packet_expected());
 	let ident_hdr = try!(read_header_ident(&pck.data));
 
-	let pck :Packet = try!(rdr.read_packet());
+	let pck :Packet = try!(rdr.read_packet_expected());
 	let comment_hdr = try!(read_header_comment(&pck.data));
 
-	let pck :Packet = try!(rdr.read_packet());
+	let pck :Packet = try!(rdr.read_packet_expected());
 	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
@@ -61,8 +61,6 @@ pub struct OggStreamReader<T: Read + Seek> {
 	pub setup_hdr :SetupHeader,
 
 	absgp_of_last_read :Option<u64>,
-
-	last_packet_was_last_ever :bool,
 }
 
 impl<T: Read + Seek> OggStreamReader<T> {
@@ -92,7 +90,6 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			ident_hdr : ident_hdr,
 			comment_hdr : comment_hdr,
 			setup_hdr : setup_hdr,
-			last_packet_was_last_ever : false,
 			absgp_of_last_read : None,
 		});
 	}
@@ -108,12 +105,10 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// with the data of the decompressed packet.
 	pub fn read_dec_packet(&mut self) ->
 			Result<Option<Vec<Vec<i16>>>, VorbisError> {
-		if self.last_packet_was_last_ever {
-			// We've reached the end of the stream
-			return Ok(None);
-		}
-		let pck = try!(self.rdr.read_packet());
-		self.last_packet_was_last_ever = pck.last_packet;
+		let pck = match try!(self.rdr.read_packet()) {
+			Some(p) => p,
+			None => return Ok(None),
+		};
 		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
 		self.absgp_of_last_read = Some(pck.absgp_page);
@@ -131,12 +126,10 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// interleaved samples.
 	pub fn read_dec_packet_itl(&mut self) ->
 			Result<Option<Vec<i16>>, VorbisError> {
-		if self.last_packet_was_last_ever {
-			// We've reached the end of the stream
-			return Ok(None);
-		}
-		let pck = try!(self.rdr.read_packet());
-		self.last_packet_was_last_ever = pck.last_packet;
+		let pck = match try!(self.rdr.read_packet()) {
+			Some(p) => p,
+			None => return Ok(None),
+		};
 		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
 		self.absgp_of_last_read = Some(pck.absgp_page);
@@ -245,7 +238,6 @@ mod async_utils {
 				ident_hdr : self.ident_hdr.unwrap(),
 				comment_hdr : self.comment_hdr.unwrap(),
 				setup_hdr : self.setup_hdr.unwrap(),
-				last_packet_was_last_ever : false,
 				absgp_of_last_read : None,
 			};
 		}
