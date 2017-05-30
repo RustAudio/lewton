@@ -157,11 +157,17 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	}
 
 	/// Returns the absolute granule position of the last read page.
+	///
+	/// In the case of ogg/vorbis, the absolute granule position is given
+	/// as number of PCM samples, on a per channel basis.
 	pub fn get_last_absgp(&self) -> Option<u64> {
 		self.absgp_of_last_read
 	}
 
-	/// Seeks to the specified absolute granule position
+	/// Seeks to the specified absolute granule position.
+	///
+	/// In the case of ogg/vorbis, the absolute granule position is given
+	/// as number of PCM samples, on a per channel basis.
 	pub fn seek_absgp(&mut self, absgp :u64) -> Result<(), VorbisError> {
 		try!(self.rdr.seek_absgp(None, absgp));
 		// Reset the internal state after the seek
