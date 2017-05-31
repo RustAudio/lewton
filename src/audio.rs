@@ -862,13 +862,56 @@ impl PreviousWindowRight {
 	}
 }
 
-// panics if the passed PreviousWindowRight struct doesn't match the info
-// from the ident header
+/**
+Returns the per-channel sample count of a packet if it were decoded.
+
+This operation is very cheap and doesn't involve actual decoding of the packet.
+*/
+pub fn get_decoded_sample_count(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8])
+		-> Result<usize, AudioReadError> {
+	let mut rdr = BitpackCursor::new(packet);
+	if try!(rdr.read_bit_flag()) {
+		try!(Err(AudioReadError::AudioIsHeader));
+	}
+	let mode_number = try!(rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)));
+	let mode = &setup.modes[mode_number as usize];
+	let bs = if mode.mode_blockflag { ident.blocksize_1 } else { ident.blocksize_0 };
+	let n :u16 = 1 << bs;
+	let previous_next_window_flag = if mode.mode_blockflag {
+		Some((try!(rdr.read_bit_flag()), try!(rdr.read_bit_flag())))
+	} else {
+		None
+	};
+	// Compute windowing info for left window
+	let window_center = n >> 1;
+	let (left_win_start, _left_win_end, _left_n, _left_n_use_bs1) =
+		if previous_next_window_flag.map_or(true, |(prev_win_flag, _)| prev_win_flag) {
+			(0, window_center, n >> 1, mode.mode_blockflag)
+		} else {
+			let bs_0_exp = 1 << ident.blocksize_0;
+			((n - bs_0_exp) >> 2, (n + bs_0_exp) >> 2, bs_0_exp >> 1, false)
+		};
+
+	// Compute windowing info for right window
+	let (right_win_start, _right_win_end) =
+		if previous_next_window_flag.map_or(true, |(_, next_win_flag)| next_win_flag) {
+			(window_center, n)
+		} else {
+			let bs_0_exp = 1 << ident.blocksize_0;
+			((n * 3 - bs_0_exp) >> 2, (n * 3 + bs_0_exp) >> 2)
+		};
+
+	Ok((right_win_start - left_win_start) as usize)
+}
+
 #[allow(unused_variables)]
 /**
 Main audio packet decoding function
 
 Pass your info to this function to get your raw packet data decoded.
+
+Panics if the passed PreviousWindowRight struct doesn't match the info
+from the ident header.
 */
 pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
 		-> Result<Vec<Vec<i16>>, AudioReadError> {
