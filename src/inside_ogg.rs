@@ -18,6 +18,7 @@ use header::*;
 use VorbisError;
 use std::io::{Read, Seek};
 use ::audio::{PreviousWindowRight, read_audio_packet};
+use ::header::HeaderSet;
 
 /// Reads the three vorbis headers from an ogg stream
 ///
@@ -25,7 +26,7 @@ use ::audio::{PreviousWindowRight, read_audio_packet};
 /// I/O. In order to support this use case, enable the `async_ogg` feature,
 /// and use the `HeadersReader` struct instead.
 pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
-		Result<(IdentHeader, CommentHeader, SetupHeader), VorbisError> {
+		Result<HeaderSet, VorbisError> {
 	let pck :Packet = try!(rdr.read_packet_expected());
 	let ident_hdr = try!(read_header_ident(&pck.data));
 

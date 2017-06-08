@@ -180,6 +180,9 @@ fn test_read_hdr_begin() {
 	assert_eq!(read_header_begin(&mut rdr), Err(HeaderReadError::NotVorbisHeader));
 }
 
+/// The set of the three Vorbis headers
+pub type HeaderSet = (IdentHeader, CommentHeader, SetupHeader);
+
 /**
 Representation for the identification header
 
