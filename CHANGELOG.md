@@ -60,3 +60,7 @@ Initial release.
 * Added seeking support with a granularity of pages
 * Updated to ogg to 0.5.0
 * The async support now doesn't need unstable features any more, and bases on tokio
+
+## Release 0.6.1 - June 8, 2017
+
+* Fix a doc link
