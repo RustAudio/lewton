@@ -1,6 +1,6 @@
 [package]
 name = "lewton"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["est31 <MTest31@outlook.com>"]
 description = "Pure Rust vorbis decoder"
 license = "MIT/Apache-2.0"

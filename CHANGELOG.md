@@ -53,3 +53,10 @@ Initial release.
 ## Release 0.5.2 - May 13, 2017
 
 * Removed two unused macros to prevent warnings about them
+
+## Release 0.6.0 - June 8, 2017
+
+* Made parts of the API that are not intended for the public crate local
+* Added seeking support with a granularity of pages
+* Updated to ogg to 0.5.0
+* The async support now doesn't need unstable features any more, and bases on tokio
