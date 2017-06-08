@@ -26,6 +26,11 @@ extern crate byteorder;
 extern crate ogg;
 #[cfg(feature = "ieee754")]
 extern crate ieee754;
+#[cfg(feature = "async_ogg")]
+#[macro_use]
+extern crate futures;
+#[cfg(feature = "async_ogg")]
+extern crate tokio_io;
 /*
 // This little thing is very useful.
 macro_rules! try {
