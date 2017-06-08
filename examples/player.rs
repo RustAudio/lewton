@@ -14,7 +14,7 @@ use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;
 use std::thread::sleep;
 use std::time::{Instant, Duration};
-use alto::{Alto, Mono, Stereo, SourceTrait};
+use alto::{Alto, Mono, Stereo, Source};
 
 fn main() {
 	match run() {
@@ -55,17 +55,19 @@ fn run() -> Result<(), VorbisError> {
 		srr.ident_hdr.audio_sample_rate as f32;
 	while let Some(pck_samples) = try!(srr.read_dec_packet_itl()) {
 		println!("Decoded packet no {}, with {} samples.", n, pck_samples.len());
+		// Skip the buffering if we have no samples in the packet
+		// as the new_buffer function doesn't allow 0 sized buffers.
+		if pck_samples.len() == 0 {
+			continue;
+		}
 		n += 1;
-		let mut buf = cxt.new_buffer().expect("Could not create buffer");
-		match srr.ident_hdr.audio_channels {
-			1 => buf.set_data::<Mono<i16>,_>(&pck_samples, sample_rate),
-			2 => buf.set_data::<Stereo<i16>,_>(&pck_samples, sample_rate),
+		let buf = match srr.ident_hdr.audio_channels {
+			1 => cxt.new_buffer::<Mono<i16>,_>(&pck_samples, sample_rate),
+			2 => cxt.new_buffer::<Stereo<i16>,_>(&pck_samples, sample_rate),
 			n => panic!("unsupported number of channels: {}", n),
 		}.unwrap();
 
-		if str_src.queue_buffer(buf).is_err() {
-			panic!("queuing buffer failed!");
-		}
+		str_src.queue_buffer(buf);
 
 		len_play += pck_samples.len() as f32 / sample_channels;
 		// If we are faster than realtime, we can already start playing now.
@@ -73,14 +75,14 @@ fn run() -> Result<(), VorbisError> {
 			let cur = Instant::now();
 			if cur - start_decode_time < Duration::from_millis((len_play * 1000.0) as u64) {
 				start_play_time = Some(cur);
-				str_src.play().expect("can't play");
+				str_src.play();
 			}
 		}
 	}
 	let total_duration = Duration::from_millis((len_play * 1000.0) as u64);
 	let sleep_duration = total_duration - match start_play_time {
 			None => {
-				str_src.play().expect("can't play");
+				str_src.play();
 				Duration::from_millis(0)
 			},
 			Some(t) => (Instant::now() - t)
