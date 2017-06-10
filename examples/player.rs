@@ -55,11 +55,6 @@ fn run() -> Result<(), VorbisError> {
 		srr.ident_hdr.audio_sample_rate as f32;
 	while let Some(pck_samples) = try!(srr.read_dec_packet_itl()) {
 		println!("Decoded packet no {}, with {} samples.", n, pck_samples.len());
-		// Skip the buffering if we have no samples in the packet
-		// as the new_buffer function doesn't allow 0 sized buffers.
-		if pck_samples.len() == 0 {
-			continue;
-		}
 		n += 1;
 		let buf = match srr.ident_hdr.audio_channels {
 			1 => cxt.new_buffer::<Mono<i16>,_>(&pck_samples, sample_rate),
