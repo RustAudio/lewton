@@ -64,3 +64,8 @@ Initial release.
 ## Release 0.6.1 - June 8, 2017
 
 * Fix a doc link
+
+## Release 0.6.2 - June 18, 2017
+
+* Exposed blockize_0 and blocksize_1 in the public API
+  of the ident header again, so that lewton can be used without ogg encapsulation.
