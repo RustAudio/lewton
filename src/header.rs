@@ -211,8 +211,8 @@ pub struct IdentHeader {
 	/// Note that this value is only a hint
 	/// and may be off by a large amount.
 	pub bitrate_minimum :i32,
-	pub(crate) blocksize_0 :u8,
-	pub(crate) blocksize_1 :u8,
+	pub blocksize_0 :u8,
+	pub blocksize_1 :u8,
 	pub(crate) cached_bs_derived :[CachedBlocksizeDerived; 2],
 }
 
