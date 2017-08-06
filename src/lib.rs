@@ -24,8 +24,6 @@ modules.
 extern crate byteorder;
 #[cfg(feature = "ogg")]
 extern crate ogg;
-#[cfg(feature = "ieee754")]
-extern crate ieee754;
 #[cfg(feature = "async_ogg")]
 #[macro_use]
 extern crate futures;
@@ -160,7 +158,7 @@ impl From<OggReadError> for VorbisError {
 	}
 }
 
-#[cfg(not(any(feature = "ieee754", feature = "nightly")))]
+#[cfg(feature = "old_rust")]
 #[allow(unsafe_code)]
 /**
 This mod contains all unsafe code used in the whole library.
@@ -181,20 +179,7 @@ mod transmution_stuff {
 	}
 }
 
-#[cfg(feature = "ieee754")]
-mod transmution_stuff {
-	use ieee754::Ieee754;
-
-	pub fn f64_transmute(f :u64) -> f64 {
-		f64::from_bits(f)
-	}
-
-	pub fn f32_transmute(f :u32) -> f32 {
-		f32::from_bits(f)
-	}
-}
-
-#[cfg(feature = "nightly")]
+#[cfg(not(feature = "old_rust"))]
 mod transmution_stuff {
 	pub fn f64_transmute(f :u64) -> f64 {
 		f64::from_bits(f)

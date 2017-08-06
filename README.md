@@ -24,11 +24,8 @@ Some parts were created with help from the public domain
 
 The crate contains one line of unsafe code, to be able to parse floats.
 If you feel that even this single use is too much, you can
-enable the `ieee754` feature, or alternatively the `nightly` feature,
-but note that the `ieee754` feature just uses an external crate for that
-functionality (and as of now is broken on latest Rust nightly),
-and the `nightly` feature uses an unstable Rust feature and therefore
-requires Rust nightly.
+disable the `old_rust` feature, to use a safe function provided by
+libstd, available in newer versions of Rust (1.20 and later).
 
 ## About the history of this crate
 
