@@ -8,7 +8,6 @@
 
 #![deny(unsafe_code)]
 #![cfg_attr(test, deny(warnings))]
-#![cfg_attr(feature = "nightly", feature(float_bits_conv))]
 #![allow(unused_parens)]
 
 /*!
