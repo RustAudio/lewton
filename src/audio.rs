@@ -984,7 +984,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	// Inverse coupling
 	for (&mag, &angle) in
 			mapping.mapping_magnitudes.iter().zip(mapping.mapping_angles.iter()) {
-		let (mut mag_vector, mut angle_vector) = dual_mut_idx(&mut residue_vectors,
+		let (mag_vector, angle_vector) = dual_mut_idx(&mut residue_vectors,
 			mag as usize, angle as usize);
 		for (m, a) in mag_vector.iter_mut().zip(angle_vector.iter_mut()) {
 			// https://github.com/rust-lang/rfcs/issues/372

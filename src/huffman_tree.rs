@@ -93,7 +93,7 @@ impl HuffTree {
 		} else {
 			//println!(" => HAS NOT EVEN CHILDS");
 			// First try left branch
-			let mut left = self.l.as_mut().unwrap();
+			let left = self.l.as_mut().unwrap();
 			if !left.even_childs {
 				if left.insert_rec(payload, depth - 1) {
 					self.even_childs = left.even_childs &&

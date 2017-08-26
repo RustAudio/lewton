@@ -376,8 +376,8 @@ pub fn inverse_mdct(cached_bd :&CachedBlocksizeDerived, buffer :&mut [f32], bs :
 		// possibly swap their meaning as we change which operations
 		// are in place
 
-		let mut u = &mut *buffer;
-		let mut v = &mut *buf2;
+		let u = &mut *buffer;
+		let v = &mut *buf2;
 
 		// step 2    (paper output is w, now u)
 		// this could be in place, but the data ends up in the wrong
