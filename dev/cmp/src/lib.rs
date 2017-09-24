@@ -7,7 +7,6 @@
 // attached to this source distribution for details.
 
 extern crate lewton;
-extern crate time;
 extern crate vorbis;
 extern crate test_assets;
 

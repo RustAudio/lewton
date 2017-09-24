@@ -7,5 +7,4 @@ authors = ["est31 <MTest31@outlook.com>"]
 [dependencies]
 lewton = { path = "../../" }
 vorbis = "0.0"
-time = "0.1"
 test-assets = "0.1"

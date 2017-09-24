@@ -4,7 +4,6 @@ version = "0.1.0"
 dependencies = [
  "lewton 0.6.2",
  "test-assets 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "vorbis 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
