@@ -20,6 +20,8 @@ and a high level API for ogg/vorbis streams in the `inside_ogg` module.
 Some parts were created with help from the public domain
 [stb_vorbis](http://nothings.org/stb_vorbis/) decoder implementation.
 
+The minimum required Rust version is 1.18. If you disable the `old_rust` feature, the minimum required Rust version is 1.20.
+
 ## Use of unsafe
 
 The crate contains one line of unsafe code, to be able to parse floats.
