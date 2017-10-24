@@ -69,3 +69,7 @@ Initial release.
 
 * Exposed blockize_0 and blocksize_1 in the public API
   of the ident header again, so that lewton can be used without ogg encapsulation.
+
+## Release 0.7.0 - October 24, 2017
+
+* Removed all uses of unsafe in return of making Rust 1.20 required

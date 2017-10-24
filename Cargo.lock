@@ -1,6 +1,6 @@
 [root]
 name = "lewton"
-version = "0.6.2"
+version = "0.7.0"
 dependencies = [
  "alto 2.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
