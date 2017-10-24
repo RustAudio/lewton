@@ -6,7 +6,7 @@
 // at your option. Please see the LICENSE file
 // attached to this source distribution for details.
 
-#![deny(unsafe_code)]
+#![forbid(unsafe_code)]
 #![cfg_attr(test, deny(warnings))]
 #![allow(unused_parens)]
 
@@ -154,38 +154,6 @@ impl From<header::HeaderReadError> for VorbisError {
 impl From<OggReadError> for VorbisError {
 	fn from(err :OggReadError) -> VorbisError {
 		VorbisError::OggError(err)
-	}
-}
-
-#[cfg(feature = "old_rust")]
-#[allow(unsafe_code)]
-/**
-This mod contains all unsafe code used in the whole library.
-Most of it is hopefully doable one day without `unsafe` being required.
-All of the functions in this module technically require unsafe but they
-are written so that they don't need any conditions to be fulfilled in order
-to work safe.
-*/
-mod transmution_stuff {
-	use std::mem;
-
-	pub fn f64_transmute(f :u64) -> f64 {
-		unsafe { mem::transmute(f) }
-	}
-
-	pub fn f32_transmute(f :u32) -> f32 {
-		unsafe { mem::transmute(f) }
-	}
-}
-
-#[cfg(not(feature = "old_rust"))]
-mod transmution_stuff {
-	pub fn f64_transmute(f :u64) -> f64 {
-		f64::from_bits(f)
-	}
-
-	pub fn f32_transmute(f :u32) -> f32 {
-		f32::from_bits(f)
 	}
 }
 

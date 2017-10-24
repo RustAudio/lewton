@@ -22,7 +22,6 @@ This non-alignment to the spec is due to the fact that the rust language is high
 and doesn't even have a builtin single byte type.
 */
 
-
 use ::huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
 
 /// A Cursor on slices to read numbers and bitflags, bit aligned.
@@ -311,7 +310,7 @@ fn float32_unpack(val :u32) -> f64 {
 	// because the IEE754 representation has an implicit leading bit.
 	let mantissa = (val & 0x000fffff) as u64;
 	let v = (sgn << 32) | (exp << 52) | (mantissa << 32);
-	return ::transmution_stuff::f64_transmute(v);
+	return f64::from_bits(v);
 }
 
 #[allow(dead_code)]
@@ -325,7 +324,7 @@ fn float32_unpack_to_32_directly(val :u32) -> f32 {
 	// because the IEE754 representation has an implicit leading bit.
 	let mantissa = (val & 0x000fffff) as u32;
 	let v = sgn | (exp << 23) | (mantissa << 3);
-	return ::transmution_stuff::f32_transmute(v);
+	return f32::from_bits(v);
 }
 
 #[test]
