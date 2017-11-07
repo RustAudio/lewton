@@ -93,14 +93,12 @@ mod bitpacking;
 #[cfg(feature = "ogg")]
 pub mod inside_ogg;
 
-use std::io;
 #[cfg(feature = "ogg")]
 use ogg::OggReadError;
 
 /// Errors that can occur during decoding
 #[derive(Debug)]
 pub enum VorbisError {
-	ReadError(io::Error),
 	BadAudio(audio::AudioReadError),
 	BadHeader(header::HeaderReadError),
 	#[cfg(feature = "ogg")]
@@ -110,7 +108,6 @@ pub enum VorbisError {
 impl std::error::Error for VorbisError {
 	fn description(&self) -> &str {
 		match self {
-			&VorbisError::ReadError(_) => "A read from media returned an error",
 			&VorbisError::BadAudio(_) => "Vorbis bitstream audio decode problem",
 			&VorbisError::BadHeader(_) => "Vorbis bitstream header decode problem",
 			#[cfg(feature = "ogg")]
@@ -119,22 +116,13 @@ impl std::error::Error for VorbisError {
 	}
 
 	fn cause(&self) -> Option<&std::error::Error> {
-		match self {
-			&VorbisError::ReadError(ref err) => Some(err as &std::error::Error),
-			_ => None
-		}
+		None
 	}
 }
 
 impl std::fmt::Display for VorbisError {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
 		write!(fmt, "{}", std::error::Error::description(self))
-	}
-}
-
-impl From<io::Error> for VorbisError {
-	fn from(err :io::Error) -> VorbisError {
-		VorbisError::ReadError(err)
 	}
 }
 
