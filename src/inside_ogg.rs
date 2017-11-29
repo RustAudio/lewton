@@ -190,6 +190,7 @@ This module provides support for asyncronous I/O.
 pub mod async {
 
 	use super::*;
+	use ogg::OggReadError;
 	use ogg::reading::async::PacketReader;
 	use futures::stream::Stream;
 	use tokio_io::AsyncRead;
@@ -222,29 +223,40 @@ pub mod async {
 		type Item = HeaderSet;
 		type Error = VorbisError;
 		fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-			if let Some(pck) = try_ready!(self.pck_rd.poll()) {
-				let setup_hdr = if let Some(ref ident) = self.ident_hdr {
-					if self.comment_hdr.is_some() {
-						try!(read_header_setup(&pck.data,
-							ident.audio_channels,
-							(ident.blocksize_0, ident.blocksize_1)))
+			macro_rules! rd_pck {
+				() => {
+					if let Some(pck) = try_ready!(self.pck_rd.poll()) {
+						pck
 					} else {
-						self.comment_hdr =
-							Some(try!(read_header_comment(&pck.data)));
-						return Ok(Async::NotReady);
+						// Note: we are stealing the Io variant from
+						// the ogg crate here which is not 100% clean,
+						// but I think in general it is what the
+						// read_packet_expected function of the ogg
+						// crate does too, and adding our own case
+						// to the VorbisError enum that only fires
+						// in an async mode is too complicated IMO.
+						try!(Err(OggReadError::ReadError(Error::new(ErrorKind::UnexpectedEof,
+							"Expected header packet but found end of stream"))))
 					}
-				} else {
-					self.ident_hdr =
-						Some(try!(read_header_ident(&pck.data)));
-					return Ok(Async::NotReady);
-				};
-				let ident_hdr = replace(&mut self.ident_hdr, None).unwrap();
-				let comment_hdr = replace(&mut self.comment_hdr, None).unwrap();
-				Ok(Async::Ready(((ident_hdr, comment_hdr, setup_hdr))))
-			} else {
-				try!(Err(Error::new(ErrorKind::UnexpectedEof,
-				"Expected header packet but found end of stream")))
+				}
 			}
+			if self.ident_hdr.is_none() {
+				let pck = rd_pck!();
+				self.ident_hdr = Some(try!(read_header_ident(&pck.data)));
+			}
+			if self.comment_hdr.is_none() {
+				let pck = rd_pck!();
+				self.comment_hdr = Some(try!(read_header_comment(&pck.data)));
+			}
+			let setup_hdr = {
+				let ident = self.ident_hdr.as_ref().unwrap();
+				let pck = rd_pck!();
+				try!(read_header_setup(&pck.data,
+					ident.audio_channels, (ident.blocksize_0, ident.blocksize_1)))
+			};
+			let ident_hdr = replace(&mut self.ident_hdr, None).unwrap();
+			let comment_hdr = replace(&mut self.comment_hdr, None).unwrap();
+			Ok(Async::Ready(((ident_hdr, comment_hdr, setup_hdr))))
 		}
 	}
 	/// Reading ogg/vorbis files or streams
