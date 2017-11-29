@@ -26,7 +26,7 @@ fn main() {
 fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
-	let f = try!(File::open(file_path));
+	let f = File::open(file_path).expect("Can't open file");
 
 	// Prepare the reading
 	let mut srr = try!(OggStreamReader::new(f));
