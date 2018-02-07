@@ -23,7 +23,6 @@ futures = { version = "0.1", optional = true }
 [dev-dependencies]
 ogg = "0.5"
 alto = "2"
-rand = "0.3"
 
 [package.metadata.docs.rs]
 features = ["async_ogg"]
