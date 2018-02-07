@@ -94,7 +94,7 @@ mod bitpacking;
 pub mod inside_ogg;
 
 #[cfg(feature = "ogg")]
-use ogg::OggReadError;
+pub use ogg::OggReadError;
 
 /// Errors that can occur during decoding
 #[derive(Debug)]
