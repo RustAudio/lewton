@@ -73,3 +73,9 @@ Initial release.
 ## Release 0.7.0 - October 24, 2017
 
 * Removed all uses of unsafe in return of making Rust 1.20 required
+
+## Release 0.8.0 - February 7, 2018
+
+* Removed unused error enum variant
+* Pub used OggReadError so that people can match on its variants without needing to depend on the Ogg crate
+* Used min instead of residue_begin/residue_end directly. See also [the PR](https://github.com/xiph/vorbis/pull/35) that modified the vorbis spec accordingly.

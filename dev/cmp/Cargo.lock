@@ -2,7 +2,7 @@
 name = "cmp"
 version = "0.1.0"
 dependencies = [
- "lewton 0.7.0",
+ "lewton 0.8.0",
  "test-assets 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vorbis 0.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -121,7 +121,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "lewton"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ogg 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",

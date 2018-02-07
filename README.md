@@ -2,7 +2,7 @@
 
 Vorbis decoder written in pure Rust.
 
-[Documentation](https://docs.rs/crate/lewton/0.7.0)
+[Documentation](https://docs.rs/crate/lewton/0.8.0)
 
 [crates.io](https://crates.io/crates/lewton)
 
