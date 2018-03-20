@@ -191,6 +191,173 @@ pub fn get_asset_defs() -> [TestAssetDef; 5] {
 }
 
 #[allow(unused)]
+pub fn get_libnogg_asset_defs() -> [TestAssetDef; 32] {
+	return [
+		TestAssetDef {
+			filename : format!("6-mode-bits-multipage.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6-mode-bits-multipage.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("6-mode-bits.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6-mode-bits.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("6ch-all-page-types.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6ch-all-page-types.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("6ch-long-first-packet.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6ch-long-first-packet.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("6ch-moving-sine-floor0.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6ch-moving-sine-floor0.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("6ch-moving-sine.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/6ch-moving-sine.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("bad-continued-packet-flag.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/bad-continued-packet-flag.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("bitrate-123.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/bitrate-123.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("bitrate-456-0.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/bitrate-456-0.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("bitrate-456-789.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/bitrate-456-789.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("empty-page.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/empty-page.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("large-pages.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/large-pages.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("long-short.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/long-short.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("noise-6ch.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/noise-6ch.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("noise-stereo.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/noise-stereo.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("partial-granule-position.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/partial-granule-position.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("sample-rate-max.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/sample-rate-max.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("single-code-2bits.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/single-code-2bits.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("single-code-nonsparse.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/single-code-nonsparse.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("single-code-ordered.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/single-code-ordered.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("single-code-sparse.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/single-code-sparse.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("sketch008-floor0.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/sketch008-floor0.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("sketch008.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/sketch008.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("sketch039.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/sketch039.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("split-packet.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/split-packet.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("square-interleaved.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/square-interleaved.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("square-multipage.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/square-multipage.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("square-stereo.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/square-stereo.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("square-with-junk.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/square-with-junk.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("square.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/square.ogg"),
+		},
+		// Omit thingy-floor0.ogg
+		TestAssetDef {
+			filename : format!("thingy.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/thingy.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("zero-length.ogg"),
+			hash : format!("0000000000000000000000000000000000000000000000000000000000000000"),
+			url : format!("https://bitbucket.org/achurch_/libnogg/raw/c80b37a361e13803c459bd578f68db09362a9f63/tests/data/zero-length.ogg"),
+		},
+	];
+}
+
+#[allow(unused)]
 pub fn get_xiph_asset_defs_1() -> [TestAssetDef; 5] {
 	return [
 		TestAssetDef {

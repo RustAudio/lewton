@@ -33,6 +33,57 @@ fn test_vals() {
 }
 
 #[test]
+fn test_libnogg_vals() {
+	println!();
+	test_assets::download_test_files(&cmp::get_libnogg_asset_defs(),
+		"test-assets", true).unwrap();
+	println!();
+
+	cmp_output!("6-mode-bits-multipage.ogg", 2);
+	cmp_output!("6-mode-bits.ogg", 2);
+	// TODO make these testable (6 channels)
+	//cmp_output!("6ch-all-page-types.ogg", 0);
+	//cmp_output!("6ch-long-first-packet.ogg", 0);
+	//cmp_output!("6ch-moving-sine-floor0.ogg", 0);
+	//cmp_output!("6ch-moving-sine.ogg", 0);
+	// TODO this is a bad invalid file
+	//cmp_output!("bad-continued-packet-flag.ogg", 0);
+	cmp_output!("bitrate-123.ogg", 0);
+	cmp_output!("bitrate-456-0.ogg", 0);
+	cmp_output!("bitrate-456-789.ogg", 0);
+	cmp_output!("empty-page.ogg", 0);
+	cmp_output!("large-pages.ogg", 2);
+	cmp_output!("long-short.ogg", 2);
+	// TODO make this testable (6 channels)
+	//cmp_output!("noise-6ch.ogg", 0);
+	cmp_output!("noise-stereo.ogg", 0);
+	cmp_output!("partial-granule-position.ogg", 2);
+	cmp_output!("sample-rate-max.ogg", 0);
+	// TODO we are getting Error: BadHeader(HeaderBadFormat) here
+	// is that expected?
+	//cmp_output!("single-code-2bits.ogg", 0);
+	// TODO we are getting Error: BadHeader here.
+	// is that expected?
+	//cmp_output!("single-code-nonsparse.ogg", 0);
+	//cmp_output!("single-code-ordered.ogg", 0);
+	// TODO make this testable (6 channels)
+	//cmp_output!("single-code-sparse.ogg", 0);
+	cmp_output!("sketch008-floor0.ogg", 4);
+	cmp_output!("sketch008.ogg", 0);
+	cmp_output!("sketch039.ogg", 0);
+	cmp_output!("split-packet.ogg", 2);
+	//cmp_output!("square-interleaved.ogg", 0);
+	cmp_output!("square-multipage.ogg", 0);
+	cmp_output!("square-stereo.ogg", 0);
+	// Error: OggError(NoCapturePatternFound) ... that's okay isn't it?
+	//cmp_output!("square-with-junk.ogg", 0);
+	cmp_output!("square.ogg", 0);
+	cmp_output!("thingy.ogg", 0);
+	cmp_output!("zero-length.ogg", 0);
+}
+
+
+#[test]
 fn test_xiph_vals_1() {
 	println!();
 	test_assets::download_test_files(&cmp::get_xiph_asset_defs_1(),
