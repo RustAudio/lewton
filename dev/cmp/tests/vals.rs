@@ -107,7 +107,7 @@ fn test_xiph_vals_2() {
 	cmp_output!("bimS-silence.ogg", 0);
 	// TODO fix these
 	//cmp_output!("chain-test1.ogg", 1);
-	//cmp_output!("chain-test2.ogg", 1);
+	cmp_output!("chain-test2.ogg", 0);
 	//cmp_output!("chain-test3.ogg", 1);
 	cmp_output!("highrate-test.ogg", 0);
 }
