@@ -154,7 +154,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 use self::test_assets::TestAssetDef;
 
-pub fn get_asset_defs() -> [TestAssetDef; 5] {
+pub fn get_asset_defs() -> [TestAssetDef; 6] {
 	return [
 		TestAssetDef {
 			filename : format!("bwv_1043_vivace.ogg"),
@@ -180,6 +180,11 @@ pub fn get_asset_defs() -> [TestAssetDef; 5] {
 			filename : format!("thingy-floor0.ogg"),
 			hash : format!("02b9e94764db30b876964eba2d0a813dedaecdbfa978a13dc9cef9bdc1f4e9ee"),
 			url : format!("https://bitbucket.org/achurch_/libnogg/raw/abd0dbdb6803f9a591e9491d033d889812e877ae/tests/data/thingy-floor0.ogg"),
+		},
+		TestAssetDef {
+			filename : format!("audio_simple_err.ogg"),
+			hash : format!("ac66d7708f46b422a033999884044a60b67dfe88e201efc99bbc7402097e640b"),
+			url : format!("https://github.com/RustAudio/lewton/files/1543593/audio_simple_err.zip"),
 		},
 	];
 }

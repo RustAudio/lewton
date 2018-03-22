@@ -30,6 +30,8 @@ fn test_vals() {
 	cmp_output!("maple_leaf_rag.ogg", 0);
 	cmp_output!("hoelle_rache.ogg", 0);
 	cmp_output!("thingy-floor0.ogg", 1);
+	// TODO fix this (bug #24)
+	//cmp_output!("audio_simple_err.ogg", 0);
 }
 
 #[test]
