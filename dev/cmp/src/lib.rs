@@ -81,12 +81,6 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
 
-	if ogg_rdr.ident_hdr.audio_channels > 2 {
-		// We haven't implemented interleave code for more than two channels
-		println!("Stream error: {} channels are too many!",
-			ogg_rdr.ident_hdr.audio_channels);
-	}
-
 	// Now the fun starts..
 	let mut native_it = dec.into_packets();
 	let mut n = 0;

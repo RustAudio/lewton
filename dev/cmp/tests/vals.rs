@@ -44,7 +44,7 @@ fn test_libnogg_vals() {
 	// TODO make these testable (6 channels)
 	//cmp_output!("6ch-all-page-types.ogg", 0);
 	//cmp_output!("6ch-long-first-packet.ogg", 0);
-	//cmp_output!("6ch-moving-sine-floor0.ogg", 0);
+	cmp_output!("6ch-moving-sine-floor0.ogg", 0);
 	//cmp_output!("6ch-moving-sine.ogg", 0);
 	// TODO this is a bad invalid file
 	//cmp_output!("bad-continued-packet-flag.ogg", 0);
@@ -54,7 +54,7 @@ fn test_libnogg_vals() {
 	cmp_output!("empty-page.ogg", 0);
 	cmp_output!("large-pages.ogg", 2);
 	cmp_output!("long-short.ogg", 2);
-	// TODO make this testable (6 channels)
+	// TODO fix this
 	//cmp_output!("noise-6ch.ogg", 0);
 	cmp_output!("noise-stereo.ogg", 0);
 	cmp_output!("partial-granule-position.ogg", 2);
@@ -66,7 +66,7 @@ fn test_libnogg_vals() {
 	// is that expected?
 	//cmp_output!("single-code-nonsparse.ogg", 0);
 	//cmp_output!("single-code-ordered.ogg", 0);
-	// TODO make this testable (6 channels)
+	// TODO fix this
 	//cmp_output!("single-code-sparse.ogg", 0);
 	cmp_output!("sketch008-floor0.ogg", 4);
 	cmp_output!("sketch008.ogg", 0);
