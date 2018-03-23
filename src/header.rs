@@ -249,13 +249,13 @@ pub fn read_header_ident(packet :&[u8]) -> Result<IdentHeader, HeaderReadError> 
 		try!(Err(HeaderReadError::HeaderBadFormat));
 	}
 	let hdr :IdentHeader = IdentHeader {
-		audio_channels : audio_channels,
-		audio_sample_rate : audio_sample_rate,
-		bitrate_maximum : bitrate_maximum,
-		bitrate_nominal : bitrate_nominal,
-		bitrate_minimum : bitrate_minimum,
-		blocksize_0 : blocksize_0,
-		blocksize_1 : blocksize_1,
+		audio_channels,
+		audio_sample_rate,
+		bitrate_maximum,
+		bitrate_nominal,
+		bitrate_minimum,
+		blocksize_0,
+		blocksize_1,
 		cached_bs_derived : [
 			CachedBlocksizeDerived::from_blocksize(blocksize_0),
 			CachedBlocksizeDerived::from_blocksize(blocksize_1),
@@ -348,8 +348,8 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 		try!(Err(HeaderReadError::HeaderBadFormat));
 	}
 	let hdr :CommentHeader = CommentHeader {
-		vendor: vendor,
-		comment_list: comment_list,
+		vendor,
+		comment_list,
 	};
 	return Ok(hdr);
 }
@@ -454,7 +454,7 @@ impl ResidueBook {
 			}
 			val_i[i] = val_entry;
 		}
-		return Ok(ResidueBook { vals_used : vals_used, val_i: val_i });
+		return Ok(ResidueBook { vals_used, val_i });
 	}
 }
 
@@ -751,9 +751,9 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 	});
 
 	return Ok(Codebook {
-		codebook_dimensions : codebook_dimensions,
-		codebook_entries : codebook_entries,
-		codebook_vq_lookup_vec : codebook_vq_lookup_vec,
+		codebook_dimensions,
+		codebook_entries,
+		codebook_vq_lookup_vec,
 		codebook_huffman_tree : try!(VorbisHuffmanTree::load_from_array(codebook_codeword_lengths)),
 	});
 }
@@ -785,13 +785,13 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 				floor0_book_list.push(try!(rdr.read_u8()));
 			}
 			Ok(Floor::TypeZero(FloorTypeZero {
-				floor0_order : floor0_order,
-				floor0_rate : floor0_rate,
-				floor0_bark_map_size : floor0_bark_map_size,
-				floor0_amplitude_bits : floor0_amplitude_bits,
-				floor0_amplitude_offset : floor0_amplitude_offset,
-				floor0_number_of_books : floor0_number_of_books,
-				floor0_book_list : floor0_book_list,
+				floor0_order,
+				floor0_rate,
+				floor0_bark_map_size,
+				floor0_amplitude_bits,
+				floor0_amplitude_offset,
+				floor0_number_of_books,
+				floor0_book_list,
 				cached_bark_cos_omega : [
 					compute_bark_map_cos_omega(1 << (blocksizes.0 - 1),
 						floor0_rate, floor0_bark_map_size),
@@ -891,14 +891,14 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 
 			// Only now return the result
 			Ok(Floor::TypeOne(FloorTypeOne {
-				floor1_multiplier : floor1_multiplier,
+				floor1_multiplier,
 				floor1_partition_class : floor1_partition_class_list,
-				floor1_class_dimensions : floor1_class_dimensions,
-				floor1_class_subclasses : floor1_class_subclasses,
-				floor1_subclass_books : floor1_subclass_books,
-				floor1_class_masterbooks : floor1_class_masterbooks,
-				floor1_x_list : floor1_x_list,
-				floor1_x_list_sorted : floor1_x_list_sorted,
+				floor1_class_dimensions,
+				floor1_class_subclasses,
+				floor1_subclass_books,
+				floor1_class_masterbooks,
+				floor1_x_list,
+				floor1_x_list_sorted,
 
 			}))
 		},
@@ -954,12 +954,12 @@ fn read_residue(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>)
 	}*/
 	return Ok(Residue {
 		residue_type : residue_type as u8,
-		residue_begin : residue_begin,
-		residue_end : residue_end,
-		residue_partition_size : residue_partition_size,
-		residue_classifications : residue_classifications,
-		residue_classbook : residue_classbook,
-		residue_books : residue_books,
+		residue_begin,
+		residue_end,
+		residue_partition_size,
+		residue_classifications,
+		residue_classbook,
+		residue_books,
 	});
 }
 
@@ -1030,12 +1030,12 @@ fn read_mapping(rdr :&mut BitpackCursor,
 		mapping_submap_residues.push(cur_residue);
 	}
 	return Ok(Mapping {
-		mapping_submaps : mapping_submaps,
-		mapping_magnitudes : mapping_magnitudes,
-		mapping_angles : mapping_angles,
-		mapping_mux : mapping_mux,
-		mapping_submap_floors : mapping_submap_floors,
-		mapping_submap_residues : mapping_submap_residues,
+		mapping_submaps,
+		mapping_magnitudes,
+		mapping_angles,
+		mapping_mux,
+		mapping_submap_floors,
+		mapping_submap_residues,
 	});
 }
 
@@ -1053,8 +1053,8 @@ fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo
 		try!(Err(HeaderReadError::HeaderBadFormat));
 	}
 	return Ok(ModeInfo {
-		mode_blockflag : mode_blockflag,
-		mode_mapping : mode_mapping,
+		mode_blockflag,
+		mode_mapping,
 	});
 }
 
@@ -1128,10 +1128,10 @@ pub fn read_header_setup(packet :&[u8], audio_channels :u8, blocksizes :(u8, u8)
 	}
 
 	return Ok(SetupHeader {
-		codebooks : codebooks,
-		floors : floors,
-		residues : residues,
-		mappings : mappings,
-		modes : modes,
+		codebooks,
+		floors,
+		residues,
+		mappings,
+		modes,
 	});
 }
