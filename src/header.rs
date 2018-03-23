@@ -385,8 +385,6 @@ pub(crate) struct Mapping {
 
 pub(crate) struct ModeInfo {
 	pub mode_blockflag :bool,
-	pub mode_windowtype :u16,
-	pub mode_transformtype :u16,
 	pub mode_mapping :u8,
 }
 
@@ -1056,8 +1054,6 @@ fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo
 	}
 	return Ok(ModeInfo {
 		mode_blockflag : mode_blockflag,
-		mode_windowtype : mode_windowtype,
-		mode_transformtype : mode_transformtype,
 		mode_mapping : mode_mapping,
 	});
 }
