@@ -183,7 +183,7 @@ pub fn get_asset_defs() -> [TestAssetDef; 6] {
 		},
 		TestAssetDef {
 			filename : format!("audio_simple_err.ogg"),
-			hash : format!("ac66d7708f46b422a033999884044a60b67dfe88e201efc99bbc7402097e640b"),
+			hash : format!("1b97b2b151b34f1ca6868aa0088535792252aa5c7c990e1de9eedd6a33d3c0dd"),
 			url : format!("https://github.com/RustAudio/lewton/files/1543593/audio_simple_err.zip"),
 		},
 	];
