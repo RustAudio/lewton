@@ -292,7 +292,7 @@ It contains text comment metadata
 about the stream, encoded as key-value pairs,
 and the vendor name.
 */
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct CommentHeader {
 	/// An identification string of the
 	/// software/library that encoded
