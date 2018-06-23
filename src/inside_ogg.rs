@@ -133,7 +133,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 					Some(p) => p,
 					None => return Ok(None),
 				};
-				let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+				let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 					&self.setup_hdr, &pck.data, &mut self.pwr));
 				self.absgp_of_last_read = Some(pck.absgp_page);
 
