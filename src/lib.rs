@@ -8,7 +8,6 @@
 
 #![forbid(unsafe_code)]
 #![cfg_attr(test, deny(warnings))]
-#![allow(unused_parens)]
 
 /*!
 A `vorbis` decoder, written in Rust.

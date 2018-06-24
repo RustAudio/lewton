@@ -144,14 +144,14 @@ macro_rules! read_header_begin_body {
 		// header packets have it set to 1)
 		try!(Err(HeaderReadError::HeaderIsAudio));
 	}
-	if (
-		try!($rdr.read_u8()) != 0x76 || // 'v'
-		try!($rdr.read_u8()) != 0x6f || // 'o'
-		try!($rdr.read_u8()) != 0x72 || // 'r'
-		try!($rdr.read_u8()) != 0x62 || // 'b'
-		try!($rdr.read_u8()) != 0x69 || // 'i'
-		try!($rdr.read_u8()) != 0x73    // 's'
-	) {
+	let is_vorbis =
+		try!($rdr.read_u8()) == 0x76 && // 'v'
+		try!($rdr.read_u8()) == 0x6f && // 'o'
+		try!($rdr.read_u8()) == 0x72 && // 'r'
+		try!($rdr.read_u8()) == 0x62 && // 'b'
+		try!($rdr.read_u8()) == 0x69 && // 'i'
+		try!($rdr.read_u8()) == 0x73;   // 's'
+	if !is_vorbis {
 		try!(Err(HeaderReadError::NotVorbisHeader));
 	}
 	return Ok(res);
@@ -838,7 +838,7 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 					// we can't increase the counter without initialisation.
 					floor1_class_masterbooks.push(0);
 				}
-				let cur_books_cnt :u8 = (1 << cur_subclass);
+				let cur_books_cnt :u8 = 1 << cur_subclass;
 				let mut cur_books = Vec::with_capacity(cur_books_cnt as usize);
 				for _ in 0 .. cur_books_cnt {
 					// The fact that we need i16 here (and shouldn't do

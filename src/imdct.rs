@@ -353,8 +353,8 @@ pub fn inverse_mdct(cached_bd :&CachedBlocksizeDerived, buffer :&mut [f32], bs :
 		// TODO replace the while with a for once step_by on iterators
 		// is stabilized
 		while e_offs != e_stop {
-			d![1] = (e![0] * aa![0] - e![2]*aa![1]);
-			d![0] = (e![0] * aa![1] + e![2]*aa![0]);
+			d![1] = e![0] * aa![0] - e![2]*aa![1];
+			d![0] = e![0] * aa![1] + e![2]*aa![0];
 			d_offs -= 2;
 			a_offs += 2;
 			e_offs += 4;
@@ -362,8 +362,8 @@ pub fn inverse_mdct(cached_bd :&CachedBlocksizeDerived, buffer :&mut [f32], bs :
 
 		e_offs = n2 - 3;
 		loop {
-			d![1] = (-e![2] * aa![0] - -e![0]*aa![1]);
-			d![0] = (-e![2] * aa![1] + -e![0]*aa![0]);
+			d![1] = -e![2] * aa![0] - -e![0]*aa![1];
+			d![0] = -e![2] * aa![1] + -e![0]*aa![0];
 			break_if_sub_overflows!(d_offs, 2);
 			a_offs += 2;
 			e_offs -= 4;
@@ -734,7 +734,7 @@ pub fn inverse_mdct_naive(cached_bd :&CachedBlocksizeDerived, buffer :&mut[f32])
 			}
 			r4 += 4;
 		}
-		if (l+1 < ld-3) {
+		if l+1 < ld-3 {
 			// paper bug: ping-ponging of u&w here is omitted
 			w.copy_from_slice(&u);
 		}

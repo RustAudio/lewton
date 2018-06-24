@@ -53,7 +53,7 @@ fn test_sign_extend() {
 
 /// Returns `num` bits of 1 (but never more than 8).
 fn mask_bits(num : u8) -> u8 {
-	!((!0u8).wrapping_shl(num as u32)) | if (num >= 8) { 0xff } else { 0 }
+	!((!0u8).wrapping_shl(num as u32)) | if num >= 8 { 0xff } else { 0 }
 }
 
 // Same as mask_bits but different in a special case: for num % 8 == 0
