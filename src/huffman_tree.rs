@@ -384,7 +384,7 @@ impl<'a> VorbisHuffmanIter<'a> {
 impl VorbisHuffmanTree {
 	fn iter_test(&self, path :u32, path_len :u8, expected_val :u32) {
 		let mut itr = self.iter();
-		for i in (1 .. path_len) {
+		for i in 1 .. path_len {
 			assert_eq!(itr.next((path & (1 << (path_len - i))) != 0), None);
 		}
 		assert_eq!(itr.next((path & 1) != 0), Some(expected_val));
