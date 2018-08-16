@@ -1,5 +1,12 @@
 # Changes
 
+## Release 0.9.0 - August 16, 2018
+
+* Renamed `async` to `async_api` for better edition 2018 compilance
+* Updated ogg to 0.6.0
+* Expanded test suite to include xiph test vectors
+* Support for chained files
+
 ## Release 0.8.0 - February 7, 2018
 
 * Removed unused error enum variant
