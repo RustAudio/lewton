@@ -238,7 +238,7 @@ pub mod async {
 
 	use super::*;
 	use ogg::OggReadError;
-	use ogg::reading::async::PacketReader;
+	use ogg::reading::async_api::PacketReader;
 	use futures::stream::Stream;
 	use tokio_io::AsyncRead;
 	use futures::{Async, Future, Poll};
