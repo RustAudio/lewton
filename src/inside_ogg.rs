@@ -234,7 +234,7 @@ Support for async I/O
 
 This module provides support for asyncronous I/O.
 */
-pub mod async {
+pub mod async_api {
 
 	use super::*;
 	use ogg::OggReadError;
