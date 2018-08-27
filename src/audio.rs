@@ -1074,38 +1074,48 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 		assert_eq!(audio_spectri.len(), prev_data.len());
 
 		let win_slope = &ident.cached_bs_derived[left_n_use_bs1 as usize].window_slope;
-		for (prev_chan, chan) in
-				prev_data.iter().zip(audio_spectri.iter_mut()) {
+
+		for (prev_chan, chan) in prev_data.into_iter().zip(audio_spectri.iter_mut()) {
 			let plen = prev_chan.len();
+			let left_win_start = left_win_start as usize;
+			let right_win_start = right_win_start as usize;
+			let right_win_end = right_win_end as usize;
 
 			// Then do the actual overlap_add
-			for j in 0 .. plen {
-				chan[j + left_win_start as usize] =
-					chan[j + left_win_start as usize] * win_slope[j] +
-					prev_chan[j] * win_slope[plen as usize - 1 - j];
-  			}
+			// Set up iterators for all the variables
+			let range = {
+				let start = left_win_start;
+				let end = left_win_start + plen;
+				start..end
+			};
+
+			let prev = prev_chan[0..plen].into_iter();
+
+			let (lhs, rhs) = {
+				let win_slope = &win_slope[0..plen];
+				(win_slope.iter(), win_slope.iter().rev())
+			};
+
+			for (((v, lhs), prev), rhs) in chan[range].iter_mut().zip(lhs).zip(prev).zip(rhs) {
+				*v = (*v * lhs) + (prev * rhs);
+			}
 
   			// and populate the future previous half
-			let future_prev_half: Vec<_> = (right_win_start..right_win_end)
-				.into_iter()
-				.map(|i| i as usize)
-				.map(|i| chan[i])
-				.collect();
+			let future_prev_half = chan[right_win_start..right_win_end].into();
 
 			future_prev_halves.push(future_prev_half);
 
 			// Remove everything left of the left window start,
 			// by moving the the stuff right to it to the left.
 			if left_win_start > 0 {
-				for i in 0 .. (right_win_start - left_win_start) as usize {
-					chan[i] = chan[i + left_win_start as usize];
+				for i in 0 .. right_win_start - left_win_start {
+					chan[i] = chan[i + left_win_start];
 				}
 			}
 
 			// Now the last step: truncate the decoded packet
 			// to cut off the right part.
-			chan.truncate(
-				(right_win_start - left_win_start) as usize);
+			chan.truncate(right_win_start - left_win_start);
 			// TODO stb_vorbis doesn't use right_win_start
 			// in the calculation above but sth like
 			// if len < right_win_start { len } else { right_win_start }
