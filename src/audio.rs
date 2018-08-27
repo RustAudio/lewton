@@ -1082,11 +1082,12 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
   			}
 
   			// and populate the future previous half
-			let mut future_prev_half = Vec::with_capacity(
-				(right_win_end - right_win_start) as usize);
-			for i in right_win_start as usize .. right_win_end as usize {
-				future_prev_half.push(chan[i]);
-			}
+			let future_prev_half: Vec<_> = (right_win_start..right_win_end)
+				.into_iter()
+				.map(|i| i as usize)
+				.map(|i| chan[i])
+				.collect();
+
 			future_prev_halves.push(future_prev_half);
 
 			// Remove everything left of the left window start,
