@@ -17,6 +17,7 @@ use imdct;
 use std::error;
 use std::fmt;
 use std::cmp::min;
+use smallvec::SmallVec;
 use ::ilog;
 use ::bitpacking::BitpackCursor;
 use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
@@ -614,7 +615,7 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 }
 
 fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
-		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f32>, ()> {
+		do_not_decode_flag :&[bool], resid :&Residue, codebooks :&[Codebook]) -> Result<Vec<f32>, ()> {
 
 	let ch = do_not_decode_flag.len();
 	let actual_size = (cur_blocksize / 2) as usize;
@@ -713,7 +714,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 // Ok means "fine" (or end of packet, but thats "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
 fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
-		do_not_decode_flag :&Vec<bool>, resid :&Residue, codebooks :&Vec<Codebook>) -> Result<Vec<f32>, ()> {
+		do_not_decode_flag :&[bool], resid :&Residue, codebooks :&[Codebook]) -> Result<Vec<f32>, ()> {
 
 	let ch = do_not_decode_flag.len();
 	let vec_size = (cur_blocksize / 2) as usize;
@@ -939,7 +940,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 		&setup.codebooks, &setup.floors));
 
 	// Now calculate the no_residue vector
-	let mut no_residue = Vec::with_capacity(ident.audio_channels as usize);
+	let mut no_residue = SmallVec::<[bool; 256]>::new();
 	for fl in &decoded_floor_infos {
 		no_residue.push(fl.is_unused());
 	}
@@ -957,7 +958,7 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	// Helper variable
 	let resid_vec_len = (n / 2) as usize;
 	for (i, &residue_number) in mapping.mapping_submap_residues.iter().enumerate() {
-		let mut do_not_decode_flag = Vec::with_capacity(ident.audio_channels as usize);
+		let mut do_not_decode_flag = SmallVec::<[bool; 256]>::new();
 		for (j, &mapping_mux_j) in mapping.mapping_mux.iter().enumerate() {
 			if mapping_mux_j as usize == i {
 				do_not_decode_flag.push(no_residue[j]);
