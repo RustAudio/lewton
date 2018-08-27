@@ -732,8 +732,8 @@ fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 			// as required per spec only residue 2 has this.
 			return Ok(vec![0.; ch * vec_size]);
 		} else {
-			// Construct a do_not_decode flag vec
-			let c_do_not_decode_flag = vec![false];
+			// Construct a do_not_decode flag array
+			let c_do_not_decode_flag = [false];
 
 			let vectors = try!(residue_packet_decode_inner(rdr,
 				cur_blocksize * ch as u16, &c_do_not_decode_flag,
@@ -742,9 +742,8 @@ fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 			// Post decode step
 			let mut vectors_deinterleaved = Vec::with_capacity(ch * vec_size);
 			for j in 0 .. ch {
-				for i in 0 .. vec_size {
-					vectors_deinterleaved.push(vectors[i * ch + j]);
-				}
+				let iter = vectors.chunks(ch).map(|chunk| chunk[j]);
+				vectors_deinterleaved.extend(iter);
 			}
 			return Ok(vectors_deinterleaved);
 		}
