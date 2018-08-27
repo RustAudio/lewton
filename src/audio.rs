@@ -838,21 +838,6 @@ fn test_imdct_slow() {
 	}
 }
 
-fn f32_to_i16_samples(v :&[f32], r :&mut Vec<i16>) {
-	for s in v {
-		let ss = s * 32768.;
-		r.push(
-			if ss > 32767. {
-				32767
-			} else if ss < -32768. {
-				-32768
-			} else {
-				ss as i16
-			}
-		);
-	}
-}
-
 /// The right part of the previous window
 ///
 /// This is the only state that needs to be changed
@@ -1138,12 +1123,21 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	pwr.data = Some(future_prev_halves);
 
 	// Generate final integer samples
-	let mut final_i16_samples = Vec::with_capacity(ident.audio_channels as usize);
-	for samples in audio_spectri.iter() {
-		let mut final_chan = Vec::with_capacity(samples.len());
-		f32_to_i16_samples(samples, &mut final_chan);
-		final_i16_samples.push(final_chan);
-	}
+	let final_i16_samples = audio_spectri.into_iter()
+		.map(|samples| {
+			samples.iter()
+				.map(|s| {
+					let s = s * 32768.0;
+					if s > 32767. {
+						32767
+					} else if s < -32768. {
+						-32768
+					} else {
+						s as i16
+					}
+				})
+				.collect()
+		}).collect();
 
-	return Ok(final_i16_samples);
+	Ok(final_i16_samples)
 }
