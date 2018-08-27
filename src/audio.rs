@@ -602,16 +602,20 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 		}
 	} else {
 		// Common for both format 1 and 2
+		let partition_size = resid.residue_partition_size as usize;
 		let mut i = 0;
-		while i < resid.residue_partition_size as usize {
-			let entry_temp = try!(rdr.read_huffman_vq(codebook));
-			for e in entry_temp {
-				vec_v[i] += *e;
-				i += 1;
+		while i < partition_size {
+			let entries = try!(rdr.read_huffman_vq(codebook));
+			let vs = &mut vec_v[i..(i + entries.len())];
+
+			for (v, e) in vs.iter_mut().zip(entries.iter()) {
+				*v += *e;
 			}
+
+			i += entries.len();
 		}
 	}
-	return Ok(());
+	Ok(())
 }
 
 fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
