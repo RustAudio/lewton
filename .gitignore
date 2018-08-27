@@ -2,3 +2,4 @@ target
 *swp
 callgrind.out.*
 test-assets
+Cargo.lock
