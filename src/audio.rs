@@ -17,6 +17,7 @@ use imdct;
 use std::error;
 use std::fmt;
 use std::cmp::min;
+use std::iter;
 use smallvec::SmallVec;
 use ::ilog;
 use ::bitpacking::BitpackCursor;
@@ -552,11 +553,10 @@ fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 	} else if hx > n as u32 {
 		floor.truncate(n as usize);
 	}
-	let mut rf = Vec::with_capacity(floor.len());
-	for fl in floor {
-		rf.push(FLOOR1_INVERSE_DB_TABLE[fl as usize]);
-	}
-	return rf;
+
+	floor.into_iter()
+		.map(|fl| FLOOR1_INVERSE_DB_TABLE[fl as usize])
+		.collect()
 }
 
 fn floor_decode<'a>(rdr :&mut BitpackCursor,
@@ -1042,11 +1042,9 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 
 	// Inverse MDCT
 	for ref mut spectrum in audio_spectri.iter_mut() {
-		// TODO somehow get rid of this stupid extension...
-		// TODO perhaps experiment with extend() on the vec. or something...
-		for _ in 0 .. n / 2 {
-			spectrum.push(0.);
-		}
+		let size = (n / 2) as usize;
+		let ext = iter::repeat(0.).take(size);
+		spectrum.extend(ext);
 		let cached_bd = &ident.cached_bs_derived[mode.mode_blockflag as usize];
 		//imdct::inverse_mdct_naive(cached_bd, &mut spectrum[..]);
 		imdct::inverse_mdct(cached_bd, &mut spectrum[..], bs);
