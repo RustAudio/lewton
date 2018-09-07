@@ -1092,6 +1092,11 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 			let prev = prev_chan[0..plen].into_iter();
 
 			let (lhs, rhs) = {
+				if win_slope.len() < plen {
+					// According to fuzzing, code can trigger this case,
+					// so let's error gracefully instead of panicing.
+					try!(Err(AudioReadError::AudioBadFormat));
+				}
 				let win_slope = &win_slope[0..plen];
 				(win_slope.iter(), win_slope.iter().rev())
 			};
