@@ -918,6 +918,14 @@ fn read_residue(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>)
 	}
 	let residue_begin = try!(rdr.read_u24());
 	let residue_end = try!(rdr.read_u24());
+	if residue_begin > residue_end {
+		// If residue_begin < residue_end, we'll get
+		// errors in audio parsing code.
+		// As the idea of residue end being before begin
+		// sounds quite wrong anyway, we already error
+		// earlier, in header parsing code.
+		try!(Err(HeaderReadError::HeaderBadFormat));
+	}
 	let residue_partition_size = try!(rdr.read_u24()) + 1;
 	let residue_classifications = try!(rdr.read_u6()) + 1;
 	let residue_classbook = try!(rdr.read_u8());

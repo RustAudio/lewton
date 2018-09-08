@@ -12,7 +12,6 @@ extern crate lewton;
 
 use std::fs::File;
 use lewton::inside_ogg::OggStreamReader;
-use lewton::VorbisError;
 
 macro_rules! try {
 	($expr:expr) => (match $expr {
@@ -23,25 +22,31 @@ macro_rules! try {
 	})
 }
 
+macro_rules! etry {
+	($expr:expr, $expected:pat, $action:tt) => (match $expr {
+		Ok(val) => val,
+		Err($expected) => {
+			$action
+		},
+		Err(e) => {
+			panic!("Unexpected error: {:?}\nExpected: {:?}", e, stringify!($type));
+		},
+	})
+}
+
 // Ensures that a file is malformed and returns an error,
 // but
 macro_rules! ensure_malformed {
-	($name:expr, $type:expr) => {{
+	($name:expr, $expected:pat) => {{
 		// Read the file to memory
 		let f = try!(File::open(format!("test-assets/{}", $name)));
-		let mut ogg_rdr = try!(OggStreamReader::new(f));
-		loop {
-			match ogg_rdr.read_dec_packet_itl() {
-				Ok(Some(_)) => (),
-				Ok(None) => panic!("File {} decoded without errors", $name),
-				Err(VorbisError::BadAudio(e)) => {
-					assert_eq!(e, $type);
-					break;
-				},
-				Err(e) => {
-					panic!("Unexpected error: {:?}", e);
-				},
-			};
+		if let Some(mut ogg_rdr) = etry!(OggStreamReader::new(f).map(|v| Some(v)), $expected, None) {
+			loop {
+				match etry!(ogg_rdr.read_dec_packet_itl(), $expected, break) {
+					Some(_) => (),
+					None => panic!("File {} decoded without errors", $name),
+				};
+			}
 		}
 	}}
 }
@@ -53,7 +58,10 @@ fn test_malformed_fuzzed() {
 		"test-assets", true).unwrap();
 	println!();
 
+	use lewton::VorbisError::*;
 	use lewton::audio::AudioReadError::*;
+	use lewton::header::HeaderReadError::*;
 
-	ensure_malformed!("27_really_minimized_testcase_crcfix.ogg", AudioBadFormat);
+	ensure_malformed!("27_really_minimized_testcase_crcfix.ogg", BadAudio(AudioBadFormat));
+	ensure_malformed!("32_minimized_crash_testcase.ogg", BadHeader(HeaderBadFormat));
 }
