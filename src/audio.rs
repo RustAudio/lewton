@@ -623,12 +623,9 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 	let ch = do_not_decode_flag.len();
 	let actual_size = (cur_blocksize / 2) as usize;
 
-	// This is in fact min() here, and not max() as the spec says.
-	// If you replace the min by max here, stuff doesn't work any more
-	// on test data.
-	// Although taking residue_begin/residue_end itself would
-	// work here as well, min is better :)
-	// Maybe the spec will get fixed:
+	// Older versions of the spec say max() here,
+	// but there's been a bug in the spec.
+	// It's been fixed since:
 	// https://github.com/xiph/vorbis/pull/35
 	let limit_residue_begin = min(resid.residue_begin as usize, actual_size);
 	let limit_residue_end = min(resid.residue_end as usize, actual_size);
