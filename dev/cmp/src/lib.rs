@@ -520,3 +520,14 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 		},
 	];
 }
+
+#[allow(unused)]
+pub fn get_malformed_asset_defs() -> [TestAssetDef; 1] {
+	return [
+		TestAssetDef {
+			filename : format!("27_really_minimized_testcase_crcfix.ogg"),
+			hash : format!("83f6d6f36ae926000f064007e79ef7c45ed561e49223d9b68f980d264050d683"),
+			url : format!("https://github.com/RustAudio/lewton/files/2363013/27_really_minimized_testcase_crcfix.ogg.zip"),
+		},
+	];
+}

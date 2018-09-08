@@ -24,8 +24,7 @@ use ::bitpacking::BitpackCursor;
 use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
 	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AudioReadError {
 	EndOfPacket,
 	AudioBadFormat,
