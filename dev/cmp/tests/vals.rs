@@ -67,9 +67,9 @@ fn test_libnogg_vals() {
 	cmp_output!("partial-granule-position.ogg", 2);
 	cmp_output!("sample-rate-max.ogg", 0);
 	ensure_malformed!("single-code-2bits.ogg", BadHeader(HeaderBadFormat));
-	// TODO we are getting Error: BadHeader here.
-	// is that expected?
-	//cmp_output!("single-code-nonsparse.ogg", 0);
+	// We can't cmp the output here because native
+	// libvorbis doesn't accept the file as valid
+	ensure_okay!("single-code-nonsparse.ogg");
 	//cmp_output!("single-code-ordered.ogg", 0);
 	// TODO fix this
 	//cmp_output!("single-code-sparse.ogg", 0);

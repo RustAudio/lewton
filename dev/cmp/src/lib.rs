@@ -187,6 +187,25 @@ macro_rules! ensure_malformed {
 	}}
 }
 
+/// Ensures that a file decodes without errors
+#[macro_export]
+macro_rules! ensure_okay {
+	($name:expr) => {{
+		use std::fs::File;
+		use lewton::inside_ogg::OggStreamReader;
+		// Read the file to memory
+		let f = File::open(format!("test-assets/{}", $name)).unwrap();
+		if let Some(mut ogg_rdr) = OggStreamReader::new(f).map(|v| Some(v)).unwrap() {
+			loop {
+				match ogg_rdr.read_dec_packet_itl().unwrap() {
+					Some(_) => (),
+					None => break,
+				};
+			}
+		}
+	}}
+}
+
 use self::test_assets::TestAssetDef;
 
 pub fn get_asset_defs() -> [TestAssetDef; 6] {
