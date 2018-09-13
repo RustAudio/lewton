@@ -83,23 +83,10 @@ fn test_libnogg_vals() {
 	//cmp_output!("square-interleaved.ogg", 0);
 	cmp_output!("square-multipage.ogg", 0);
 	cmp_output!("square-stereo.ogg", 0);
-	// With manual verification we could see that junk
-	// between pages can be skipped successfully.
-	// However, our ogg decoder errors on junk
-	// after the last page of an ogg file.
-	// This is partially because it doesn't store any
-	// state to indicate that at least *something*
-	// ogg like had been read in the file.
-	// Such state is needed though in order to distinguish
-	// files with junk at the end from non ogg files.
-	// I don't know how libnogg and libvorbis are solving it
-	// but it seems that both support junk at the end
-	// of the file.
-	// I don't deem "junk at end of file" to be
-	// important enough to warrant additional logic
-	// in the ogg demuxer, so let's just keep behaviour
-	// like it is now.
-	ensure_malformed!("square-with-junk.ogg", OggError(NoCapturePatternFound));
+	// This is really more an issue of the ogg crate,
+	// if it's an issue at all.
+	// https://github.com/RustAudio/ogg/issues/7
+	//ensure_malformed!("square-with-junk.ogg", OggError(NoCapturePatternFound));
 	cmp_output!("square.ogg", 0);
 	cmp_output!("thingy.ogg", 0);
 	cmp_output!("zero-length.ogg", 0);
