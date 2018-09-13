@@ -7,11 +7,9 @@
 // attached to this source distribution for details.
 
 extern crate test_assets;
+#[macro_use]
 extern crate cmp;
 extern crate lewton;
-
-use std::fs::File;
-use lewton::inside_ogg::OggStreamReader;
 
 macro_rules! try {
 	($expr:expr) => (match $expr {
@@ -20,35 +18,6 @@ macro_rules! try {
 			panic!("Error: {:?}", err)
 		}
 	})
-}
-
-macro_rules! etry {
-	($expr:expr, $expected:pat, $action:tt) => (match $expr {
-		Ok(val) => val,
-		Err($expected) => {
-			$action
-		},
-		Err(e) => {
-			panic!("Unexpected error: {:?}\nExpected: {:?}", e, stringify!($type));
-		},
-	})
-}
-
-// Ensures that a file is malformed and returns an error,
-// but doesn't panic or crash or anything of the like
-macro_rules! ensure_malformed {
-	($name:expr, $expected:pat) => {{
-		// Read the file to memory
-		let f = try!(File::open(format!("test-assets/{}", $name)));
-		if let Some(mut ogg_rdr) = etry!(OggStreamReader::new(f).map(|v| Some(v)), $expected, None) {
-			loop {
-				match etry!(ogg_rdr.read_dec_packet_itl(), $expected, break) {
-					Some(_) => (),
-					None => panic!("File {} decoded without errors", $name),
-				};
-			}
-		}
-	}}
 }
 
 #[test]
@@ -69,6 +38,8 @@ fn test_malformed_fuzzed() {
 // Ensures that a file is okay
 macro_rules! ensure_okay {
 	($name:expr) => {{
+		use std::fs::File;
+		use lewton::inside_ogg::OggStreamReader;
 		// Read the file to memory
 		let f = try!(File::open(format!("test-assets/{}", $name)));
 		if let Some(mut ogg_rdr) = try!(OggStreamReader::new(f).map(|v| Some(v))) {

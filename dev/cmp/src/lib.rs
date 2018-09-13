@@ -152,6 +152,41 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 	return (pcks_with_diffs, n);
 }
 
+/// Like try, but performs an action if an "expected" error
+/// is intercepted
+#[macro_export]
+macro_rules! try_expected {
+	($expr:expr, $expected:pat, $action:tt) => (match $expr {
+		Ok(val) => val,
+		Err($expected) => {
+			$action
+		},
+		Err(e) => {
+			panic!("Unexpected error: {:?}\nExpected: {:?}", e, stringify!($type));
+		},
+	})
+}
+
+/// Ensures that a file is malformed and returns an error,
+/// but doesn't panic or crash or anything of the like
+#[macro_export]
+macro_rules! ensure_malformed {
+	($name:expr, $expected:pat) => {{
+		use std::fs::File;
+		use lewton::inside_ogg::OggStreamReader;
+		// Read the file to memory
+		let f = File::open(format!("test-assets/{}", $name)).unwrap();
+		if let Some(mut ogg_rdr) = try_expected!(OggStreamReader::new(f).map(|v| Some(v)), $expected, None) {
+			loop {
+				match try_expected!(ogg_rdr.read_dec_packet_itl(), $expected, break) {
+					Some(_) => (),
+					None => panic!("File {} decoded without errors", $name),
+				};
+			}
+		}
+	}}
+}
+
 use self::test_assets::TestAssetDef;
 
 pub fn get_asset_defs() -> [TestAssetDef; 6] {

@@ -7,7 +7,13 @@
 // attached to this source distribution for details.
 
 extern crate test_assets;
+extern crate lewton;
+#[macro_use]
 extern crate cmp;
+
+use lewton::VorbisError::*;
+use lewton::OggReadError::*;
+use lewton::header::HeaderReadError::*;
 
 macro_rules! cmp_output {
 	($str:expr, $max_diff:expr) => {
@@ -48,8 +54,7 @@ fn test_libnogg_vals() {
 	//cmp_output!("6ch-long-first-packet.ogg", 0);
 	cmp_output!("6ch-moving-sine-floor0.ogg", 0);
 	//cmp_output!("6ch-moving-sine.ogg", 0);
-	// TODO this is a bad invalid file
-	//cmp_output!("bad-continued-packet-flag.ogg", 0);
+	ensure_malformed!("bad-continued-packet-flag.ogg", OggError(InvalidData));
 	cmp_output!("bitrate-123.ogg", 0);
 	cmp_output!("bitrate-456-0.ogg", 0);
 	cmp_output!("bitrate-456-789.ogg", 0);
@@ -61,9 +66,7 @@ fn test_libnogg_vals() {
 	cmp_output!("noise-stereo.ogg", 0);
 	cmp_output!("partial-granule-position.ogg", 2);
 	cmp_output!("sample-rate-max.ogg", 0);
-	// TODO we are getting Error: BadHeader(HeaderBadFormat) here
-	// is that expected?
-	//cmp_output!("single-code-2bits.ogg", 0);
+	ensure_malformed!("single-code-2bits.ogg", BadHeader(HeaderBadFormat));
 	// TODO we are getting Error: BadHeader here.
 	// is that expected?
 	//cmp_output!("single-code-nonsparse.ogg", 0);
