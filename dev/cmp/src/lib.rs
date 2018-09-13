@@ -522,7 +522,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 }
 
 #[allow(unused)]
-pub fn get_malformed_asset_defs() -> [TestAssetDef; 3] {
+pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 3] {
 	return [
 		TestAssetDef {
 			filename : format!("27_really_minimized_testcase_crcfix.ogg"),

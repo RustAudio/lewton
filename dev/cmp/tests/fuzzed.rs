@@ -54,7 +54,7 @@ macro_rules! ensure_malformed {
 #[test]
 fn test_malformed_fuzzed() {
 	println!();
-	test_assets::download_test_files(&cmp::get_malformed_asset_defs(),
+	test_assets::download_test_files(&cmp::get_fuzzed_asset_defs(),
 		"test-assets", true).unwrap();
 	println!();
 
@@ -85,7 +85,7 @@ macro_rules! ensure_okay {
 #[test]
 fn test_okay_fuzzed() {
 	println!();
-	test_assets::download_test_files(&cmp::get_malformed_asset_defs(),
+	test_assets::download_test_files(&cmp::get_fuzzed_asset_defs(),
 		"test-assets", true).unwrap();
 	println!();
 
