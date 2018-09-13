@@ -707,7 +707,7 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 			}
 			current_entry += number;
 			current_length += 1;
-			if current_length as u32 > codebook_entries {
+			if current_entry as u32 > codebook_entries {
 				try!(Err(HeaderReadError::HeaderBadFormat));
 			}
 		}

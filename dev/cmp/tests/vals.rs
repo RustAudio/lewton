@@ -70,9 +70,12 @@ fn test_libnogg_vals() {
 	// We can't cmp the output here because native
 	// libvorbis doesn't accept the file as valid
 	ensure_okay!("single-code-nonsparse.ogg");
-	//cmp_output!("single-code-ordered.ogg", 0);
-	// TODO fix this
-	//cmp_output!("single-code-sparse.ogg", 0);
+	ensure_okay!("single-code-ordered.ogg");
+	// TODO get this number down to zero
+	// This test is ensuring already though that
+	// the file decodes without errors, which wasn't
+	// the case until a bug in lewton got fixed.
+	cmp_output!("single-code-sparse.ogg", 25);
 	cmp_output!("sketch008-floor0.ogg", 4);
 	cmp_output!("sketch008.ogg", 0);
 	cmp_output!("sketch039.ogg", 0);
