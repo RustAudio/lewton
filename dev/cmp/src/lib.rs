@@ -522,7 +522,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 }
 
 #[allow(unused)]
-pub fn get_malformed_asset_defs() -> [TestAssetDef; 2] {
+pub fn get_malformed_asset_defs() -> [TestAssetDef; 3] {
 	return [
 		TestAssetDef {
 			filename : format!("27_really_minimized_testcase_crcfix.ogg"),
@@ -533,6 +533,11 @@ pub fn get_malformed_asset_defs() -> [TestAssetDef; 2] {
 			filename : format!("32_minimized_crash_testcase.ogg"),
 			hash : format!("644170ccc3e48f2e2bf28cadddcd837520df09671c3d3d991b128b9fdb281da6"),
 			url : format!("https://github.com/RustAudio/lewton/files/2363080/32_minimized_crash_testcase.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("33_minimized_panic_testcase.ogg"),
+			hash : format!("4812e725d7c6bdb48e745b4e0a396efc96ea5cb30e304cf9710dadda3d963171"),
+			url : format!("https://github.com/RustAudio/lewton/files/2363173/33_minimized_panic_testcase.ogg.zip"),
 		},
 	];
 }

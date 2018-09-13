@@ -393,7 +393,7 @@ fn test_render_point() {
 }
 
 fn floor_one_curve_compute_amplitude(floor1_y :&Vec<u32>, fl :&FloorTypeOne) -> (Vec<u32>, Vec<bool>) {
-	let v = vec![256, 128, 86, 64];
+	let v = &[256, 128, 86, 64];
 	let range = v[(fl.floor1_multiplier - 1) as usize] as i32;
 	let mut floor1_step2_flag = Vec::new();
 	floor1_step2_flag.push(true);
@@ -433,7 +433,7 @@ fn floor_one_curve_compute_amplitude(floor1_y :&Vec<u32>, fl :&FloorTypeOne) -> 
 	}
 	// Clamp all entries of floor1_final_y to range
 	for el in &mut floor1_final_y {
-		*el = min(range as u32, *el);
+		*el = min(range as u32 - 1, *el);
 	}
 	return (floor1_final_y, floor1_step2_flag);
 }
@@ -554,7 +554,7 @@ fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 	}
 
 	floor.into_iter()
-		.map(|fl| FLOOR1_INVERSE_DB_TABLE[fl as usize])
+		.map(|idx| FLOOR1_INVERSE_DB_TABLE[idx as usize])
 		.collect()
 }
 

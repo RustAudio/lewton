@@ -35,7 +35,7 @@ macro_rules! etry {
 }
 
 // Ensures that a file is malformed and returns an error,
-// but
+// but doesn't panic or crash or anything of the like
 macro_rules! ensure_malformed {
 	($name:expr, $expected:pat) => {{
 		// Read the file to memory
@@ -64,4 +64,30 @@ fn test_malformed_fuzzed() {
 
 	ensure_malformed!("27_really_minimized_testcase_crcfix.ogg", BadAudio(AudioBadFormat));
 	ensure_malformed!("32_minimized_crash_testcase.ogg", BadHeader(HeaderBadFormat));
+}
+
+// Ensures that a file is okay
+macro_rules! ensure_okay {
+	($name:expr) => {{
+		// Read the file to memory
+		let f = try!(File::open(format!("test-assets/{}", $name)));
+		if let Some(mut ogg_rdr) = try!(OggStreamReader::new(f).map(|v| Some(v))) {
+			loop {
+				match try!(ogg_rdr.read_dec_packet_itl()) {
+					Some(_) => (),
+					None => break,
+				};
+			}
+		}
+	}}
+}
+
+#[test]
+fn test_okay_fuzzed() {
+	println!();
+	test_assets::download_test_files(&cmp::get_malformed_asset_defs(),
+		"test-assets", true).unwrap();
+	println!();
+
+	ensure_okay!("33_minimized_panic_testcase.ogg");
 }
