@@ -14,6 +14,7 @@ extern crate cmp;
 use lewton::VorbisError::*;
 use lewton::OggReadError::*;
 use lewton::header::HeaderReadError::*;
+use lewton::audio::AudioReadError::*;
 
 macro_rules! cmp_output {
 	($str:expr, $max_diff:expr) => {
@@ -165,6 +166,6 @@ fn test_xiph_vals_5() {
 	// TODO fix this test as well
 	cmp_output!("test-short.ogg", 69);
 	cmp_output!("test-short2.ogg", 0);
-	// TODO fix the commented out test
-	//cmp_output!("unused-mode-test.ogg", 0);
+	// Contains an out of bounds mode index
+	ensure_malformed!("unused-mode-test.ogg", BadAudio(AudioBadFormat));
 }

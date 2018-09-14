@@ -910,7 +910,11 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 		try!(Err(AudioReadError::AudioIsHeader));
 	}
 	let mode_number = try!(rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)));
-	let mode = &setup.modes[mode_number as usize];
+	let mode = if let Some(mode) = setup.modes.get(mode_number as usize) {
+		mode
+	} else {
+		try!(Err(AudioReadError::AudioBadFormat))
+	};
 	let mapping = &setup.mappings[mode.mode_mapping as usize];
 	let bs = if mode.mode_blockflag { ident.blocksize_1 } else { ident.blocksize_0 };
 	let n :u16 = 1 << bs;
