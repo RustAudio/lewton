@@ -50,9 +50,8 @@ fn test_libnogg_vals() {
 
 	cmp_output!("6-mode-bits-multipage.ogg", 2);
 	cmp_output!("6-mode-bits.ogg", 2);
-	// TODO make these testable (6 channels)
-	//cmp_output!("6ch-all-page-types.ogg", 0);
-	//cmp_output!("6ch-long-first-packet.ogg", 0);
+	cmp_output!("6ch-all-page-types.ogg", 0);
+	cmp_output!("6ch-long-first-packet.ogg", 0);
 	cmp_output!("6ch-moving-sine-floor0.ogg", 0);
 	cmp_output!("6ch-moving-sine.ogg", 0);
 	ensure_malformed!("bad-continued-packet-flag.ogg", OggError(InvalidData));
