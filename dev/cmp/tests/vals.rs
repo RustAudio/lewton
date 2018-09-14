@@ -54,7 +54,7 @@ fn test_libnogg_vals() {
 	//cmp_output!("6ch-all-page-types.ogg", 0);
 	//cmp_output!("6ch-long-first-packet.ogg", 0);
 	cmp_output!("6ch-moving-sine-floor0.ogg", 0);
-	//cmp_output!("6ch-moving-sine.ogg", 0);
+	cmp_output!("6ch-moving-sine.ogg", 0);
 	ensure_malformed!("bad-continued-packet-flag.ogg", OggError(InvalidData));
 	cmp_output!("bitrate-123.ogg", 0);
 	cmp_output!("bitrate-456-0.ogg", 0);
@@ -62,8 +62,7 @@ fn test_libnogg_vals() {
 	cmp_output!("empty-page.ogg", 0);
 	cmp_output!("large-pages.ogg", 2);
 	cmp_output!("long-short.ogg", 2);
-	// TODO fix this
-	//cmp_output!("noise-6ch.ogg", 0);
+	cmp_output!("noise-6ch.ogg", 0);
 	cmp_output!("noise-stereo.ogg", 0);
 	cmp_output!("partial-granule-position.ogg", 2);
 	cmp_output!("sample-rate-max.ogg", 0);
@@ -72,11 +71,7 @@ fn test_libnogg_vals() {
 	// libvorbis doesn't accept the file as valid
 	ensure_okay!("single-code-nonsparse.ogg");
 	ensure_okay!("single-code-ordered.ogg");
-	// TODO get this number down to zero
-	// This test is ensuring already though that
-	// the file decodes without errors, which wasn't
-	// the case until a bug in lewton got fixed.
-	cmp_output!("single-code-sparse.ogg", 25);
+	cmp_output!("single-code-sparse.ogg", 0);
 	cmp_output!("sketch008-floor0.ogg", 4);
 	cmp_output!("sketch008.ogg", 0);
 	cmp_output!("sketch039.ogg", 0);
