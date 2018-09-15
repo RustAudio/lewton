@@ -228,7 +228,7 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 		try!(Err(()));
 	}
 	let mut floor1_y = Vec::new();
-	let v = vec![256, 128, 86, 64];
+	let v = &[256, 128, 86, 64];
 	let range = v[(fl.floor1_multiplier - 1) as usize];
 	let b = ::ilog(range - 1);
 	floor1_y.push(try!(rdr.read_dyn_u8(b)) as u32);
