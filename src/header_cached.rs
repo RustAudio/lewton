@@ -112,7 +112,7 @@ fn test_compute_bitreverse() {
 	let br = compute_bitreverse(8);
 	// The output was generated from the output of the
 	// original stb_vorbis function.
-	let cmp_arr = vec![
+	let cmp_arr = &[
 		0,   64,  32,  96,
 		16,  80,  48, 112,
 		8,   72,  40, 104,

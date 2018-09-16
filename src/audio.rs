@@ -297,7 +297,7 @@ fn high_neighbor(v :&[u32], x :usize) -> (usize, u32) {
 
 #[test]
 fn test_low_neighbor() {
-	let v = vec![1, 4, 2, 3, 6, 5];
+	let v = [1, 4, 2, 3, 6, 5];
 	// 0 will panic
 	assert_eq!(low_neighbor(&v, 1), (0, 1));
 	assert_eq!(low_neighbor(&v, 2), (0, 1));
@@ -309,7 +309,7 @@ fn test_low_neighbor() {
 
 #[test]
 fn test_high_neighbor() {
-	let v = vec![1, 4, 2, 3, 6, 5];
+	let v = [1, 4, 2, 3, 6, 5];
 	// 0, 1 will panic
 	assert_eq!(high_neighbor(&v, 2), (1, 4));
 	assert_eq!(high_neighbor(&v, 3), (1, 4));
@@ -320,7 +320,7 @@ fn test_high_neighbor() {
 #[test]
 fn test_high_neighbor_ex() {
 	// Data extracted from example file
-	let v = vec![0, 128, 12, 46, 4, 8, 16, 23,
+	let v = [0, 128, 12, 46, 4, 8, 16, 23,
 		33, 70, 2, 6, 10, 14, 19, 28, 39, 58, 90];
 
 	// 0, 1 will panic
@@ -346,13 +346,13 @@ fn test_high_neighbor_ex() {
 #[test]
 #[should_panic]
 fn test_high_neighbor_panic() {
-	high_neighbor(&vec![1, 4, 3, 2, 6, 5], 4);
+	high_neighbor(&[1, 4, 3, 2, 6, 5], 4);
 }
 
 #[test]
 #[should_panic]
 fn test_low_neighbor_panic() {
-	low_neighbor(&vec![2, 4, 3, 1, 6, 5], 3);
+	low_neighbor(&[2, 4, 3, 1, 6, 5], 3);
 }
 
 fn render_point(x0 :u32, y0 :u32, x1 :u32, y1 :u32, x :u32) -> u32 {
