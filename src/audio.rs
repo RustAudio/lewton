@@ -114,7 +114,7 @@ impl From<HuffmanVqReadErr> for FloorSpecialCase {
 
 // Note that the output vector contains the cosine values of the coefficients,
 // not the bare values like in the spec. This is in order to optimize.
-fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
+fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		fl :&FloorTypeZero) -> Result<(Vec<f32>, u64), FloorSpecialCase> {
 	// TODO this needs to become 128 bits wide, not just 64,
 	// as floor0_amplitude_bits can be up to 127.
@@ -220,7 +220,7 @@ fn floor_zero_compute_curve(cos_coefficients :&[f32], amplitude :u64,
 }
 
 // Returns Err if the floor is "unused"
-fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
+fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		fl :&FloorTypeOne) -> Result<Vec<u32>, FloorSpecialCase> {
 	// TODO perhaps it means invalid audio packet if reading the nonzero
 	// flag doesn't succeed bc end of packet. Perhaps it does not.
@@ -258,7 +258,7 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>,
 	return Ok(floor1_y);
 }
 
-fn extr_neighbor<F>(v :&Vec<u32>, x :usize,
+fn extr_neighbor<F>(v :&[u32], x :usize,
 		compare :F, s :&'static str) -> (usize, u32)
 		where F :Fn(u32, u32) -> bool {
 	let bound = v[x];
@@ -286,12 +286,12 @@ fn extr_neighbor<F>(v :&Vec<u32>, x :usize,
 	return (extr_idx, max_val);
 }
 
-fn low_neighbor(v :&Vec<u32>, x :usize) -> (usize, u32) {
+fn low_neighbor(v :&[u32], x :usize) -> (usize, u32) {
 	return extr_neighbor(v, x, |a, b| {a < b}, "smaller");
 }
 
 
-fn high_neighbor(v :&Vec<u32>, x :usize) -> (usize, u32) {
+fn high_neighbor(v :&[u32], x :usize) -> (usize, u32) {
 	return extr_neighbor(v, x, |a, b| {a > b}, "bigger");
 }
 
@@ -392,7 +392,7 @@ fn test_render_point() {
 	assert_eq!(render_point(70, 20, 128, 67, 90), 36);
 }
 
-fn floor_one_curve_compute_amplitude(floor1_y :&Vec<u32>, fl :&FloorTypeOne) -> (Vec<u32>, Vec<bool>) {
+fn floor_one_curve_compute_amplitude(floor1_y :&[u32], fl :&FloorTypeOne) -> (Vec<u32>, Vec<bool>) {
 	let v = &[256, 128, 86, 64];
 	let range = v[(fl.floor1_multiplier - 1) as usize] as i32;
 	let mut floor1_step2_flag = Vec::new();
@@ -559,8 +559,8 @@ fn floor_one_curve_synthesis(floor1_final_y :Vec<u32>,
 }
 
 fn floor_decode<'a>(rdr :&mut BitpackCursor,
-		ident :&IdentHeader, mapping :&Mapping, codebooks :&Vec<Codebook>,
-		floors :&'a Vec<Floor>) -> Result<Vec<DecodedFloor<'a>>, ()> {
+		ident :&IdentHeader, mapping :&Mapping, codebooks :&[Codebook],
+		floors :&'a [Floor]) -> Result<Vec<DecodedFloor<'a>>, ()> {
 	let mut decoded_floor_infos = Vec::with_capacity(ident.audio_channels as usize);
 	for i in 0 .. ident.audio_channels as usize {
 		let submap_number = mapping.mapping_mux[i] as usize;

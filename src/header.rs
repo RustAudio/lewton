@@ -435,7 +435,7 @@ impl ResidueBook {
 	}
 	/// Reads the `ResidueBook` from a `BitpackCursor`.
 	fn read_book(rdr :&mut BitpackCursor,
-			vals_used :u8, codebooks :&Vec<Codebook>)
+			vals_used :u8, codebooks :&[Codebook])
 			-> Result<Self, HeaderReadError> {
 		let mut val_i :[u8; 8] = [0; 8];
 		for i in 0 .. 7 {
@@ -754,7 +754,7 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 		codebook_dimensions,
 		codebook_entries,
 		codebook_vq_lookup_vec,
-		codebook_huffman_tree : try!(VorbisHuffmanTree::load_from_array(codebook_codeword_lengths)),
+		codebook_huffman_tree : try!(VorbisHuffmanTree::load_from_array(&codebook_codeword_lengths)),
 	});
 }
 
@@ -909,7 +909,7 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 
 /// Reads a Residue which is part of the setup header packet.
 /// The `codebook_cnt` param is required to check for compliant streams
-fn read_residue(rdr :&mut BitpackCursor, codebooks :&Vec<Codebook>)
+fn read_residue(rdr :&mut BitpackCursor, codebooks :&[Codebook])
 		-> Result<Residue, HeaderReadError> {
 	let residue_type = try!(rdr.read_u16());
 	if residue_type > 2 {

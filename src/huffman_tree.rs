@@ -179,7 +179,7 @@ impl VorbisHuffmanTree {
 	///
 	/// Returns the resulting tree if the array results in a valid (neither
 	/// underspecified nor overspecified) tree.
-	pub fn load_from_array(codebook_codeword_lengths :Vec<u8>) -> Result<VorbisHuffmanTree, HuffmanError> {
+	pub fn load_from_array(codebook_codeword_lengths :&[u8]) -> Result<VorbisHuffmanTree, HuffmanError> {
 		// First step: generate a simple tree representing the
 		// Huffman tree
 		let mut simple_tree = HuffTree { even_childs :true, payload :None, l :None, r :None };
