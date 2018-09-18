@@ -578,7 +578,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 #[allow(unused)]
 /// Regression tests for bugs obtained by fuzzing
 ///
-/// Licensed under CC-0:
+/// The test files are licensed under CC-0:
 /// * https://github.com/RustAudio/lewton/issues/33#issuecomment-419640709
 /// * http://web.archive.org/web/20180910135020/https://github.com/RustAudio/lewton/issues/33
 pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 3] {
