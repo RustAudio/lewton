@@ -1,5 +1,12 @@
 # Changes
 
+## Release 0.9.1 - September 22, 2018
+
+* Performance improvements of about 10%. Thanks to [@GabrielMajeri](https://github.com/GabrielMajeri) for the contribution!
+* Fixed some wrongly decoded files
+* Fixed some panics on crafted input. Thanks to [@Shnatsel](https://github.com/Shnatsel) for the fuzzing and bug reports.
+* Added travis CI
+
 ## Release 0.9.0 - August 16, 2018
 
 * Renamed `async` to `async_api` for better edition 2018 compilance
