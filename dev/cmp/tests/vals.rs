@@ -113,6 +113,7 @@ fn test_xiph_vals_2() {
 	// TODO fix these
 	//cmp_output!("chain-test1.ogg", 1);
 	cmp_output!("chain-test2.ogg", 0);
+	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
 	//cmp_output!("chain-test3.ogg", 1);
 	cmp_output!("highrate-test.ogg", 0);
 }
@@ -159,7 +160,7 @@ fn test_xiph_vals_5() {
 	//cmp_output!("singlemap-test.ogg", 0);
 	cmp_output!("sleepzor.ogg", 9);
 	// TODO fix this test as well
-	// stb_vorbis can't open this file at all
+	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
 	cmp_output!("test-short.ogg", 69);
 	cmp_output!("test-short2.ogg", 0);
 	// Contains an out of bounds mode index
