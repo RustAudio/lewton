@@ -155,6 +155,7 @@ fn test_xiph_vals_5() {
 	println!();
 
 	// TODO fix the commented out test
+	// There is a mismatch in the residue
 	//cmp_output!("singlemap-test.ogg", 0);
 	cmp_output!("sleepzor.ogg", 9);
 	// TODO fix this test as well
