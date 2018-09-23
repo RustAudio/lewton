@@ -75,6 +75,7 @@ fn test_libnogg_vals() {
 	cmp_output!("sketch008.ogg", 0);
 	cmp_output!("sketch039.ogg", 0);
 	cmp_output!("split-packet.ogg", 2);
+	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
 	//cmp_output!("square-interleaved.ogg", 0);
 	cmp_output!("square-multipage.ogg", 0);
 	cmp_output!("square-stereo.ogg", 0);
