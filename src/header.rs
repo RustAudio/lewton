@@ -722,8 +722,8 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 	if codebook_lookup_type == 0 {
 		None
 	} else {
-		let codebook_minimum_value = try!(rdr.read_f32_lossy());
-		let codebook_delta_value = try!(rdr.read_f32_lossy());
+		let codebook_minimum_value = try!(rdr.read_f32());
+		let codebook_delta_value = try!(rdr.read_f32());
 		let codebook_value_bits = try!(rdr.read_u4()) + 1;
 		let codebook_sequence_p = try!(rdr.read_bit_flag());
 		let codebook_lookup_values :u64 = if codebook_lookup_type == 1 {

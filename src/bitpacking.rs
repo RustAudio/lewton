@@ -301,25 +301,10 @@ macro_rules! uk_dynamic_reader {
 }
 }
 
-#[allow(dead_code)]
-fn float32_unpack(val :u32) -> f64 {
+fn float32_unpack(val :u32) -> f32 {
 	let sgn = val & 0x80000000;
 	let exp = (val & 0x7fe00000) >> 21;
 	let mantissa = (val & 0x1fffff) as f64;
-	let signed_mantissa = if sgn != 0 {
-		-mantissa
-	} else {
-		mantissa
-	};
-	return signed_mantissa as f64 * (exp as f64 - 788.0).exp2();
-}
-
-
-#[allow(dead_code)]
-fn float32_unpack_to_32_directly(val :u32) -> f32 {
-	let sgn = val & 0x80000000;
-	let exp = (val & 0x7fe00000) >> 21;
-	let mantissa = (val & 0x1fffff) as f32;
 	let signed_mantissa = if sgn != 0 {
 		-mantissa
 	} else {
@@ -349,27 +334,6 @@ fn test_float_32_unpack() {
 }
 
 #[test]
-fn test_float32_unpack_to_32_directly() {
-	// Values were printed out from what stb_vorbis
-	// calculated for this function from a test file.
-	assert_eq!(float32_unpack_to_32_directly(1611661312),      1.000000);
-	assert_eq!(float32_unpack_to_32_directly(1616117760),      5.000000);
-	assert_eq!(float32_unpack_to_32_directly(1618345984),     11.000000);
-	assert_eq!(float32_unpack_to_32_directly(1620115456),     17.000000);
-	assert_eq!(float32_unpack_to_32_directly(1627381760),    255.000000);
-	assert_eq!(float32_unpack_to_32_directly(3759144960),     -1.000000);
-	assert_eq!(float32_unpack_to_32_directly(3761242112),     -2.000000);
-	assert_eq!(float32_unpack_to_32_directly(3763339264),     -4.000000);
-	assert_eq!(float32_unpack_to_32_directly(3763601408),     -5.000000);
-	assert_eq!(float32_unpack_to_32_directly(3765436416),     -8.000000);
-	assert_eq!(float32_unpack_to_32_directly(3765829632),    -11.000000);
-	assert_eq!(float32_unpack_to_32_directly(3768451072),    -30.000000);
-	assert_eq!(float32_unpack_to_32_directly(3772628992),   -119.000000);
-	assert_eq!(float32_unpack_to_32_directly(3780634624),  -1530.000000);
-}
-
-
-#[test]
 fn test_float_32_unpack_issue_24() {
 	// Regression test for issue #24, a
 	// mismatch in decoded output for audio_simple_with_error.ogg
@@ -390,29 +354,6 @@ fn test_float_32_unpack_issue_24() {
 	assert_eq!(float32_unpack(3769565184), -30.0);
 	assert_eq!(float32_unpack(3773751296), -119.0);
 	assert_eq!(float32_unpack(3781948416), -1530.0);
-}
-
-#[test]
-fn test_float_32_unpack_directly_issue_24() {
-	// Regression test for issue #24, a
-	// mismatch in decoded output for audio_simple_with_error.ogg
-	// and singlemap-test.ogg.
-	// The values are taken from the codebook_delta_value and
-	// codebook_minimum_value values of the singlemap-test.ogg file.
-	// The expected values come from stb_vorbis.
-	assert_eq!(float32_unpack_to_32_directly(1628434432), 255.0);
-	assert_eq!(float32_unpack_to_32_directly(1621655552), 17.0);
-	assert_eq!(float32_unpack_to_32_directly(1619722240), 11.0);
-	assert_eq!(float32_unpack_to_32_directly(1613234176), 1.0);
-	assert_eq!(float32_unpack_to_32_directly(3760717824), -1.0);
-	assert_eq!(float32_unpack_to_32_directly(3762814976), -2.0);
-	assert_eq!(float32_unpack_to_32_directly(3764912128), -4.0);
-	assert_eq!(float32_unpack_to_32_directly(3765043200), -5.0);
-	assert_eq!(float32_unpack_to_32_directly(3767009280), -8.0);
-	assert_eq!(float32_unpack_to_32_directly(3767205888), -11.0);
-	assert_eq!(float32_unpack_to_32_directly(3769565184), -30.0);
-	assert_eq!(float32_unpack_to_32_directly(3773751296), -119.0);
-	assert_eq!(float32_unpack_to_32_directly(3781948416), -1530.0);
 }
 
 // allow some code that is only used in the tests
@@ -484,40 +425,10 @@ impl <'a> BitpackCursor <'a> {
 
 	// Float reading methods
 
-	/// Reads single float in the vorbis-float32 format
-	///
-	/// This function will read 32 bits, but its return type is `f64`,
-	/// as only rust's `f64` type can fully contain numbers
-	/// converted from the vorbis-float32 format.
-	/// If you prefer conciseness (and speed) over correctness,
-	/// then you should use the `read_f32_lossy` method.
-	pub fn read_f32(&mut self) -> Result<f64, ()> {
+	/// Reads a single floating point number in the vorbis-float32 format
+	pub fn read_f32(&mut self) -> Result<f32, ()> {
 		let val = try!(self.read_u32());
 		Ok(float32_unpack(val))
-	}
-
-	/// Reads single float in the vorbis-float32 format
-	///
-	/// This function will read 32 bits, and its return type is `f64`.
-	/// Some information from the exponent had to be discarded
-	/// in order to be compatible with the native
-	/// as only rust's `f64` type can fully contain numbers
-	/// converted from the vorbis-float32 format.
-	/// If you prefer conciseness (and speed) over correctness,
-	/// then you should use the `read_f32_lossy` method.
-	pub fn read_f32_lossy(&mut self) -> Result<f32, ()> {
-		let val = try!(self.read_u32());
-		let exp = val & 0x7fe00000;
-		let exp_val :i16 = (exp >> 21) as i16 - 768;
-		// Probably its not very performant to ask the FPU to
-		// find the closest f32 to a given f64 value, therefore
-		// we only do this if its actually needed (if the exponent
-		// can't be directly translated into f32 representation)
-		if (exp_val > 128) || exp_val < -127 {
-			return Ok(float32_unpack(val) as f32);
-		} else {
-			return Ok(float32_unpack_to_32_directly(val));
-		}
 	}
 
 	/// Peeks 8 bits of non read yet content without advancing the reader
