@@ -303,28 +303,29 @@ macro_rules! uk_dynamic_reader {
 
 #[allow(dead_code)]
 fn float32_unpack(val :u32) -> f64 {
-	let sgn = (val & 0x80000000) as u64;
-	let mut exp = (val & 0x7fe00000) as u64 >> 21;
-	exp += 1023 - 768;
-	// We & with 0x000fffff and not with 0x001fffff here as the spec says
-	// because the IEE754 representation has an implicit leading bit.
-	let mantissa = (val & 0x000fffff) as u64;
-	let v = (sgn << 32) | (exp << 52) | (mantissa << 32);
-	return f64::from_bits(v);
+	let sgn = val & 0x80000000;
+	let exp = (val & 0x7fe00000) >> 21;
+	let mantissa = (val & 0x1fffff) as f64;
+	let signed_mantissa = if sgn != 0 {
+		-mantissa
+	} else {
+		mantissa
+	};
+	return signed_mantissa as f64 * (exp as f64 - 788.0).exp2();
 }
+
 
 #[allow(dead_code)]
 fn float32_unpack_to_32_directly(val :u32) -> f32 {
-	let sgn = (val & 0x80000000) as u32;
-	let mut exp = (val & 0x7fe00000) as u32 >> 21;
-	// If this overflows, we are in trouble:
-	// The number can't be represented with our f32 number system.
-	exp -= 768 - 127;
-	// We & with 0x000fffff and not with 0x001fffff here as the spec says
-	// because the IEE754 representation has an implicit leading bit.
-	let mantissa = (val & 0x000fffff) as u32;
-	let v = sgn | (exp << 23) | (mantissa << 3);
-	return f32::from_bits(v);
+	let sgn = val & 0x80000000;
+	let exp = (val & 0x7fe00000) >> 21;
+	let mantissa = (val & 0x1fffff) as f32;
+	let signed_mantissa = if sgn != 0 {
+		-mantissa
+	} else {
+		mantissa
+	};
+	return signed_mantissa as f32 * (exp as f32 - 788.0).exp2();
 }
 
 #[test]
@@ -365,6 +366,53 @@ fn test_float32_unpack_to_32_directly() {
 	assert_eq!(float32_unpack_to_32_directly(3768451072),    -30.000000);
 	assert_eq!(float32_unpack_to_32_directly(3772628992),   -119.000000);
 	assert_eq!(float32_unpack_to_32_directly(3780634624),  -1530.000000);
+}
+
+
+#[test]
+fn test_float_32_unpack_issue_24() {
+	// Regression test for issue #24, a
+	// mismatch in decoded output for audio_simple_with_error.ogg
+	// and singlemap-test.ogg.
+	// The values are taken from the codebook_delta_value and
+	// codebook_minimum_value values of the singlemap-test.ogg file.
+	// The expected values come from stb_vorbis.
+	assert_eq!(float32_unpack(1628434432), 255.0);
+	assert_eq!(float32_unpack(1621655552), 17.0);
+	assert_eq!(float32_unpack(1619722240), 11.0);
+	assert_eq!(float32_unpack(1613234176), 1.0);
+	assert_eq!(float32_unpack(3760717824), -1.0);
+	assert_eq!(float32_unpack(3762814976), -2.0);
+	assert_eq!(float32_unpack(3764912128), -4.0);
+	assert_eq!(float32_unpack(3765043200), -5.0);
+	assert_eq!(float32_unpack(3767009280), -8.0);
+	assert_eq!(float32_unpack(3767205888), -11.0);
+	assert_eq!(float32_unpack(3769565184), -30.0);
+	assert_eq!(float32_unpack(3773751296), -119.0);
+	assert_eq!(float32_unpack(3781948416), -1530.0);
+}
+
+#[test]
+fn test_float_32_unpack_directly_issue_24() {
+	// Regression test for issue #24, a
+	// mismatch in decoded output for audio_simple_with_error.ogg
+	// and singlemap-test.ogg.
+	// The values are taken from the codebook_delta_value and
+	// codebook_minimum_value values of the singlemap-test.ogg file.
+	// The expected values come from stb_vorbis.
+	assert_eq!(float32_unpack_to_32_directly(1628434432), 255.0);
+	assert_eq!(float32_unpack_to_32_directly(1621655552), 17.0);
+	assert_eq!(float32_unpack_to_32_directly(1619722240), 11.0);
+	assert_eq!(float32_unpack_to_32_directly(1613234176), 1.0);
+	assert_eq!(float32_unpack_to_32_directly(3760717824), -1.0);
+	assert_eq!(float32_unpack_to_32_directly(3762814976), -2.0);
+	assert_eq!(float32_unpack_to_32_directly(3764912128), -4.0);
+	assert_eq!(float32_unpack_to_32_directly(3765043200), -5.0);
+	assert_eq!(float32_unpack_to_32_directly(3767009280), -8.0);
+	assert_eq!(float32_unpack_to_32_directly(3767205888), -11.0);
+	assert_eq!(float32_unpack_to_32_directly(3769565184), -30.0);
+	assert_eq!(float32_unpack_to_32_directly(3773751296), -119.0);
+	assert_eq!(float32_unpack_to_32_directly(3781948416), -1530.0);
 }
 
 // allow some code that is only used in the tests

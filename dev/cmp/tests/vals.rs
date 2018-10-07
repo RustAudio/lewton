@@ -37,9 +37,7 @@ fn test_vals() {
 	cmp_output!("maple_leaf_rag.ogg", 0);
 	cmp_output!("hoelle_rache.ogg", 0);
 	cmp_output!("thingy-floor0.ogg", 1);
-	// TODO fix this (bug #24)
-	// There is a mismatch in the residue
-	//cmp_output!("audio_simple_err.ogg", 0);
+	cmp_output!("audio_simple_err.ogg", 0);
 }
 
 #[test]
@@ -157,9 +155,7 @@ fn test_xiph_vals_5() {
 		"test-assets", true).unwrap();
 	println!();
 
-	// TODO fix the commented out test
-	// There is a mismatch in the residue
-	//cmp_output!("singlemap-test.ogg", 0);
+	cmp_output!("singlemap-test.ogg", 0);
 	cmp_output!("sleepzor.ogg", 9);
 	// TODO fix this test as well
 	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
