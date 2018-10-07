@@ -1,5 +1,9 @@
 # Changes
 
+## Release 0.9.2 - October 07, 2018
+
+* Fixed a wrongly decoded file bug (issue [#24](https://github.com/RustAudio/lewton/issues/24))
+
 ## Release 0.9.1 - September 22, 2018
 
 * Performance improvements of about 10%. Thanks to [@GabrielMajeri](https://github.com/GabrielMajeri) for the contribution!
