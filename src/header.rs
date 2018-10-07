@@ -541,13 +541,12 @@ impl <'a> BitpackCursor <'a> {
 			Ok(v) => v as usize,
 			Err(_) => return Err(HuffmanVqReadErr::EndOfPacket),
 		};
-		let codebook_vq_lookup_vec :&Vec<f32> = match b.codebook_vq_lookup_vec.as_ref() {
+		let codebook_vq_lookup_vec :&[f32] = match b.codebook_vq_lookup_vec.as_ref() {
 			Some(ref v) => v,
 			None => return Err(HuffmanVqReadErr::NoVqLookupForCodebook),
 		};
-		return Ok(&codebook_vq_lookup_vec[
-			idx * b.codebook_dimensions as usize ..
-			(idx as usize + 1) * b.codebook_dimensions as usize]);
+		let dim = b.codebook_dimensions as usize;
+		return Ok(&codebook_vq_lookup_vec[idx * dim .. (idx + 1) * dim]);
 	}
 }
 
