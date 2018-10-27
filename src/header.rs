@@ -503,8 +503,8 @@ fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook
 			}
 		}
 	} else {
-		let mut last = 0.;
 		for lookup_offset in 0 .. codebook_entries {
+			let mut last = 0.;
 			let mut multiplicand_offset :usize = lookup_offset as usize * codebook_dimensions as usize;
 			for _ in 0 .. codebook_dimensions {
 				let vec_elem = lup.codebook_multiplicands[multiplicand_offset] as f32 *

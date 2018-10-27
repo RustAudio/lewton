@@ -53,7 +53,15 @@ fn test_libnogg_vals() {
 	cmp_output!("6ch-long-first-packet.ogg", 0);
 	cmp_output!("6ch-moving-sine-floor0.ogg", 0);
 	cmp_output!("6ch-moving-sine.ogg", 0);
-	ensure_malformed!("bad-continued-packet-flag.ogg", OggError(InvalidData));
+	// NOTE: The bad-continued-packet-flag.ogg test is
+	// actually supposed to return an error in libnogg.
+	// However, libvorbis doesn't, nor does lewton.
+	// Given a (slightly) erroneous ogg file where there
+	// are audio packets following the last header packet,
+	// we follow libvorbis behaviour and simply ignore those packets.
+	// Apparently the test case has been created in a way
+	// where this behaviour doesn't evoke an error from lewton.
+	cmp_output!("bad-continued-packet-flag.ogg", 0);
 	cmp_output!("bitrate-123.ogg", 0);
 	cmp_output!("bitrate-456-0.ogg", 0);
 	cmp_output!("bitrate-456-789.ogg", 0);
@@ -113,8 +121,7 @@ fn test_xiph_vals_2() {
 	// TODO fix these
 	//cmp_output!("chain-test1.ogg", 1);
 	cmp_output!("chain-test2.ogg", 0);
-	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
-	//cmp_output!("chain-test3.ogg", 1);
+	cmp_output!("chain-test3.ogg", 1);
 	cmp_output!("highrate-test.ogg", 0);
 }
 
@@ -157,9 +164,7 @@ fn test_xiph_vals_5() {
 
 	cmp_output!("singlemap-test.ogg", 0);
 	cmp_output!("sleepzor.ogg", 9);
-	// TODO fix this test as well
-	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
-	cmp_output!("test-short.ogg", 69);
+	cmp_output!("test-short.ogg", 1);
 	cmp_output!("test-short2.ogg", 0);
 	// Contains an out of bounds mode index
 	ensure_malformed!("unused-mode-test.ogg", BadAudio(AudioBadFormat));

@@ -37,6 +37,7 @@ pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
+	rdr.delete_unread_packets();
 	return Ok(((ident_hdr, comment_hdr, setup_hdr), pck.stream_serial));
 }
 
