@@ -38,7 +38,7 @@ pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
 	rdr.delete_unread_packets();
-	return Ok(((ident_hdr, comment_hdr, setup_hdr), pck.stream_serial));
+	return Ok(((ident_hdr, comment_hdr, setup_hdr), pck.stream_serial()));
 }
 
 /**
@@ -107,8 +107,8 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			Some(p) => p,
 			None => return Ok(None),
 		};
-		if pck.stream_serial != self.stream_serial {
-			if pck.first_packet {
+		if pck.stream_serial() != self.stream_serial {
+			if pck.first_in_stream() {
 				// We have a chained ogg file. This means we need to
 				// re-initialize the internal context.
 				let ident_hdr = try!(read_header_ident(&pck.data));
@@ -125,7 +125,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 				self.ident_hdr = ident_hdr;
 				self.comment_hdr = comment_hdr;
 				self.setup_hdr = setup_hdr;
-				self.stream_serial = pck.stream_serial;
+				self.stream_serial = pck.stream_serial();
 				self.absgp_of_last_read = None;
 
 				// Now, read the first audio packet to prime the pwr
@@ -136,7 +136,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 				};
 				let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 					&self.setup_hdr, &pck.data, &mut self.pwr));
-				self.absgp_of_last_read = Some(pck.absgp_page);
+				self.absgp_of_last_read = Some(pck.absgp_page());
 
 				return Ok(try!(self.rdr.read_packet()));
 			} else {
@@ -163,7 +163,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		};
 		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
-		self.absgp_of_last_read = Some(pck.absgp_page);
+		self.absgp_of_last_read = Some(pck.absgp_page());
 		return Ok(Some(decoded_pck));
 	}
 	/// Reads and decompresses an audio packet from the stream (interleaved).
@@ -360,7 +360,7 @@ pub mod async_api {
 			};
 			let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 				&self.setup_hdr, &pck.data, &mut self.pwr));
-			self.absgp_of_last_read = Some(pck.absgp_page);
+			self.absgp_of_last_read = Some(pck.absgp_page());
 			Ok(Async::Ready(Some(decoded_pck)))
 		}
 	}
