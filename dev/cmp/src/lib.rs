@@ -106,7 +106,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 		let mut native_decoded = try!(match native_it.next() { Some(v) => v,
 			None => break,});
-		native_dec_data.append(&mut native_decoded.data);
+		native_dec_data.extend_from_slice(&mut native_decoded.data);
 		let mut pck_decompressed = match try!(ogg_rdr.read_dec_packet_itl()) {
 			Some(v) => v,
 			None => break, // TODO tell calling code about this condition
@@ -118,7 +118,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 
 		// Fill dec_data with stuff from this packet
 
-		dec_data.append(&mut pck_decompressed);
+		dec_data.extend_from_slice(&mut pck_decompressed);
 
 		let mut diffs = 0;
 		for (s,n) in dec_data.iter().zip(native_dec_data.iter()) {
