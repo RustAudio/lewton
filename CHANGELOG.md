@@ -1,5 +1,10 @@
 # Changes
 
+## Release 0.9.3 - October 28, 2018
+
+* Fixed wrongly decoded files. Now, not a single mismatch to libvorbis is left on the xiph and libnogg test vectors (issue [#26](https://github.com/RustAudio/lewton/issues/26))
+* Updated ogg to 0.7.0
+
 ## Release 0.9.2 - October 07, 2018
 
 * Fixed a wrongly decoded file bug (issue [#24](https://github.com/RustAudio/lewton/issues/24))
