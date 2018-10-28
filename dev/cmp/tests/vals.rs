@@ -12,7 +12,6 @@ extern crate lewton;
 extern crate cmp;
 
 use lewton::VorbisError::*;
-use lewton::OggReadError::*;
 use lewton::header::HeaderReadError::*;
 use lewton::audio::AudioReadError::*;
 
