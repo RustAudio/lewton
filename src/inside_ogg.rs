@@ -64,7 +64,7 @@ pub struct OggStreamReader<T: Read + Seek> {
 	pub comment_hdr :CommentHeader,
 	pub setup_hdr :SetupHeader,
 
-	absgp_of_last_read :Option<u64>,
+	cur_absgp :Option<u64>,
 }
 
 impl<T: Read + Seek> OggStreamReader<T> {
@@ -96,7 +96,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			comment_hdr,
 			setup_hdr,
 			stream_serial,
-			absgp_of_last_read : None,
+			cur_absgp : None,
 		});
 	}
 	pub fn into_inner(self) -> PacketReader<T> {
@@ -126,7 +126,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 				self.comment_hdr = comment_hdr;
 				self.setup_hdr = setup_hdr;
 				self.stream_serial = pck.stream_serial();
-				self.absgp_of_last_read = None;
+				self.cur_absgp = None;
 
 				// Now, read the first audio packet to prime the pwr
 				// and discard the packet.
@@ -136,7 +136,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 				};
 				let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 					&self.setup_hdr, &pck.data, &mut self.pwr));
-				self.absgp_of_last_read = Some(pck.absgp_page());
+				self.cur_absgp = Some(pck.absgp_page());
 
 				return Ok(try!(self.rdr.read_packet()));
 			} else {
@@ -161,9 +161,30 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			Some(p) => p,
 			None => return Ok(None),
 		};
-		let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+		let mut decoded_pck = try!(read_audio_packet(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
-		self.absgp_of_last_read = Some(pck.absgp_page());
+
+		// If this is the last packet in the logical bitstream,
+		// we need to truncate it so that its ending matches
+		// the absgp of the current page.
+		// This is what the spec mandates and also the behaviour
+		// of libvorbis.
+		if let (Some(absgp), true) = (self.cur_absgp, pck.last_in_stream()) {
+			let target_length = pck.absgp_page().saturating_sub(absgp) as usize;
+			for ch in decoded_pck.iter_mut() {
+				if target_length < ch.len() {
+					ch.truncate(target_length);
+				}
+			}
+		}
+		if pck.last_in_page() {
+			self.cur_absgp = Some(pck.absgp_page());
+		} else if let &mut Some(ref mut absgp) = &mut self.cur_absgp {
+			if let Some(v) = decoded_pck.get(0) {
+				*absgp += v.len() as u64;
+			}
+		}
+
 		return Ok(Some(decoded_pck));
 	}
 	/// Reads and decompresses an audio packet from the stream (interleaved).
@@ -210,7 +231,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// In the case of ogg/vorbis, the absolute granule position is given
 	/// as number of PCM samples, on a per channel basis.
 	pub fn get_last_absgp(&self) -> Option<u64> {
-		self.absgp_of_last_read
+		self.cur_absgp
 	}
 
 	/// Seeks to the specified absolute granule position, with a page granularity.
@@ -223,7 +244,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	pub fn seek_absgp_pg(&mut self, absgp :u64) -> Result<(), VorbisError> {
 		try!(self.rdr.seek_absgp(None, absgp));
 		// Reset the internal state after the seek
-		self.absgp_of_last_read = None;
+		self.cur_absgp = None;
 		self.pwr = PreviousWindowRight::new();
 		Ok(())
 	}
