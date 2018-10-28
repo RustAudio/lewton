@@ -81,8 +81,7 @@ fn test_libnogg_vals() {
 	cmp_output!("sketch008.ogg", 0);
 	cmp_output!("sketch039.ogg", 0);
 	cmp_output!("split-packet.ogg", 2);
-	// stb_vorbis can't open this file at all (gives VORBIS_invalid_setup)
-	//cmp_output!("square-interleaved.ogg", 0);
+	cmp_output!("square-interleaved.ogg", 0);
 	cmp_output!("square-multipage.ogg", 0);
 	cmp_output!("square-stereo.ogg", 0);
 	// This is really more an issue of the ogg crate,
@@ -93,7 +92,6 @@ fn test_libnogg_vals() {
 	cmp_output!("thingy.ogg", 0);
 	cmp_output!("zero-length.ogg", 0);
 }
-
 
 #[test]
 fn test_xiph_vals_1() {

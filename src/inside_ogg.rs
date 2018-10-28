@@ -29,11 +29,18 @@ pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 		Result<(HeaderSet, u32), VorbisError> {
 	let pck :Packet = try!(rdr.read_packet_expected());
 	let ident_hdr = try!(read_header_ident(&pck.data));
+	let stream_serial = pck.stream_serial();
 
-	let pck :Packet = try!(rdr.read_packet_expected());
+	let mut pck :Packet = try!(rdr.read_packet_expected());
+	while pck.stream_serial() != stream_serial {
+		pck = try!(rdr.read_packet_expected());
+	}
 	let comment_hdr = try!(read_header_comment(&pck.data));
 
-	let pck :Packet = try!(rdr.read_packet_expected());
+	let mut pck :Packet = try!(rdr.read_packet_expected());
+	while pck.stream_serial() != stream_serial {
+		pck = try!(rdr.read_packet_expected());
+	}
 	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
@@ -103,49 +110,49 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		self.rdr
 	}
 	fn read_next_audio_packet(&mut self) -> Result<Option<Packet>, VorbisError> {
-		let pck = match try!(self.rdr.read_packet()) {
-			Some(p) => p,
-			None => return Ok(None),
-		};
-		if pck.stream_serial() != self.stream_serial {
-			if pck.first_in_stream() {
-				// We have a chained ogg file. This means we need to
-				// re-initialize the internal context.
-				let ident_hdr = try!(read_header_ident(&pck.data));
+		loop {
+			let pck = match try!(self.rdr.read_packet()) {
+				Some(p) => p,
+				None => return Ok(None),
+			};
+			if pck.stream_serial() != self.stream_serial {
+				if pck.first_in_stream() {
+					// We have a chained ogg file. This means we need to
+					// re-initialize the internal context.
+					let ident_hdr = try!(read_header_ident(&pck.data));
 
-				let pck :Packet = try!(self.rdr.read_packet_expected());
-				let comment_hdr = try!(read_header_comment(&pck.data));
+					let pck :Packet = try!(self.rdr.read_packet_expected());
+					let comment_hdr = try!(read_header_comment(&pck.data));
 
-				let pck :Packet = try!(self.rdr.read_packet_expected());
-				let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
-					(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
+					let pck :Packet = try!(self.rdr.read_packet_expected());
+					let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
+						(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
-				// Update the context
-				self.pwr = PreviousWindowRight::new();
-				self.ident_hdr = ident_hdr;
-				self.comment_hdr = comment_hdr;
-				self.setup_hdr = setup_hdr;
-				self.stream_serial = pck.stream_serial();
-				self.cur_absgp = None;
+					// Update the context
+					self.pwr = PreviousWindowRight::new();
+					self.ident_hdr = ident_hdr;
+					self.comment_hdr = comment_hdr;
+					self.setup_hdr = setup_hdr;
+					self.stream_serial = pck.stream_serial();
+					self.cur_absgp = None;
 
-				// Now, read the first audio packet to prime the pwr
-				// and discard the packet.
-				let pck = match try!(self.rdr.read_packet()) {
-					Some(p) => p,
-					None => return Ok(None),
-				};
-				let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
-					&self.setup_hdr, &pck.data, &mut self.pwr));
-				self.cur_absgp = Some(pck.absgp_page());
+					// Now, read the first audio packet to prime the pwr
+					// and discard the packet.
+					let pck = match try!(self.rdr.read_packet()) {
+						Some(p) => p,
+						None => return Ok(None),
+					};
+					let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+						&self.setup_hdr, &pck.data, &mut self.pwr));
+					self.cur_absgp = Some(pck.absgp_page());
 
-				return Ok(try!(self.rdr.read_packet()));
+					return Ok(try!(self.rdr.read_packet()));
+				} else {
+					// Ignore every packet that has a mismatching stream serial
+				}
 			} else {
-				// TODO make this a proper error case
-				// We most likely got here due to seeking or an invalid file
 				return Ok(Some(pck));
 			}
-		} else {
-			return Ok(Some(pck));
 		}
 	}
 	/// Reads and decompresses an audio packet from the stream.
