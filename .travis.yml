@@ -11,5 +11,7 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo doc --verbose
+  - cargo build --verbose --features async_ogg
+  - cargo build --verbose --no-default-features
   - cd dev/cmp
   - cargo test --release
