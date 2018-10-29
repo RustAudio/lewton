@@ -1,10 +1,10 @@
 # lewton
 
+[![docs](https://docs.rs/lewton/badge.svg)](https://docs.rs/crate/lewton)
+[![crates.io](https://img.shields.io/crates/v/lewton.svg)](https://crates.io/crates/lewton)
+[![dependency status](https://deps.rs/repo/github/rustaudio/lewton/status.svg)](https://deps.rs/repo/github/rustaudio/lewton)
+
 Vorbis decoder written in pure Rust.
-
-[Documentation](https://docs.rs/crate/lewton/0.9.3)
-
-[crates.io](https://crates.io/crates/lewton)
 
 To give the decoder a try, you can do:
 ```sh
