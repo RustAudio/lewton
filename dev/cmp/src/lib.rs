@@ -14,7 +14,7 @@ use std::fs::File;
 
 use lewton::inside_ogg::*;
 use std::time::{Duration, Instant};
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Seek};
 
 use vorbis::Decoder as NativeDecoder;
 
@@ -65,7 +65,7 @@ pub fn get_duration_seconds(dur :&Duration) -> f64 {
 	return dur.as_secs() as f64 + (dur.subsec_nanos() as f64) / 1_000_000_000.0;
 }
 
-pub fn cmp_output(file_path :&str) -> (usize, usize) {
+pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
 	macro_rules! try {
 		($expr:expr) => (match $expr {
 			$crate::std::result::Result::Ok(val) => val,
@@ -74,8 +74,22 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 			}
 		})
 	}
-	let f_n = try!(File::open(file_path.clone()));
-	let f_r = try!(File::open(file_path));
+	let f = try!(File::open(&file_path));
+	let f_2 = try!(File::open(&file_path));
+	try!(cmp_output(f, f_2))
+}
+
+pub fn cmp_output<R :Read + Seek>(rdr :R, rdr_2 :R) -> Result<(usize, usize), String> {
+	macro_rules! try {
+		($expr:expr) => (match $expr {
+			$crate::std::result::Result::Ok(val) => val,
+			$crate::std::result::Result::Err(err) => {
+				return Err(format!("{:?}", err))
+			}
+		})
+	}
+	let f_n = rdr;
+	let f_r = rdr_2;
 
 	let dec = try!(NativeDecoder::new(f_n));
 
@@ -149,7 +163,7 @@ pub fn cmp_output(file_path :&str) -> (usize, usize) {
 			dec_data.truncate(0);
 		}
 	}
-	return (pcks_with_diffs, n);
+	return Ok((pcks_with_diffs, n));
 }
 
 /// Like try, but performs an action if an "expected" error

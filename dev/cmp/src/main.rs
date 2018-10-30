@@ -45,7 +45,7 @@ fn run_perf() {
 fn run_vals() {
 	let file_path = env::args().nth(2).expect("Please specify a file to open via arg.");
 	println!("Opening file: {}", file_path);
-	let (pcks_with_diffs, n) = cmp_output(&file_path);
+	let (pcks_with_diffs, n) = cmp_file_output(&file_path);
 	if pcks_with_diffs > 0 {
 		println!("Total number of packets with differences: {} of {} ({}%)",
 			pcks_with_diffs, n, pcks_with_diffs as f32 / n as f32 * 100.0);

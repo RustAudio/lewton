@@ -18,7 +18,7 @@ use lewton::audio::AudioReadError::*;
 macro_rules! cmp_output {
 	($str:expr, $max_diff:expr) => {
 		print!("Comparing output for {} ", $str);
-		let (diff_pck_count, _) = cmp::cmp_output(&format!("test-assets/{}", $str));
+		let (diff_pck_count, _) = cmp::cmp_file_output(&format!("test-assets/{}", $str));
 		println!(": {} differing packets of allowed {}.", diff_pck_count, $max_diff);
 		assert!(diff_pck_count <= $max_diff);
 	};
