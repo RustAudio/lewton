@@ -9,10 +9,12 @@ keywords = ["ogg", "vorbis", "decoder", "audio"]
 categories = ["compression", "multimedia::audio", "multimedia::encoding"]
 documentation = "https://docs.rs/lewton"
 readme = "README.md"
+build = "build.rs"
 
 [features]
 default = ["ogg"]
 async_ogg = ["ogg", "ogg/async", "futures", "tokio-io"]
+bindgen = ["cbindgen"]
 
 [dependencies]
 byteorder = "1.0"
@@ -25,5 +27,12 @@ futures = { version = "0.1", optional = true }
 ogg = "0.7"
 alto = "3"
 
+[build-dependencies]
+cbindgen = { version = "0.6.6", optional = true }
+
 [package.metadata.docs.rs]
 features = ["async_ogg"]
+
+[lib]
+name = "lewton"
+crate-type = ["lib", "cdylib"]
