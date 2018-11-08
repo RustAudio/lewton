@@ -77,10 +77,11 @@ pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
 	}
 	let f = try!(File::open(&file_path));
 	let f_2 = try!(File::open(&file_path));
-	try!(cmp_output(f, f_2, |u, v, _, _, _, _| (u, v)))
+	try!(cmp_output(f, f_2, |u, v, _, _, _, _, _| (u, v)))
 }
 
 pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
+		bool,
 		&IdentHeader, &CommentHeader, &SetupHeader)->T>(
 		rdr :R, rdr_2 :R, f :F) -> Result<T, String> {
 	macro_rules! try {
@@ -97,6 +98,7 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 	let dec = try!(NativeDecoder::new(f_n));
 
 	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
+	let stream_serial = ogg_rdr.stream_serial();
 
 	// Now the fun starts..
 	let mut native_it = dec.into_packets();
@@ -120,6 +122,8 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 	let mut dec_data = Vec::new();
 
 	let mut total_sample_count = 0;
+
+	let mut chained_ogg_file = false;
 	loop {
 		n += 1;
 
@@ -136,6 +140,10 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		assert_eq!(native_decoded.channels, ogg_rdr.ident_hdr.audio_channels as u16);
 
 		total_sample_count += pck_decompressed.len();
+		if stream_serial != ogg_rdr.stream_serial() {
+			// Chained ogg file
+			chained_ogg_file = true;
+		}
 
 		// Fill dec_data with stuff from this packet
 
@@ -171,6 +179,7 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		}
 	}
 	return Ok(f(pcks_with_diffs, n, total_sample_count,
+		chained_ogg_file,
 		&ogg_rdr.ident_hdr, &ogg_rdr.comment_hdr, &ogg_rdr.setup_hdr));
 }
 
