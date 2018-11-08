@@ -81,7 +81,7 @@ pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
 }
 
 pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
-		IdentHeader, CommentHeader, SetupHeader)->T>(
+		&IdentHeader, &CommentHeader, &SetupHeader)->T>(
 		rdr :R, rdr_2 :R, f :F) -> Result<T, String> {
 	macro_rules! try {
 		($expr:expr) => (match $expr {
@@ -171,7 +171,7 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		}
 	}
 	return Ok(f(pcks_with_diffs, n, total_sample_count,
-		ogg_rdr.ident_hdr, ogg_rdr.comment_hdr, ogg_rdr.setup_hdr));
+		&ogg_rdr.ident_hdr, &ogg_rdr.comment_hdr, &ogg_rdr.setup_hdr));
 }
 
 /// Like try, but performs an action if an "expected" error
