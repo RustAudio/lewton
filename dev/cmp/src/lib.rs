@@ -13,6 +13,7 @@ extern crate test_assets;
 use std::fs::File;
 
 use lewton::inside_ogg::*;
+use lewton::header::{IdentHeader, CommentHeader, SetupHeader};
 use std::time::{Duration, Instant};
 use std::io::{Cursor, Read, Seek};
 
@@ -76,10 +77,12 @@ pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
 	}
 	let f = try!(File::open(&file_path));
 	let f_2 = try!(File::open(&file_path));
-	try!(cmp_output(f, f_2))
+	try!(cmp_output(f, f_2, |u, v, _, _, _, _| (u, v)))
 }
 
-pub fn cmp_output<R :Read + Seek>(rdr :R, rdr_2 :R) -> Result<(usize, usize), String> {
+pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
+		IdentHeader, CommentHeader, SetupHeader)->T>(
+		rdr :R, rdr_2 :R, f :F) -> Result<T, String> {
 	macro_rules! try {
 		($expr:expr) => (match $expr {
 			$crate::std::result::Result::Ok(val) => val,
@@ -115,6 +118,8 @@ pub fn cmp_output<R :Read + Seek>(rdr :R, rdr_2 :R) -> Result<(usize, usize), St
 
 	let mut native_dec_data = Vec::new();
 	let mut dec_data = Vec::new();
+
+	let mut total_sample_count = 0;
 	loop {
 		n += 1;
 
@@ -129,6 +134,8 @@ pub fn cmp_output<R :Read + Seek>(rdr :R, rdr_2 :R) -> Result<(usize, usize), St
 		// Asserting some very basic things:
 		assert_eq!(native_decoded.rate, ogg_rdr.ident_hdr.audio_sample_rate as u64);
 		assert_eq!(native_decoded.channels, ogg_rdr.ident_hdr.audio_channels as u16);
+
+		total_sample_count += pck_decompressed.len();
 
 		// Fill dec_data with stuff from this packet
 
@@ -163,7 +170,8 @@ pub fn cmp_output<R :Read + Seek>(rdr :R, rdr_2 :R) -> Result<(usize, usize), St
 			dec_data.truncate(0);
 		}
 	}
-	return Ok((pcks_with_diffs, n));
+	return Ok(f(pcks_with_diffs, n, total_sample_count,
+		ogg_rdr.ident_hdr, ogg_rdr.comment_hdr, ogg_rdr.setup_hdr));
 }
 
 /// Like try, but performs an action if an "expected" error
