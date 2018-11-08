@@ -233,6 +233,13 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		return Ok(Some(samples_interleaved));
 	}
 
+	/// Returns the stream serial of the current stream
+	///
+	/// The stream serial can change in chained ogg files.
+	pub fn stream_serial(&self) -> u32 {
+		self.stream_serial
+	}
+
 	/// Returns the absolute granule position of the last read page.
 	///
 	/// In the case of ogg/vorbis, the absolute granule position is given
