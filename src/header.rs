@@ -331,7 +331,18 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 		let comment_length = try!(rdr.read_u32::<LittleEndian>()) as usize;
 		let mut comment_buf = vec![0; comment_length]; // TODO fix this, we initialize memory for NOTHING!!! Out of some reason, this is seen as "unsafe" by rustc.
 		try!(rdr.read_exact(&mut comment_buf));
-		let comment = try!(String::from_utf8(comment_buf));
+		let comment = match String::from_utf8(comment_buf) {
+			Ok(comment) => comment,
+			// Uncomment for closer compliance with the spec.
+			// The spec explicitly states that the comment entries
+			// should be UTF-8 formatted, however it seems that other
+			// decoder libraries tolerate non-UTF-8 formatted strings
+			// in comments. This has led to some files circulating
+			// with such errors inside. If we deny to decode such files,
+			// lewton would be the odd one out. Thus we just
+			// gracefully ignore them.
+			Err(_) => continue,
+		};
 		let eq_idx = match comment.find("=") {
 			Some(k) => k,
 			// Uncomment for closer compliance with the spec.
