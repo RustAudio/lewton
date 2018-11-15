@@ -147,13 +147,7 @@ impl From<OggReadError> for VorbisError {
 }
 
 fn ilog(val :u64) -> u8 {
-	let mut ret :u8 = 0;
-	let mut v = val;
-	while v > 0 {
-		ret += 1;
-		v = v >> 1;
-	}
-	return ret;
+	64 - val.leading_zeros() as u8
 }
 
 #[test]
