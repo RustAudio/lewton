@@ -612,7 +612,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 /// The test files are licensed under CC-0:
 /// * https://github.com/RustAudio/lewton/issues/33#issuecomment-419640709
 /// * http://web.archive.org/web/20180910135020/https://github.com/RustAudio/lewton/issues/33
-pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 3] {
+pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 4] {
 	return [
 		TestAssetDef {
 			filename : format!("27_really_minimized_testcase_crcfix.ogg"),
@@ -629,5 +629,11 @@ pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 3] {
 			hash : format!("4812e725d7c6bdb48e745b4e0a396efc96ea5cb30e304cf9710dadda3d963171"),
 			url : format!("https://github.com/RustAudio/lewton/files/2363173/33_minimized_panic_testcase.ogg.zip"),
 		},
+		TestAssetDef {
+			filename : format!("35_where_did_my_memory_go_repacked.ogg"),
+			hash : format!("2f202e71ca0440a2de4a15443beae9d3230e81e47bc01d29929fc86ee731887c"),
+			url : format!("https://github.com/RustAudio/lewton/files/2889595/35_where-did-my-memory-go-repacked.ogg.zip"),
+		},
+
 	];
 }

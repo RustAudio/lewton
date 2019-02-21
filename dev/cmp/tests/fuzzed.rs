@@ -24,6 +24,7 @@ fn test_malformed_fuzzed() {
 
 	ensure_malformed!("27_really_minimized_testcase_crcfix.ogg", BadAudio(AudioBadFormat));
 	ensure_malformed!("32_minimized_crash_testcase.ogg", BadHeader(HeaderBadFormat));
+	ensure_malformed!("35_where_did_my_memory_go_repacked.ogg", BadHeader(HeaderBadFormat));
 }
 
 #[test]
