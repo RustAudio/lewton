@@ -4,49 +4,47 @@ pub trait Samples {
 	fn from_floats(floats :Vec<Vec<f32>>) -> Self;
 }
 
-fn non_interleaved_truncation<T>(v :&mut Vec<Vec<T>>, limit :usize) {
-	for ch in v.iter_mut() {
-		if limit < ch.len() {
-			ch.truncate(limit);
-		}
-	}
-}
-
-impl Samples for Vec<Vec<i16>> {
+impl<S :Sample> Samples for Vec<Vec<S>> {
 	fn num_samples(&self) -> usize {
 		self[0].len()
 	}
 	fn truncate(&mut self, limit :usize) {
-		non_interleaved_truncation(self, limit);
+		for ch in self.iter_mut() {
+			if limit < ch.len() {
+				ch.truncate(limit);
+			}
+		}
 	}
 
 	fn from_floats(floats :Vec<Vec<f32>>) -> Self {
 		floats.into_iter()
 			.map(|samples| {
-				samples.iter()
-					.map(|s| {
-						let s = s * 32768.0;
-						if s > 32767. {
-							32767
-						} else if s < -32768. {
-							-32768
-						} else {
-							s as i16
-						}
-					})
+				samples.into_iter()
+					.map(S::from_float)
 					.collect()
 			}).collect()
 	}
 }
 
-impl Samples for Vec<Vec<f32>> {
-	fn num_samples(&self) -> usize {
-		self[0].len()
+pub trait Sample {
+	fn from_float(fl :f32) -> Self;
+}
+
+impl Sample for f32 {
+	fn from_float(fl :f32) -> Self {
+		fl
 	}
-	fn truncate(&mut self, limit :usize) {
-		non_interleaved_truncation(self, limit);
-	}
-	fn from_floats(floats :Vec<Vec<f32>>) -> Self {
-		floats
+}
+
+impl Sample for i16 {
+	fn from_float(fl :f32) -> Self {
+		let fl = fl * 32768.0;
+		if fl > 32767. {
+			32767
+		} else if fl < -32768. {
+			-32768
+		} else {
+			fl as i16
+		}
 	}
 }
