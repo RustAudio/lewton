@@ -23,6 +23,7 @@ use ::ilog;
 use ::bitpacking::BitpackCursor;
 use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
 	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
+use samples::Samples;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AudioReadError {
@@ -903,8 +904,8 @@ Pass your info to this function to get your raw packet data decoded.
 Panics if the passed PreviousWindowRight struct doesn't match the info
 from the ident header.
 */
-pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
-		-> Result<Vec<Vec<i16>>, AudioReadError> {
+pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
+		-> Result<S, AudioReadError> {
 	let mut rdr = BitpackCursor::new(packet);
 	if try!(rdr.read_bit_flag()) {
 		try!(Err(AudioReadError::AudioIsHeader));
@@ -1142,21 +1143,12 @@ pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8]
 	pwr.data = Some(future_prev_halves);
 
 	// Generate final integer samples
-	let final_i16_samples = audio_spectri.into_iter()
-		.map(|samples| {
-			samples.iter()
-				.map(|s| {
-					let s = s * 32768.0;
-					if s > 32767. {
-						32767
-					} else if s < -32768. {
-						-32768
-					} else {
-						s as i16
-					}
-				})
-				.collect()
-		}).collect();
+	let final_i16_samples = S::from_floats(audio_spectri);
 
 	Ok(final_i16_samples)
+}
+
+pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
+		-> Result<Vec<Vec<i16>>, AudioReadError> {
+	read_audio_packet_generic(ident, setup, packet, pwr)
 }

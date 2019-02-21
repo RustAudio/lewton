@@ -92,6 +92,7 @@ pub mod audio;
 mod bitpacking;
 #[cfg(feature = "ogg")]
 pub mod inside_ogg;
+pub mod samples;
 
 #[cfg(feature = "ogg")]
 #[doc(no_inline)]
