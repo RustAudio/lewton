@@ -6,6 +6,11 @@
 // at your option. Please see the LICENSE file
 // attached to this source distribution for details.
 
+/*!
+Traits for sample formats
+*/
+
+/// Trait for a packet of multiple samples
 pub trait Samples {
 	fn num_samples(&self) -> usize;
 	fn truncate(&mut self, limit :usize);
@@ -34,6 +39,7 @@ impl<S :Sample> Samples for Vec<Vec<S>> {
 	}
 }
 
+/// A packet of multi-channel interleaved samples
 pub struct InterleavedSamples<S :Sample> {
 	pub samples :Vec<S>,
 	pub channel_count :usize,
@@ -72,6 +78,7 @@ impl<S :Sample> Samples for InterleavedSamples<S> {
 	}
 }
 
+/// Trait representing a single sample
 pub trait Sample {
 	fn from_float(fl :f32) -> Self;
 }
