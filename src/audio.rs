@@ -1148,6 +1148,14 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 	Ok(final_i16_samples)
 }
 
+/**
+Main audio packet decoding function
+
+Pass your info to this function to get your raw packet data decoded.
+
+Panics if the passed PreviousWindowRight struct doesn't match the info
+from the ident header.
+*/
 pub fn read_audio_packet(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
 		-> Result<Vec<Vec<i16>>, AudioReadError> {
 	read_audio_packet_generic(ident, setup, packet, pwr)
