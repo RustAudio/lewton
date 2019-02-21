@@ -20,7 +20,7 @@ use std::io::{Read, Seek};
 use ::audio::{PreviousWindowRight, read_audio_packet,
 	read_audio_packet_generic};
 use ::header::HeaderSet;
-use ::samples::Samples;
+use ::samples::{Samples, InterleavedSamples};
 
 /// Reads the three vorbis headers from an ogg stream as well as stream serial information
 ///
@@ -169,7 +169,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		let pck = try!(self.read_dec_packet_generic());
 		Ok(pck)
 	}
-	/// Reads and decompresses an audio packet from the stream (generic)
+	/// Reads and decompresses an audio packet from the stream (generic).
 	///
 	/// On read errors, it returns Err(e) with the error.
 	///
@@ -214,31 +214,11 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// interleaved samples.
 	pub fn read_dec_packet_itl(&mut self) ->
 			Result<Option<Vec<i16>>, VorbisError> {
-		let decoded_pck = match try!(self.read_dec_packet()) {
+		let decoded_pck :InterleavedSamples<_> = match try!(self.read_dec_packet_generic()) {
 			Some(p) => p,
 			None => return Ok(None),
 		};
-		// Interleave
-		// TODO make int sample generation and
-		// interleaving one step.
-		let channel_count = decoded_pck.len();
-		// Note that a channel count of 0 is forbidden
-		// by the spec and the header decoding code already
-		// checks for that.
-		let samples_interleaved = if channel_count == 1 {
-			// Because decoded_pck[0] doesn't work...
-			decoded_pck.into_iter().next().unwrap()
-		} else {
-			let len = decoded_pck[0].len();
-			let mut samples = Vec::with_capacity(len * channel_count);
-			for i in 0 .. len {
-				for ref chan in decoded_pck.iter() {
-					samples.push(chan[i]);
-				}
-			}
-			samples
-		};
-		return Ok(Some(samples_interleaved));
+		return Ok(Some(decoded_pck.samples));
 	}
 
 	/// Returns the stream serial of the current stream

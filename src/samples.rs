@@ -26,6 +26,44 @@ impl<S :Sample> Samples for Vec<Vec<S>> {
 	}
 }
 
+pub struct InterleavedSamples<S :Sample> {
+	pub samples :Vec<S>,
+	pub channel_count :usize,
+}
+
+impl<S :Sample> Samples for InterleavedSamples<S> {
+	fn num_samples(&self) -> usize {
+		self.samples.len() / self.channel_count
+	}
+	fn truncate(&mut self, limit :usize) {
+		self.samples.truncate(limit * self.channel_count);
+	}
+	fn from_floats(floats :Vec<Vec<f32>>) -> Self {
+		let channel_count = floats.len();
+		// Note that a channel count of 0 is forbidden
+		// by the spec and the header decoding code already
+		// checks for that.
+		assert!(floats.len() > 0);
+		let samples_interleaved = if channel_count == 1 {
+			// Because decoded_pck[0] doesn't work...
+			<Vec<Vec<S>> as Samples>::from_floats(floats).into_iter().next().unwrap()
+		} else {
+			let len = floats[0].len();
+			let mut samples = Vec::with_capacity(len * channel_count);
+			for i in 0 .. len {
+				for ref chan in floats.iter() {
+					samples.push(S::from_float(chan[i]));
+				}
+			}
+			samples
+		};
+		Self {
+			samples : samples_interleaved,
+			channel_count,
+		}
+	}
+}
+
 pub trait Sample {
 	fn from_float(fl :f32) -> Self;
 }
