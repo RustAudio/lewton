@@ -17,8 +17,10 @@ use ogg::{PacketReader, Packet};
 use header::*;
 use VorbisError;
 use std::io::{Read, Seek};
-use ::audio::{PreviousWindowRight, read_audio_packet};
+use ::audio::{PreviousWindowRight, read_audio_packet,
+	read_audio_packet_generic};
 use ::header::HeaderSet;
+use ::samples::Samples;
 
 /// Reads the three vorbis headers from an ogg stream as well as stream serial information
 ///
@@ -164,11 +166,23 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// with the data of the decompressed packet.
 	pub fn read_dec_packet(&mut self) ->
 			Result<Option<Vec<Vec<i16>>>, VorbisError> {
+		let pck = try!(self.read_dec_packet_generic());
+		Ok(pck)
+	}
+	/// Reads and decompresses an audio packet from the stream (generic)
+	///
+	/// On read errors, it returns Err(e) with the error.
+	///
+	/// On success, it either returns None, when the end of the
+	/// stream has been reached, or Some(packet_data),
+	/// with the data of the decompressed packet.
+	pub fn read_dec_packet_generic<S :Samples>(&mut self) ->
+			Result<Option<S>, VorbisError> {
 		let pck = match try!(self.read_next_audio_packet()) {
 			Some(p) => p,
 			None => return Ok(None),
 		};
-		let mut decoded_pck = try!(read_audio_packet(&self.ident_hdr,
+		let mut decoded_pck :S = try!(read_audio_packet_generic(&self.ident_hdr,
 			&self.setup_hdr, &pck.data, &mut self.pwr));
 
 		// If this is the last packet in the logical bitstream,
@@ -178,18 +192,12 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		// of libvorbis.
 		if let (Some(absgp), true) = (self.cur_absgp, pck.last_in_stream()) {
 			let target_length = pck.absgp_page().saturating_sub(absgp) as usize;
-			for ch in decoded_pck.iter_mut() {
-				if target_length < ch.len() {
-					ch.truncate(target_length);
-				}
-			}
+			decoded_pck.truncate(target_length);
 		}
 		if pck.last_in_page() {
 			self.cur_absgp = Some(pck.absgp_page());
 		} else if let &mut Some(ref mut absgp) = &mut self.cur_absgp {
-			if let Some(v) = decoded_pck.get(0) {
-				*absgp += v.len() as u64;
-			}
+			*absgp += decoded_pck.num_samples() as u64;
 		}
 
 		return Ok(Some(decoded_pck));
