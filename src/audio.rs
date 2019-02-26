@@ -606,7 +606,11 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 		let mut i = 0;
 		while i < partition_size {
 			let entries = try!(rdr.read_huffman_vq(codebook));
-			let vs = &mut vec_v[i..(i + entries.len())];
+			let vs = if let Some(vs) = vec_v.get_mut(i..(i + entries.len())) {
+				vs
+			} else {
+				break;
+			};
 
 			for (v, e) in vs.iter_mut().zip(entries.iter()) {
 				*v += *e;
