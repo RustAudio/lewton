@@ -612,7 +612,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 /// The test files are licensed under CC-0:
 /// * https://github.com/RustAudio/lewton/issues/33#issuecomment-419640709
 /// * http://web.archive.org/web/20180910135020/https://github.com/RustAudio/lewton/issues/33
-pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 4] {
+pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 9] {
 	return [
 		TestAssetDef {
 			filename : format!("27_really_minimized_testcase_crcfix.ogg"),
@@ -634,6 +634,30 @@ pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 4] {
 			hash : format!("2f202e71ca0440a2de4a15443beae9d3230e81e47bc01d29929fc86ee731887c"),
 			url : format!("https://github.com/RustAudio/lewton/files/2889595/35_where-did-my-memory-go-repacked.ogg.zip"),
 		},
-
+		TestAssetDef {
+			filename : format!("bug-42-sample009.ogg"),
+			hash : format!("7e3d7fd6d306cd1c1704d0586b4e62cc897c499e3ffc1911f62ec0fc3a062871"),
+			url : format!("https://github.com/RustAudio/lewton/files/2905014/bug-42-sample009.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("bug-42-sample012.ogg"),
+			hash : format!("8d92c4359bbe987b77459f309859b6bba0a11724e71fd5e81873c597ec71d857"),
+			url : format!("https://github.com/RustAudio/lewton/files/2905017/bug-42-sample012.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("bug-42-sample015.ogg"),
+			hash : format!("274c17222d7cfc1044d2fee3e60377eac87f5ee8d952eeaf3d636b016b1db7d3"),
+			url : format!("https://github.com/RustAudio/lewton/files/2905018/bug-42-sample015.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("bug-42-sample016.ogg"),
+			hash : format!("ab02fd55a275b1ec0c6c56a667834231bf34b3a79038f43196d1015c1555e535"),
+			url : format!("https://github.com/RustAudio/lewton/files/2905019/bug-42-sample016.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("bug-42-sample029.ogg"),
+			hash : format!("1436fff4d8fa61ff2b22ffd021c2bd80f072556b8b58cfc72fdfc0434efd9a24"),
+			url : format!("https://github.com/RustAudio/lewton/files/2905020/bug-42-sample029.ogg.zip"),
+		},
 	];
 }
