@@ -127,7 +127,7 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 			// Undecodable per spec
 			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
 			Some(codebook_idx) => {
-				if let Some(codebook) = &codebooks.get(*codebook_idx as usize) {
+				if let Some(codebook) = (&codebooks).get(*codebook_idx as usize) {
 					let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
 					let mut last = 0.0;
 					loop {
