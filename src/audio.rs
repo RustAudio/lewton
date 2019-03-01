@@ -127,6 +127,9 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 			// Undecodable per spec
 			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
 			Some(codebook_idx) => {
+				if *codebook_idx as usize >= (&codebooks).len() {
+					return Err(FloorSpecialCase::PacketUndecodable)
+				}
 				let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
 				let mut last = 0.0;
 				let codebook = &codebooks[*codebook_idx as usize];
@@ -716,7 +719,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 }
 
 
-// Ok means "fine" (or end of packet, but thats "fine" too!),
+// Ok means "fine" (or end of packet, but that's "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
 fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 		do_not_decode_flag :&[bool], resid :&Residue, codebooks :&[Codebook]) -> Result<Vec<f32>, ()> {
