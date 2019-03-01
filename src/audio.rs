@@ -127,37 +127,37 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 			// Undecodable per spec
 			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
 			Some(codebook_idx) => {
-				if *codebook_idx as usize >= (&codebooks).len() {
-					return Err(FloorSpecialCase::PacketUndecodable)
-				}
-				let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
-				let mut last = 0.0;
-				let codebook = &codebooks[*codebook_idx as usize];
-				loop {
-					let mut last_new = last;
-					let temp_vector = try!(rdr.read_huffman_vq(codebook));
-					if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
-						// Little optimisation: we don't have to care about the >= case here
-						for &e in temp_vector {
-							coefficients.push((last + e as f32).cos());
-							last_new = e as f32;
-						}
-					} else {
-						for &e in temp_vector {
-							coefficients.push((last + e as f32).cos());
-							last_new = e as f32;
-							// This rule makes sure that coefficients doesn't get
-							// larger than floor0_order and saves an allocation
-							// in this case
-							if coefficients.len() == fl.floor0_order as usize {
-								return Ok((coefficients, amplitude));
+				if let Some(codebook) = &codebooks.get(*codebook_idx as usize) {
+					let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
+					let mut last = 0.0;
+					loop {
+						let mut last_new = last;
+						let temp_vector = try!(rdr.read_huffman_vq(codebook));
+						if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
+							// Little optimisation: we don't have to care about the >= case here
+							for &e in temp_vector {
+								coefficients.push((last + e as f32).cos());
+								last_new = e as f32;
+							}
+						} else {
+							for &e in temp_vector {
+								coefficients.push((last + e as f32).cos());
+								last_new = e as f32;
+								// This rule makes sure that coefficients doesn't get
+								// larger than floor0_order and saves an allocation
+								// in this case
+								if coefficients.len() == fl.floor0_order as usize {
+									return Ok((coefficients, amplitude));
+								}
 							}
 						}
+						last += last_new;
+						if coefficients.len() >= fl.floor0_order as usize {
+							return Ok((coefficients, amplitude));
+						}
 					}
-					last += last_new;
-					if coefficients.len() >= fl.floor0_order as usize {
-						return Ok((coefficients, amplitude));
-					}
+				} else {
+					return Err(FloorSpecialCase::PacketUndecodable);
 				}
 			},
 		}
