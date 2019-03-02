@@ -127,37 +127,34 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 			// Undecodable per spec
 			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
 			Some(codebook_idx) => {
-				if let Some(codebook) = (&codebooks).get(*codebook_idx as usize) {
-					let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
-					let mut last = 0.0;
-					loop {
-						let mut last_new = last;
-						let temp_vector = try!(rdr.read_huffman_vq(codebook));
-						if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
-							// Little optimisation: we don't have to care about the >= case here
-							for &e in temp_vector {
-								coefficients.push((last + e as f32).cos());
-								last_new = e as f32;
-							}
-						} else {
-							for &e in temp_vector {
-								coefficients.push((last + e as f32).cos());
-								last_new = e as f32;
-								// This rule makes sure that coefficients doesn't get
-								// larger than floor0_order and saves an allocation
-								// in this case
-								if coefficients.len() == fl.floor0_order as usize {
-									return Ok((coefficients, amplitude));
-								}
-							}
+				let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
+				let mut last = 0.0;
+				let codebook = &codebooks[*codebook_idx as usize];
+				loop {
+					let mut last_new = last;
+					let temp_vector = try!(rdr.read_huffman_vq(codebook));
+					if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
+						// Little optimisation: we don't have to care about the >= case here
+						for &e in temp_vector {
+							coefficients.push((last + e as f32).cos());
+							last_new = e as f32;
 						}
-						last += last_new;
-						if coefficients.len() >= fl.floor0_order as usize {
-							return Ok((coefficients, amplitude));
+					} else {
+						for &e in temp_vector {
+							coefficients.push((last + e as f32).cos());
+							last_new = e as f32;
+							// This rule makes sure that coefficients doesn't get
+							// larger than floor0_order and saves an allocation
+							// in this case
+							if coefficients.len() == fl.floor0_order as usize {
+								return Ok((coefficients, amplitude));
+							}
 						}
 					}
-				} else {
-					return Err(FloorSpecialCase::PacketUndecodable);
+					last += last_new;
+					if coefficients.len() >= fl.floor0_order as usize {
+						return Ok((coefficients, amplitude));
+					}
 				}
 			},
 		}
@@ -719,7 +716,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 }
 
 
-// Ok means "fine" (or end of packet, but that's "fine" too!),
+// Ok means "fine" (or end of packet, but thats "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
 fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 		do_not_decode_flag :&[bool], resid :&Residue, codebooks :&[Codebook]) -> Result<Vec<f32>, ()> {
