@@ -792,7 +792,11 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 			let mut floor0_book_list = Vec::with_capacity(
 				convert_to_usize!(floor0_number_of_books, u8));
 			for _ in 0 .. floor0_number_of_books {
-				floor0_book_list.push(try!(rdr.read_u8()));
+				let value = try!(rdr.read_u8());
+				if value > codebook_cnt as u8 {
+					try!(Err(HeaderReadError::HeaderBadFormat));
+				}
+				floor0_book_list.push(value);
 			}
 			Ok(Floor::TypeZero(FloorTypeZero {
 				floor0_order,
