@@ -793,7 +793,7 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 				convert_to_usize!(floor0_number_of_books, u8));
 			for _ in 0 .. floor0_number_of_books {
 				let value = try!(rdr.read_u8());
-				if value > codebook_cnt as u8 {
+				if value as u16 > codebook_cnt {
 					try!(Err(HeaderReadError::HeaderBadFormat));
 				}
 				floor0_book_list.push(value);
