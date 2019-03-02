@@ -612,7 +612,7 @@ pub fn get_xiph_asset_defs_5() -> [TestAssetDef; 5] {
 /// The test files are licensed under CC-0:
 /// * https://github.com/RustAudio/lewton/issues/33#issuecomment-419640709
 /// * http://web.archive.org/web/20180910135020/https://github.com/RustAudio/lewton/issues/33
-pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 9] {
+pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 11] {
 	return [
 		TestAssetDef {
 			filename : format!("27_really_minimized_testcase_crcfix.ogg"),
@@ -659,5 +659,16 @@ pub fn get_fuzzed_asset_defs() -> [TestAssetDef; 9] {
 			hash : format!("1436fff4d8fa61ff2b22ffd021c2bd80f072556b8b58cfc72fdfc0434efd9a24"),
 			url : format!("https://github.com/RustAudio/lewton/files/2905020/bug-42-sample029.ogg.zip"),
 		},
+		TestAssetDef {
+			filename : format!("bug-44-sample059.ogg"),
+			hash : format!("4c1452e387a64090465132724a83f02846457336fa58ddc6ee9c6df598d756c0"),
+			url : format!("https://github.com/RustAudio/lewton/files/2922511/bug-44-sample059.ogg.zip"),
+		},
+		TestAssetDef {
+			filename : format!("bug-44-sample060.ogg"),
+			hash : format!("b8bd42831a8922c4c78ff1ea5b42ecbb874135ba7e7fcd60c4fff7a419d857a4"),
+			url : format!("https://github.com/RustAudio/lewton/files/2922512/bug-44-sample060.ogg.zip"),
+		},
+
 	];
 }
