@@ -8,6 +8,7 @@
 
 #![forbid(unsafe_code)]
 #![cfg_attr(test, deny(warnings))]
+#![no_std]
 
 /*!
 A `vorbis` decoder, written in Rust.
@@ -28,6 +29,10 @@ extern crate ogg;
 extern crate futures;
 #[cfg(feature = "async_ogg")]
 extern crate tokio_io;
+
+#[macro_use(print,println,vec)]
+extern crate std;
+
 /*
 // This little thing is very useful.
 macro_rules! try {

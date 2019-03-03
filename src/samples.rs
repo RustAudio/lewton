@@ -10,6 +10,8 @@
 Traits for sample formats
 */
 
+use std::vec::Vec;
+
 /// Trait for a packet of multiple samples
 pub trait Samples {
 	fn num_samples(&self) -> usize;

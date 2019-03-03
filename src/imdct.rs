@@ -10,6 +10,7 @@
 // implementation of the algorithm from stb_vorbis.
 
 use ::header_cached::CachedBlocksizeDerived;
+use std::vec::Vec;
 
 fn imdct_step3_iter0_loop(n :usize, e :&mut[f32], i_off :usize, k_off :isize, a :&[f32]) {
 	let mut a_offs = 0;

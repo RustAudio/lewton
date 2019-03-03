@@ -25,6 +25,9 @@ use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
 	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
 use samples::Samples;
 
+use std::vec::Vec;
+use std::borrow::ToOwned;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum AudioReadError {
 	EndOfPacket,

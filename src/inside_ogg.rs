@@ -17,6 +17,7 @@ use ogg::{PacketReader, Packet};
 use header::*;
 use VorbisError;
 use std::io::{Read, Seek};
+use std::vec::Vec;
 use ::audio::{PreviousWindowRight, read_audio_packet,
 	read_audio_packet_generic};
 use ::header::HeaderSet;

@@ -18,6 +18,9 @@ the `VorbisHuffmanIter` struct which provides you with
 facilities to load a value bit by bit.
 */
 
+use std::vec::Vec;
+use std::boxed::Box;
+
 struct HuffTree {
 	// True iff every sub-tree in this tree
 	// either has two direct children or none

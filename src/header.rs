@@ -22,6 +22,8 @@ decoded in this mod.
 
 use std::error;
 use std::fmt;
+use std::vec::Vec;
+use std::string::String;
 use ::bitpacking::BitpackCursor;
 use ::huffman_tree::{VorbisHuffmanTree, HuffmanError};
 use std::io::{Cursor, ErrorKind, Read, Error};

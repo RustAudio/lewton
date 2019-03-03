@@ -16,6 +16,8 @@ that's used later in the decode process.
 The caching is done to speed up decoding.
 */
 
+use std::vec::Vec;
+
 pub struct TwiddleFactors {
 	pub a :Vec<f32>,
 	pub b :Vec<f32>,
