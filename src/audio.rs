@@ -649,6 +649,12 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 		return Ok(vectors);
 	}
 
+	if classwords_per_codeword == 0 {
+		// A value of 0 would create an infinite loop.
+		// Therefore, throw an error in this case.
+		try!(Err(()));
+	}
+
 	'pseudo_return: loop {
 		// ENdofpacketisnOrmal macro. Local replacement for try.
 		macro_rules! eno {
