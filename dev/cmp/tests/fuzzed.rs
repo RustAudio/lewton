@@ -32,6 +32,8 @@ fn test_malformed_fuzzed() {
 
 	ensure_malformed!("bug-44-sample059.ogg", BadHeader(HeaderBadFormat));
 	ensure_malformed!("bug-44-sample060.ogg", BadHeader(HeaderBadFormat));
+
+	ensure_malformed!("bug-46-sample001.ogg", BadAudio(AudioBadFormat));
 }
 
 #[test]
