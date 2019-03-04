@@ -22,6 +22,7 @@ modules.
 
 extern crate byteorder;
 extern crate smallvec;
+extern crate balloc;
 #[cfg(feature = "ogg")]
 extern crate ogg;
 #[cfg(feature = "async_ogg")]
@@ -110,6 +111,7 @@ pub enum VorbisError {
 	BadHeader(header::HeaderReadError),
 	#[cfg(feature = "ogg")]
 	OggError(OggReadError),
+	AllocError,
 }
 
 impl std::error::Error for VorbisError {
@@ -119,6 +121,7 @@ impl std::error::Error for VorbisError {
 			&VorbisError::BadHeader(_) => "Vorbis bitstream header decode problem",
 			#[cfg(feature = "ogg")]
 			&VorbisError::OggError(ref e) => e.description(),
+			VorbisError::AllocError => "Allocation error",
 		}
 	}
 
@@ -142,6 +145,12 @@ impl From<audio::AudioReadError> for VorbisError {
 impl From<header::HeaderReadError> for VorbisError {
 	fn from(err :header::HeaderReadError) -> VorbisError {
 		VorbisError::BadHeader(err)
+	}
+}
+
+impl From<balloc::AllocError> for VorbisError {
+	fn from(_err :balloc::AllocError) -> VorbisError {
+		VorbisError::AllocError
 	}
 }
 

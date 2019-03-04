@@ -30,6 +30,7 @@ use std::io::{Cursor, ErrorKind, Read, Error};
 use byteorder::{ReadBytesExt, LittleEndian};
 use std::string::FromUtf8Error;
 use header_cached::{CachedBlocksizeDerived, compute_bark_map_cos_omega};
+use balloc::{AllocError, AllocBound, Bvec};
 
 /// Errors that can occur during Header decoding
 #[derive(Debug)]
@@ -62,6 +63,8 @@ pub enum HeaderReadError {
 	/// This error is not automatically an error of the passed data,
 	/// but rather is due to insufficient decoder hardware.
 	BufferNotAddressable,
+
+	AllocError,
 }
 
 // For the () error type returned by the bitpacking layer
@@ -94,6 +97,12 @@ impl From<FromUtf8Error> for HeaderReadError {
 	}
 }
 
+impl From<AllocError> for HeaderReadError {
+	fn from(_err :AllocError) -> HeaderReadError {
+		HeaderReadError::AllocError
+	}
+}
+
 impl error::Error for HeaderReadError {
 	fn description(&self) -> &str {
 		match self {
@@ -105,6 +114,7 @@ impl error::Error for HeaderReadError {
 			&HeaderReadError::HeaderIsAudio => "Packet seems to be audio",
 			&HeaderReadError::Utf8DecodeError => "UTF-8 decoding error",
 			&HeaderReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
+			&HeaderReadError::AllocError => "Allocation error occured",
 		}
 	}
 
@@ -183,7 +193,7 @@ fn test_read_hdr_begin() {
 }
 
 /// The set of the three Vorbis headers
-pub type HeaderSet = (IdentHeader, CommentHeader, SetupHeader);
+pub type HeaderSet<B> = (IdentHeader, CommentHeader<B>, SetupHeader);
 
 /**
 Representation for the identification header
@@ -295,14 +305,14 @@ about the stream, encoded as key-value pairs,
 and the vendor name.
 */
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct CommentHeader {
+pub struct CommentHeader<B :AllocBound> {
 	/// An identification string of the
 	/// software/library that encoded
 	/// the stream.
 	pub vendor :String,
 	/// A key-value list of the comments
 	/// attached to the stream.
-	pub comment_list :Vec<(String, String)>,
+	pub comment_list :Bvec<B, (String, String)>,
 }
 
 /**
@@ -314,7 +324,8 @@ The function does not check whether the comment field names consist
 of characters `0x20` through `0x7D` (`0x3D` excluded), as the vorbis
 spec requires.
 */
-pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadError> {
+pub fn read_header_comment<B :AllocBound>(packet :&[u8],
+		bounds :B) -> Result<CommentHeader<B>, HeaderReadError> {
 	let mut rdr = Cursor::new(packet);
 	let hd_id = try!(read_header_begin_cursor(&mut rdr));
 	if hd_id != 3 {
@@ -328,7 +339,7 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 
 	// Now read the comments
 	let comment_count = try!(rdr.read_u32::<LittleEndian>()) as usize;
-	let mut comment_list = Vec::with_capacity(comment_count);
+	let mut comment_list = try!(Bvec::with_capacity(bounds, comment_count));
 	for _ in 0 .. comment_count {
 		let comment_length = try!(rdr.read_u32::<LittleEndian>()) as usize;
 		let mut comment_buf = vec![0; comment_length]; // TODO fix this, we initialize memory for NOTHING!!! Out of some reason, this is seen as "unsafe" by rustc.
@@ -354,13 +365,13 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 		};
 		let (key_eq, val) = comment.split_at(eq_idx + 1);
 		let (key, _) = key_eq.split_at(eq_idx);
-		comment_list.push((String::from(key), String::from(val)));
+		try!(comment_list.push((String::from(key), String::from(val))));
 	}
 	let framing = try!(rdr.read_u8());
 	if framing != 1 {
 		try!(Err(HeaderReadError::HeaderBadFormat));
 	}
-	let hdr :CommentHeader = CommentHeader {
+	let hdr = CommentHeader {
 		vendor,
 		comment_list,
 	};

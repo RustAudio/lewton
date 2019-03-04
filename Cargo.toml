@@ -17,6 +17,8 @@ async_ogg = ["ogg", "ogg/async", "futures", "tokio-io"]
 [dependencies]
 byteorder = "1.0"
 smallvec = "0.6"
+#balloc = { path = "../balloc" }
+balloc = "0.1"
 ogg = { version = "0.7", optional = true }
 tokio-io = { version = "0.1", optional = true }
 futures = { version = "0.1", optional = true }

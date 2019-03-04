@@ -22,14 +22,15 @@ use ::audio::{PreviousWindowRight, read_audio_packet,
 	read_audio_packet_generic};
 use ::header::HeaderSet;
 use ::samples::{Samples, InterleavedSamples};
+use balloc::AllocBound;
 
 /// Reads the three vorbis headers from an ogg stream as well as stream serial information
 ///
 /// Please note that this function doesn't work well with async
 /// I/O. In order to support this use case, enable the `async_ogg` feature,
 /// and use the `HeadersReader` struct instead.
-pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
-		Result<(HeaderSet, u32), VorbisError> {
+pub fn read_headers<'a, T: Read + Seek + 'a, B :AllocBound>(rdr: &mut PacketReader<T>, bounds :B) ->
+		Result<(HeaderSet<B>, u32), VorbisError> {
 	let pck :Packet = try!(rdr.read_packet_expected());
 	let ident_hdr = try!(read_header_ident(&pck.data));
 	let stream_serial = pck.stream_serial();
@@ -38,7 +39,7 @@ pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 	while pck.stream_serial() != stream_serial {
 		pck = try!(rdr.read_packet_expected());
 	}
-	let comment_hdr = try!(read_header_comment(&pck.data));
+	let comment_hdr = try!(read_header_comment(&pck.data, bounds));
 
 	let mut pck :Packet = try!(rdr.read_packet_expected());
 	while pck.stream_serial() != stream_serial {
@@ -64,28 +65,30 @@ in the case of ogv, is not supported.
 If you need support for this, you need to use the lower level methods
 instead.
 */
-pub struct OggStreamReader<T: Read + Seek> {
+pub struct OggStreamReader<T: Read + Seek, B :AllocBound + Clone> {
 	rdr :PacketReader<T>,
 	pwr :PreviousWindowRight,
+
+	bounds :B,
 
 	stream_serial :u32,
 
 	pub ident_hdr :IdentHeader,
-	pub comment_hdr :CommentHeader,
+	pub comment_hdr :CommentHeader<B>,
 	pub setup_hdr :SetupHeader,
 
 	cur_absgp :Option<u64>,
 }
 
-impl<T: Read + Seek> OggStreamReader<T> {
+impl<T: Read + Seek, B :AllocBound + Clone> OggStreamReader<T, B> {
 	/// Constructs a new OggStreamReader from a given implementation of `Read + Seek`.
 	///
 	/// Please note that this function doesn't work well with async
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
-	pub fn new(rdr :T) ->
+	pub fn new(rdr :T, bounds :B) ->
 			Result<Self, VorbisError> {
-		OggStreamReader::from_ogg_reader(PacketReader::new(rdr))
+		OggStreamReader::from_ogg_reader(PacketReader::new(rdr), bounds)
 	}
 	/// Constructs a new OggStreamReader from a given Ogg PacketReader.
 	///
@@ -95,13 +98,14 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// Please note that this function doesn't work well with async
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
-	pub fn from_ogg_reader(mut rdr :PacketReader<T>) ->
+	pub fn from_ogg_reader(mut rdr :PacketReader<T>, bounds :B) ->
 			Result<Self, VorbisError> {
 		let ((ident_hdr, comment_hdr, setup_hdr), stream_serial) =
-			try!(read_headers(&mut rdr));
+			try!(read_headers(&mut rdr, bounds.clone()));
 		return Ok(OggStreamReader {
 			rdr,
 			pwr : PreviousWindowRight::new(),
+			bounds,
 			ident_hdr,
 			comment_hdr,
 			setup_hdr,
@@ -125,7 +129,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 					let ident_hdr = try!(read_header_ident(&pck.data));
 
 					let pck :Packet = try!(self.rdr.read_packet_expected());
-					let comment_hdr = try!(read_header_comment(&pck.data));
+					let comment_hdr = try!(read_header_comment(&pck.data, self.bounds.clone()));
 
 					let pck :Packet = try!(self.rdr.read_packet_expected());
 					let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,

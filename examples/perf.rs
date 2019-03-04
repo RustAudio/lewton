@@ -6,6 +6,7 @@
 
 extern crate lewton;
 extern crate byteorder;
+extern crate balloc;
 
 fn main() {
 	match run() {
@@ -19,13 +20,15 @@ use lewton::VorbisError;
 use lewton::inside_ogg::OggStreamReader;
 use std::fs::File;
 use std::time::Instant;
+use balloc::NumberBounded;
 
 pub fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
 	let f = File::open(file_path).expect("Can't open file");
 
-	let mut srr = try!(OggStreamReader::new(f));
+	let b = NumberBounded::new_wrapped(1_000_000);
+	let mut srr = try!(OggStreamReader::new(f, b));
 
 	println!("Sample rate: {}", srr.ident_hdr.audio_sample_rate);
 
