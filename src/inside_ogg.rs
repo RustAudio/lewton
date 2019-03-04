@@ -83,7 +83,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
 	pub fn new(rdr :T) ->
-			Result<OggStreamReader<T>, VorbisError> {
+			Result<Self, VorbisError> {
 		OggStreamReader::from_ogg_reader(PacketReader::new(rdr))
 	}
 	/// Constructs a new OggStreamReader from a given Ogg PacketReader.
@@ -95,7 +95,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// I/O. In order to support this use case, enable the `async_ogg` feature,
 	/// and use the `HeadersReader` struct instead.
 	pub fn from_ogg_reader(mut rdr :PacketReader<T>) ->
-			Result<OggStreamReader<T>, VorbisError> {
+			Result<Self, VorbisError> {
 		let ((ident_hdr, comment_hdr, setup_hdr), stream_serial) =
 			try!(read_headers(&mut rdr));
 		return Ok(OggStreamReader {
