@@ -1,5 +1,12 @@
 # Changes
 
+## Release 0.9.4 - March 08, 2019
+
+* Added a function to obtain the stream serial from an `OggStreamReader`
+* Invalid UTF-8 strings in comment headers are now silently omitted
+* Allowed to specify floats as output format
+* Fixed multiple bugs on fuzzed inputs
+
 ## Release 0.9.3 - October 28, 2018
 
 * Fixed wrongly decoded files. Now, not a single mismatch to libvorbis is left on the xiph and libnogg test vectors (issue [#26](https://github.com/RustAudio/lewton/issues/26))
