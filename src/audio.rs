@@ -60,10 +60,6 @@ impl error::Error for AudioReadError {
 			&AudioReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
 		}
 	}
-
-	fn cause(&self) -> Option<&error::Error> {
-		None
-	}
 }
 
 impl fmt::Display for AudioReadError {
