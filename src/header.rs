@@ -105,10 +105,6 @@ impl error::Error for HeaderReadError {
 			&HeaderReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
 		}
 	}
-
-	fn cause(&self) -> Option<&error::Error> {
-		None
-	}
 }
 
 impl fmt::Display for HeaderReadError {
