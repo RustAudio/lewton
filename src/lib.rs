@@ -116,10 +116,6 @@ impl std::error::Error for VorbisError {
 			&VorbisError::OggError(ref e) => e.description(),
 		}
 	}
-
-	fn cause(&self) -> Option<&std::error::Error> {
-		None
-	}
 }
 
 impl std::fmt::Display for VorbisError {
