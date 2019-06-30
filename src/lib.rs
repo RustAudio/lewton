@@ -280,13 +280,14 @@ pub mod capi {
 	///
 	/// Returns either NULL or a newly allocated LewtonContext
 	#[no_mangle]
-	pub unsafe extern "C" fn lewton_context_from_extradata(data: *const u8, len: usize) -> *mut LewtonContext {
+	pub unsafe extern "C" fn lewton_context_from_extradata(
+			data :*const u8, len :usize) -> *mut LewtonContext {
 		unimplemented!()
 	}
 
 	/// Reset the Decoder to support seeking.
 	#[no_mangle]
-	pub unsafe extern "C" fn lewton_context_reset(ctx: *mut LewtonContext) {
+	pub unsafe extern "C" fn lewton_context_reset(ctx :*mut LewtonContext) {
 		unimplemented!()
 	}
 
@@ -294,29 +295,30 @@ pub mod capi {
 	///
 	/// Returns 0 on success, non-zero if no samples can be produced
 	#[no_mangle]
-    pub unsafe extern "C" fn lewton_decode_packet(ctx: *mut LewtonContext,
-											  pkt: *const u8, len: usize, sample_out: *mut *mut LewtonSamples) -> c_int {
+	pub unsafe extern "C" fn lewton_decode_packet(ctx :*mut LewtonContext,
+			pkt :*const u8, len: usize,
+			sample_out :*mut *mut LewtonSamples) -> c_int {
 		unimplemented!()
 	}
 
 	/// Provide the number of samples present in each channel
 	#[no_mangle]
-    pub unsafe extern "C" fn lewton_samples_count(ctx: *const LewtonSamples) -> usize {
+	pub unsafe extern "C" fn lewton_samples_count(ctx :*const LewtonSamples) -> usize {
 		unimplemented!()
 	}
 
 	/// Provide a reference to the channel sample data
-	pub unsafe extern "C" fn lewton_samples_f32(samples: *mut LewtonSamples, channel: usize) -> *const f32 {
+	pub unsafe extern "C" fn lewton_samples_f32(samples :*mut LewtonSamples, channel :usize) -> *const f32 {
 		unimplemented!()
 	}
 
 	#[no_mangle]
-    pub unsafe extern "C" fn lewton_samples_drop(samples: *mut *mut LewtonSamples) {
+	pub unsafe extern "C" fn lewton_samples_drop(samples :*mut *mut LewtonSamples) {
 		unimplemented!()
 	}
 
-    #[no_mangle]
-    pub unsafe extern "C" fn lewton_context_drop(ctx: *mut *mut LewtonContext) {
+	#[no_mangle]
+	pub unsafe extern "C" fn lewton_context_drop(ctx :*mut *mut LewtonContext) {
 		unimplemented!()
 	}
 }
