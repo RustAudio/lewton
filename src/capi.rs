@@ -17,9 +17,7 @@ pub struct LewtonContext {
 /// channel
 ///
 /// use `lewton_samples_drop()` to deallocate the memory
-pub struct LewtonSamples {
-
-}
+pub struct LewtonSamples(Vec<Vec<f32>>);
 
 /// Create a LewtonContext from an extradata buffer
 ///
@@ -48,18 +46,24 @@ pub unsafe extern fn lewton_decode_packet(ctx :*mut LewtonContext,
 
 /// Provide the number of samples present in each channel
 #[no_mangle]
-pub unsafe extern fn lewton_samples_count(ctx :*const LewtonSamples) -> usize {
-	unimplemented!()
+pub unsafe extern fn lewton_samples_count(samples :*const LewtonSamples) -> usize {
+	(*samples).0
+		.get(0)
+		.map(|v| v.len())
+		.unwrap_or(0)
 }
 
 /// Provide a reference to the channel sample data
-pub unsafe extern fn lewton_samples_f32(samples :*mut LewtonSamples, channel :usize) -> *const f32 {
-	unimplemented!()
+pub unsafe extern fn lewton_samples_f32(samples :*const LewtonSamples, channel :usize) -> *const f32 {
+	(*samples).0
+		.get(channel)
+		.map(|v| v.as_ptr())
+		.unwrap_or(std::ptr::null())
 }
 
 #[no_mangle]
-pub unsafe extern fn lewton_samples_drop(samples :*mut *mut LewtonSamples) {
-	unimplemented!()
+pub unsafe extern fn lewton_samples_drop(samples :*mut LewtonSamples) {
+	std::ptr::drop_in_place(samples);
 }
 
 #[no_mangle]
