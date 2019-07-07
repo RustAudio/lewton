@@ -780,17 +780,13 @@ fn inverse_couple(m :f32, a :f32) -> (f32, f32) {
 // this function in unsafe code, no idea
 fn dual_mut_idx<T>(v :&mut [T], idx_a :usize, idx_b :usize)
 		-> (&mut T, &mut T) {
-	if idx_a < idx_b {
-		let sl = &mut v[idx_a..idx_b + 1];
-		let mut it = sl.iter_mut();
-		(it.next().unwrap(), it.last().unwrap())
-	} else if idx_a > idx_b {
-		let sl = &mut v[idx_b..idx_a + 1];
-		let mut it = sl.iter_mut();
-		(it.next().unwrap(), it.last().unwrap())
-	} else {
-		panic!("not allowed, indices must be different!");
-	}
+	assert_ne!(idx_a, idx_b, "not allowed, indices must be different!");
+
+	let range = if idx_a < idx_b { idx_a..=idx_b } else { idx_b..=idx_a };
+	let segment = &mut v[range];
+	let (first, rest) = segment.split_first_mut().unwrap();
+	let (last, _) = rest.split_last_mut().unwrap();
+	(first, last)
 }
 
 fn dct_iv_slow(buffer :&mut [f32]) {
