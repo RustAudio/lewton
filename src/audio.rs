@@ -255,32 +255,30 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 	return Ok(floor1_y);
 }
 
-fn extr_neighbor<F>(v :&[u32], x :usize,
-		compare :F, s :&'static str) -> (usize, u32)
+fn extr_neighbor<F>(v :&[u32], max_idx :usize,
+		smaller :F, relation :&str) -> (usize, u32)
 		where F :Fn(u32, u32) -> bool {
-	let bound = v[x];
-	let sm = v.split_at(x as usize).0;
+	use std::cmp::Ordering;
+
+	let bound = v[max_idx];
+	let prefix = &v[..max_idx];
+
 	// First find a first index that fulfills
-	// the criterion of being "smaller" than bound;
-	// If "a smaller b" means compare(a, b) == true
-	let (mut extr_idx, mut max_val) = (|| {
-		for tu in sm.iter().cloned().enumerate() {
-			if compare(tu.1, bound) { return tu; }
-		}
-		panic!("No index y < {} found where v[y] is {} than v[{}] = 0x{:08x}!",
-			x, s, x, bound);
-	}) ();
-	// Now search for "bigger" entries;
-	// If "a bigger b" means compare(b, a) == true
-	let split_idx = extr_idx;
-	let smm = sm.split_at(split_idx).1;
-	for (idx, val) in smm.iter().cloned().enumerate() {
-		if compare(val, bound) && compare(max_val, val) {
-			extr_idx = idx + split_idx;
-			max_val = val;
-		}
-	}
-	return (extr_idx, max_val);
+	// the criterion of being "smaller" than bound
+	let min_idx = prefix.iter()
+		.position(|&val| smaller(val, bound))
+		.unwrap_or_else(|| 
+			panic!("No index y < {} found where v[y] is {} than v[{}] = 0x{:08x}!",
+				max_idx, relation, max_idx, bound));
+
+	// Now search for "bigger" entries
+	prefix.iter().cloned().enumerate().skip(min_idx)
+		.filter(|&(_i, val)| smaller(val, bound))
+		// in order to find the *first* maximum number,
+		// one needs to treat an element with smaller index
+		// as greater than an element with greater index
+		.max_by(|&(i, a), &(j, b)| if smaller(a, b) { Ordering::Less } else { j.cmp(&i) })
+		.unwrap_or((min_idx, v[min_idx]))
 }
 
 fn low_neighbor(v :&[u32], x :usize) -> (usize, u32) {
