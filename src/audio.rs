@@ -256,38 +256,44 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 }
 
 fn extr_neighbor<F>(v :&[u32], max_idx :usize,
-		smaller :F, relation :&str) -> (usize, u32)
-		where F :Fn(u32, u32) -> bool {
+		compare :F, relation :&str) -> (usize, u32)
+		where F :Fn(u32, u32) -> std::cmp::Ordering {
 	use std::cmp::Ordering;
 
 	let bound = v[max_idx];
 	let prefix = &v[..max_idx];
+	let smaller = |a, b| compare(a, b) == Ordering::Less;
 
 	// First find a first index that fulfills
 	// the criterion of being "smaller" than bound
 	let min_idx = prefix.iter()
 		.position(|&val| smaller(val, bound))
 		.unwrap_or_else(|| 
-			panic!("No index y < {} found where v[y] is {} than v[{}] = 0x{:08x}!",
-				max_idx, relation, max_idx, bound));
+			panic!("No index y < {0} found where v[y] is {1} than v[{0}] = 0x{2:08x}!",
+				max_idx, relation, bound));
 
 	// Now search for "bigger" entries
-	prefix.iter().cloned().enumerate().skip(min_idx)
+	let (offset, max_neighbor) = prefix[min_idx..].iter().cloned()
+		.enumerate()
+		// According to documentation of Iterator::max_by,
+		// "If several elements are equally maximum, the last element is returned".
+		// Thus, in order to find the *first* maximum element,
+		// we need to search from the end of `prefix`
+		.rev()
 		.filter(|&(_i, val)| smaller(val, bound))
-		// in order to find the *first* maximum number,
-		// one needs to treat an element with smaller index
-		// as greater than an element with greater index
-		.max_by(|&(i, a), &(j, b)| if smaller(a, b) { Ordering::Less } else { j.cmp(&i) })
-		.unwrap_or((min_idx, v[min_idx]))
+		.max_by(|&(_, a), &(_, b)| compare(a, b))
+		.unwrap_or((0, v[min_idx]));
+	
+	(min_idx + offset, max_neighbor)
 }
 
 fn low_neighbor(v :&[u32], x :usize) -> (usize, u32) {
-	return extr_neighbor(v, x, |a, b| {a < b}, "smaller");
+	extr_neighbor(v, x, |a, b| a.cmp(&b), "smaller")
 }
 
 
 fn high_neighbor(v :&[u32], x :usize) -> (usize, u32) {
-	return extr_neighbor(v, x, |a, b| {a > b}, "bigger");
+	extr_neighbor(v, x, |a, b| b.cmp(&a), "bigger")
 }
 
 #[test]
