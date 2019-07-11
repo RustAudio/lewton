@@ -39,6 +39,7 @@ impl CachedBlocksizeDerived {
 }
 
 fn win_slope(x :u16, n :u16) -> f32 {
+	use ::std::f32::consts::FRAC_PI_2;
 	// please note that there might be a MISTAKE
 	// in how the spec specifies the right window slope
 	// function. See "4.3.1. packet type, mode and window decode"
@@ -47,16 +48,12 @@ fn win_slope(x :u16, n :u16) -> f32 {
 	// as stb_vorbis shares the window slope generation function,
 	// The *other* possible reason is that we don't need the right
 	// window for anything. TODO investigate this more.
-	let v = (0.5 * ::std::f32::consts::PI * (x as f32 + 0.5) / n as f32).sin();
-	return (0.5 * ::std::f32::consts::PI * v * v ).sin();
+	let v = (FRAC_PI_2 * (x as f32 + 0.5) / n as f32).sin();
+	(FRAC_PI_2 * v * v ).sin()
 }
 
 fn generate_window(n :u16) -> Vec<f32> {
-	let mut window = Vec::with_capacity(n as usize);
-	for i in 0 .. n {
-		window.push(win_slope(i, n));
-	}
-	return window;
+	(0 .. n).map(|i| win_slope(i, n)).collect()
 }
 
 fn compute_twiddle_factors(blocksize :u8) -> TwiddleFactors {
