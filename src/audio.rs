@@ -790,13 +790,12 @@ fn dual_mut_idx<T>(v :&mut [T], idx_a :usize, idx_b :usize)
 }
 
 fn dct_iv_slow(buffer :&mut [f32]) {
-	let mut mcos = Vec::with_capacity(16384);
-	let x = buffer.to_owned().clone();
+	let x = buffer.to_vec();
 	let n = buffer.len();
 	let nmask = (n << 3) - 1;
-	for i in 0 .. 8 * n {
-		mcos.push(f32::cos(::std::f32::consts::PI / 4. * (i as f32) / (n as f32)));
-	}
+	let mcos = (0 .. 8 * n)
+		.map(|i| (::std::f32::consts::FRAC_PI_4 * (i as f32) / (n as f32)).cos())
+		.collect::<Vec<_>>();
 	for i in 0 .. n {
 		let mut acc = 0.;
 		for j in 0 .. n {
@@ -805,13 +804,14 @@ fn dct_iv_slow(buffer :&mut [f32]) {
 		buffer[i] = acc;
 	}
 }
+
 #[allow(dead_code)]
 fn inverse_mdct_slow(buffer :&mut [f32]) {
 	let n = buffer.len();
 	let n4 = n >> 2;
 	let n2 = n >> 1;
 	let n3_4 = n - n4;
-	let mut temp = buffer[0 .. n2].to_owned().clone();
+	let mut temp = buffer[0 .. n2].to_vec();
 	dct_iv_slow(&mut temp); // returns -c'-d, a-b'
 	for i in 0 .. n4 {
 		buffer[i] = temp[i + n4]; // a-b'
