@@ -116,48 +116,48 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 	// TODO this needs to become 128 bits wide, not just 64,
 	// as floor0_amplitude_bits can be up to 127.
 	let amplitude = try!(rdr.read_dyn_u64(fl.floor0_amplitude_bits));
-	if amplitude > 0 {
-		let booknumber = try!(rdr.read_dyn_u32(
-			::ilog(fl.floor0_number_of_books as u64)));
-		match fl.floor0_book_list.get(booknumber as usize) {
-			// Undecodable per spec
-			None => try!(Err(FloorSpecialCase::PacketUndecodable)),
-			Some(codebook_idx) => {
-				let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
-				let mut last = 0.0;
-				let codebook = &codebooks[*codebook_idx as usize];
-				loop {
-					let mut last_new = last;
-					let temp_vector = try!(rdr.read_huffman_vq(codebook));
-					if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
-						// Little optimisation: we don't have to care about the >= case here
-						for &e in temp_vector {
-							coefficients.push((last + e as f32).cos());
-							last_new = e as f32;
-						}
-					} else {
-						for &e in temp_vector {
-							coefficients.push((last + e as f32).cos());
-							last_new = e as f32;
-							// This rule makes sure that coefficients doesn't get
-							// larger than floor0_order and saves an allocation
-							// in this case
-							if coefficients.len() == fl.floor0_order as usize {
-								return Ok((coefficients, amplitude));
-							}
-						}
-					}
-					last += last_new;
-					if coefficients.len() >= fl.floor0_order as usize {
-						return Ok((coefficients, amplitude));
-					}
-				}
-			},
-		}
-	} else {
+	if amplitude <= 0 {
 		// This channel is unused in this frame,
 		// its all zeros.
-		try!(Err(FloorSpecialCase::Unused));
+		return Err(FloorSpecialCase::Unused);
+	} 
+
+	let booknumber = try!(rdr.read_dyn_u32(
+		::ilog(fl.floor0_number_of_books as u64)));
+	match fl.floor0_book_list.get(booknumber as usize) {
+		// Undecodable per spec
+		None => try!(Err(FloorSpecialCase::PacketUndecodable)),
+		Some(codebook_idx) => {
+			let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
+			let mut last = 0.0;
+			let codebook = &codebooks[*codebook_idx as usize];
+			loop {
+				let mut last_new = last;
+				let temp_vector = try!(rdr.read_huffman_vq(codebook));
+				if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
+					// Little optimisation: we don't have to care about the >= case here
+					for &e in temp_vector {
+						coefficients.push((last + e as f32).cos());
+						last_new = e as f32;
+					}
+				} else {
+					for &e in temp_vector {
+						coefficients.push((last + e as f32).cos());
+						last_new = e as f32;
+						// This rule makes sure that coefficients doesn't get
+						// larger than floor0_order and saves an allocation
+						// in this case
+						if coefficients.len() == fl.floor0_order as usize {
+							return Ok((coefficients, amplitude));
+						}
+					}
+				}
+				last += last_new;
+				if coefficients.len() >= fl.floor0_order as usize {
+					return Ok((coefficients, amplitude));
+				}
+			}
+		},
 	}
 	unreachable!();
 }
