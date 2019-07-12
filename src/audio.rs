@@ -782,7 +782,7 @@ fn dual_mut_idx<T>(v :&mut [T], idx_a :usize, idx_b :usize)
 		-> (&mut T, &mut T) {
 	assert_ne!(idx_a, idx_b, "not allowed, indices must be different!");
 
-	let range = if idx_a < idx_b { idx_a..=idx_b } else { idx_b..=idx_a };
+	let range = if idx_a < idx_b { idx_a..idx_b+1 } else { idx_b..idx_a+1 };
 	let segment = &mut v[range];
 	let (first, rest) = segment.split_first_mut().unwrap();
 	let (last, _) = rest.split_last_mut().unwrap();
