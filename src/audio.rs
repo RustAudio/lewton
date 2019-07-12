@@ -255,41 +255,45 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 	return Ok(floor1_y);
 }
 
-fn extr_neighbor<F>(v :&[u32], x :usize,
-		compare :F, s :&'static str) -> (usize, u32)
-		where F :Fn(u32, u32) -> bool {
-	let bound = v[x];
-	let sm = v.split_at(x as usize).0;
+fn extr_neighbor<F>(v :&[u32], max_idx :usize,
+		compare :F, relation :&str) -> (usize, u32)
+		where F :Fn(u32, u32) -> ::std::cmp::Ordering {
+	use ::std::cmp::Ordering;
+
+	let bound = v[max_idx];
+	let prefix = &v[..max_idx];
+	let smaller = |a, b| compare(a, b) == Ordering::Less;
+
 	// First find a first index that fulfills
-	// the criterion of being "smaller" than bound;
-	// If "a smaller b" means compare(a, b) == true
-	let (mut extr_idx, mut max_val) = (|| {
-		for tu in sm.iter().cloned().enumerate() {
-			if compare(tu.1, bound) { return tu; }
-		}
-		panic!("No index y < {} found where v[y] is {} than v[{}] = 0x{:08x}!",
-			x, s, x, bound);
-	}) ();
-	// Now search for "bigger" entries;
-	// If "a bigger b" means compare(b, a) == true
-	let split_idx = extr_idx;
-	let smm = sm.split_at(split_idx).1;
-	for (idx, val) in smm.iter().cloned().enumerate() {
-		if compare(val, bound) && compare(max_val, val) {
-			extr_idx = idx + split_idx;
-			max_val = val;
-		}
-	}
-	return (extr_idx, max_val);
+	// the criterion of being "smaller" than bound
+	let min_idx = prefix.iter()
+		.position(|&val| smaller(val, bound))
+		.unwrap_or_else(|| 
+			panic!("No index y < {0} found where v[y] is {1} than v[{0}] = 0x{2:08x}!",
+				max_idx, relation, bound));
+
+	// Now search for "bigger" entries
+	let (offset, max_neighbor) = prefix[min_idx..].iter().cloned()
+		.enumerate()
+		// According to documentation of Iterator::max_by,
+		// "If several elements are equally maximum, the last element is returned".
+		// Thus, in order to find the *first* maximum element,
+		// we need to search from the end of `prefix`
+		.rev()
+		.filter(|&(_i, val)| smaller(val, bound))
+		.max_by(|&(_, a), &(_, b)| compare(a, b))
+		.unwrap_or((0, v[min_idx]));
+
+	(min_idx + offset, max_neighbor)
 }
 
 fn low_neighbor(v :&[u32], x :usize) -> (usize, u32) {
-	return extr_neighbor(v, x, |a, b| {a < b}, "smaller");
+	extr_neighbor(v, x, |a, b| a.cmp(&b), "smaller")
 }
 
 
 fn high_neighbor(v :&[u32], x :usize) -> (usize, u32) {
-	return extr_neighbor(v, x, |a, b| {a > b}, "bigger");
+	extr_neighbor(v, x, |a, b| b.cmp(&a), "bigger")
 }
 
 #[test]
