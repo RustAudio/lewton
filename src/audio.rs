@@ -797,9 +797,25 @@ fn dct_iv_slow(buffer :&mut [f32]) {
 	let x = buffer.to_vec();
 	let n = buffer.len();
 	let nmask = (n << 3) - 1;
-	let mcos = (0 .. 8 * n)
-		.map(|i| (::std::f32::consts::FRAC_PI_4 * (i as f32) / (n as f32)).cos())
-		.collect::<Vec<_>>();
+	const COS_PI_4 :f32 = 0.70710677; //cos(pi/4)
+	const COSINE_VALUES :[f32; 8] = [
+		1.0,
+		COS_PI_4,
+		0.0,
+		-COS_PI_4,
+		-1.0,
+		-COS_PI_4,
+		0.0,
+		COS_PI_4,
+	];
+	let mut mcos = Vec::with_capacity(n.checked_mul(COSINE_VALUES.len()).expect("capacity overflow"));
+    mcos.extend(
+        ::std::iter::repeat(&COSINE_VALUES[..])
+            .take(n)
+            .flat_map(|row| row.iter())
+            .cloned(),
+    );
+	let mcos = mcos;
 	for i in 0 .. n {
 		let mut acc = 0.;
 		for j in 0 .. n {
