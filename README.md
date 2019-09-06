@@ -58,6 +58,17 @@ comparing its outputs with mine.
 Most of this crate however was created by reading the spec
 only.
 
+## Use from C
+**lewton** provides a C-compatible set of library, header and pkg-config file.
+
+To build and install it you can use [cargo-c](https://crates.io/crates/cargo-c):
+
+```sh
+cargo install cargo-c
+cargo cinstall --release --destdir /tmp/lewton
+sudo cp -a /tmp/lewton/* /
+```
+
 ## License
 
 Licensed under Apache 2 or MIT (at your option). For details, see the [LICENSE](LICENSE) file.
