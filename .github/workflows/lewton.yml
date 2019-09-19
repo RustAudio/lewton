@@ -1,0 +1,31 @@
+name: lewton
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, 1.20.0]
+    steps:
+    - uses: actions/checkout@master
+    - name: Install Rust
+      run: |
+        rustup toolchain install ${{ matrix.rust }}
+        rustup default ${{ matrix.rust }}
+        rustc -vV
+    - name: Run no-default-features builds
+      run: |
+        cargo build --verbose --no-default-features
+        cargo doc --verbose --no-default-features
+    - name: Run all-features builds
+      run: |
+        cargo build --verbose --all-features
+        cargo test --verbose
+        cargo doc --verbose --all-features
+    - name: Run cmp tests
+      run: |
+        cd dev/cmp
+        cargo test --verbose --release 
