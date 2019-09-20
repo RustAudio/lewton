@@ -18,7 +18,7 @@ jobs:
         rustc -vV
     - name: Run no-default-features builds
       run: |
-        cargo build --verbose --no-default-features
+        cargo test --verbose --no-default-features
         cargo doc --verbose --no-default-features
     - name: Run all-features builds
       run: |

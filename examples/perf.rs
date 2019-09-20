@@ -14,12 +14,17 @@ fn main() {
 	}
 }
 
+#[cfg(feature = "ogg")]
 use std::env;
 use lewton::VorbisError;
+#[cfg(feature = "ogg")]
 use lewton::inside_ogg::OggStreamReader;
+#[cfg(feature = "ogg")]
 use std::fs::File;
+#[cfg(feature = "ogg")]
 use std::time::Instant;
 
+#[cfg(feature = "ogg")]
 pub fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
@@ -44,4 +49,9 @@ pub fn run() -> Result<(), VorbisError> {
 	println!("Decoded in {} s.", decode_duration.as_secs() as f64 + (decode_duration.subsec_nanos() as f64) / 1_000_000_000.0);
 
 	Ok(())
+}
+
+#[cfg(not(feature = "ogg"))]
+pub fn run() -> Result<(), VorbisError> {
+    unimplemented!();
 }

@@ -8,12 +8,18 @@ extern crate alto;
 extern crate lewton;
 extern crate byteorder;
 
+#[cfg(feature = "ogg")]
 use std::env;
 use lewton::VorbisError;
+#[cfg(feature = "ogg")]
 use lewton::inside_ogg::OggStreamReader;
+#[cfg(feature = "ogg")]
 use std::fs::File;
+#[cfg(feature = "ogg")]
 use std::thread::sleep;
+#[cfg(feature = "ogg")]
 use std::time::{Instant, Duration};
+#[cfg(feature = "ogg")]
 use alto::{Alto, Mono, Stereo, Source};
 
 fn main() {
@@ -23,6 +29,7 @@ fn main() {
 	}
 }
 
+#[cfg(feature = "ogg")]
 fn run() -> Result<(), VorbisError> {
 	let file_path = env::args().nth(1).expect("No arg found. Please specify a file to open.");
 	println!("Opening file: {}", file_path);
@@ -86,4 +93,9 @@ fn run() -> Result<(), VorbisError> {
 	sleep(sleep_duration);
 
 	Ok(())
+}
+
+#[cfg(not(feature = "ogg"))]
+pub fn run() -> Result<(), VorbisError> {
+    unimplemented!();
 }
