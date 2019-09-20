@@ -4,27 +4,5 @@
 # demands to the code style (yet).
 
 hard_tabs = true
-normalize_comments = false
 max_width = 120
-ideal_width = 100
-space_before_type_annotation = true
-space_before_bound = false
-space_after_type_annotation_colon = false
-space_after_bound_colon = true
-spaces_around_ranges = true
-match_block_trailing_comma = true
-match_wildcard_trailing_comma = true
-wrap_match_arms = false
-fn_brace_style = "PreferSameLine"
-item_brace_style = "PreferSameLine"
-fn_args_layout = "Block"
-where_pred_indent = "Block"
-generics_indent = "Block"
-struct_lit_style = "Block"
-fn_call_style = "Block"
-chain_indent = "Block"
-take_source_hints = true
-trailing_comma = "Vertical"
-fn_args_density = "Compressed"
-where_density = "Compressed"
-match_block_trailing_comma = true
+fn_args_layout = "Tall"
