@@ -14,6 +14,14 @@ readme = "README.md"
 default = ["ogg"]
 async_ogg = ["ogg", "ogg/async", "futures", "tokio-io"]
 
+[[example]]
+name = "perf"
+required-features = ["ogg"]
+
+[[example]]
+name = "player"
+required-features = ["ogg"]
+
 [dependencies]
 byteorder = "1.0"
 smallvec = "0.6"
