@@ -22,8 +22,7 @@ jobs:
         cargo doc --verbose --no-default-features
     - name: Run all-features builds
       run: |
-        cargo build --verbose --all-features
-        cargo test --verbose
+        cargo test --verbose --all-features
         cargo doc --verbose --all-features
     - name: Run cmp tests
       run: |

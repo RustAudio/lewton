@@ -327,7 +327,7 @@ pub mod async_api {
 			};
 			let ident_hdr = replace(&mut self.ident_hdr, None).unwrap();
 			let comment_hdr = replace(&mut self.comment_hdr, None).unwrap();
-			Ok(Async::Ready(((ident_hdr, comment_hdr, setup_hdr))))
+			Ok(Async::Ready((ident_hdr, comment_hdr, setup_hdr)))
 		}
 	}
 	/// Reading ogg/vorbis files or streams
