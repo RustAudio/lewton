@@ -70,7 +70,7 @@ fn test_libnogg_vals() {
 	cmp_output!("noise-6ch.ogg", 0);
 	cmp_output!("noise-stereo.ogg", 0);
 	cmp_output!("partial-granule-position.ogg", 2);
-	#[cfg(target_os = "linux")]
+	#[cfg(not(target_os = "windows"))]
 	cmp_output!("sample-rate-max.ogg", 0);
 	ensure_malformed!("single-code-2bits.ogg", BadHeader(HeaderBadFormat));
 	// We can't cmp the output here because native
