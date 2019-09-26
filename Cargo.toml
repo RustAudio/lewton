@@ -38,3 +38,4 @@ features = ["async_ogg"]
 
 [lib]
 name = "lewton"
+crate-type = ["lib", "staticlib"]
