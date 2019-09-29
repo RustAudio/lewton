@@ -970,6 +970,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 		let mut ch = 0;
 		for (j, &mapping_mux_j) in mapping.mapping_mux.iter().enumerate() {
 			if mapping_mux_j as usize == i {
+				// TODO get rid of this copy somehow...
 				let vec_at_ch = &vectors[resid_vec_len * ch .. resid_vec_len * (ch + 1)];
 				residue_vectors[j].clear();
 				residue_vectors[j].extend_from_slice(vec_at_ch);
