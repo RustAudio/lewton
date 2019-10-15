@@ -4,28 +4,34 @@ on: [push, pull_request]
 
 jobs:
   build:
+
     strategy:
       matrix:
-        rust: [stable, 1.20.0]
-        platform: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.platform }}
+        os: [macOS-latest, ubuntu-latest, windows-latest]
+        toolchain: [stable, 1.20.0]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@master
     - name: Install Rust
-      run: |
-        rustup toolchain install ${{ matrix.rust }}
-        rustup default ${{ matrix.rust }}
-        rustc -vV
+      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.20.0'
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.toolchain }}
+        override: true
     - name: Run no-default-features builds
+      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.20.0'
       run: |
         cargo test --verbose --no-default-features
         cargo doc --verbose --no-default-features
     - name: Run all-features builds
+      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.20.0'
       run: |
         cargo test --verbose --all-features
         cargo doc --verbose --all-features
     - name: Run cmp tests
+      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.20.0'
       run: |
         cd dev/cmp
-        cargo test --verbose --release 
+        cargo test --verbose --release
