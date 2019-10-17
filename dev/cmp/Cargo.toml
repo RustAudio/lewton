@@ -6,5 +6,5 @@ authors = ["est31 <MTest31@outlook.com>"]
 
 [dependencies]
 lewton = { path = "../../" }
-vorbis = "0.0"
+vorbis = "0.1"
 test-assets = "0.2"
