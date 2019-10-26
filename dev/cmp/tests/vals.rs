@@ -70,6 +70,7 @@ fn test_libnogg_vals() {
 	cmp_output!("noise-6ch.ogg", 0);
 	cmp_output!("noise-stereo.ogg", 0);
 	cmp_output!("partial-granule-position.ogg", 2);
+	// FIXME The failure is probably caused by the vorbis crate
 	#[cfg(not(target_os = "windows"))]
 	cmp_output!("sample-rate-max.ogg", 0);
 	ensure_malformed!("single-code-2bits.ogg", BadHeader(HeaderBadFormat));
@@ -78,6 +79,7 @@ fn test_libnogg_vals() {
 	ensure_okay!("single-code-nonsparse.ogg");
 	ensure_okay!("single-code-ordered.ogg");
 	cmp_output!("single-code-sparse.ogg", 0);
+	// FIXME The failure is probably caused by the vorbis crate
 	#[cfg(not(target_os = "macos"))]
 	cmp_output!("sketch008-floor0.ogg", 4);
 	cmp_output!("sketch008.ogg", 0);
@@ -161,6 +163,7 @@ fn test_xiph_vals_5() {
 	println!();
 
 	cmp_output!("singlemap-test.ogg", 0);
+	// FIXME The failure is probably caused by the vorbis crate
 	#[cfg(not(target_os = "macos"))]
 	cmp_output!("sleepzor.ogg", 9);
 	cmp_output!("test-short.ogg", 1);
