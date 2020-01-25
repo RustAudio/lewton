@@ -20,7 +20,7 @@ and a high level API for ogg/vorbis streams in the `inside_ogg` module.
 Some parts were created with help from the public domain
 [stb_vorbis](http://nothings.org/stb_vorbis/) decoder implementation.
 
-The minimum required Rust version is 1.20.
+The minimum required Rust version is 1.36.
 
 ## Use of unsafe
 
