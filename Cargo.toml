@@ -1,3 +1,6 @@
+[workspace]
+members = ["dev/cmp"]
+
 [package]
 name = "lewton"
 version = "0.9.4"
