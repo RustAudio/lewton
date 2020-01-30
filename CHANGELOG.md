@@ -1,5 +1,14 @@
 # Changes
 
+## Release 0.10.0 - January 30, 2020
+
+* MSRV increased to 1.36.0. This is mainly because smallvec needs 1.36.0 now.
+* Updated to smallvec 1.0. Thanks to [@repi](https://github.com/repi) for the contribution!
+* C API via cbingen/cargo-c. Thanks to [@lu-zero](https://github.com/lu-zero) for the contribution!
+* Various simplifications in audio.rs. Thanks to [@AnthonyMikh](https://github.com/AnthonyMikh) for the contribution!
+* Moved from Travis CI to Github Actions. Thanks to [@Luni-4](https://github.com/Luni-4) for the contribution!
+* Adopted a workspace to have a common Cargo.lock file.
+
 ## Release 0.9.4 - March 08, 2019
 
 * Added a function to obtain the stream serial from an `OggStreamReader`
