@@ -35,7 +35,7 @@ fn test_vals() {
 	cmp_output!("bwv_543_fuge.ogg", 0);
 	cmp_output!("maple_leaf_rag.ogg", 0);
 	cmp_output!("hoelle_rache.ogg", 0);
-	cmp_output!("thingy-floor0.ogg", 1);
+	cmp_output!("thingy-floor0.ogg", 0);
 	cmp_output!("audio_simple_err.ogg", 0);
 }
 
@@ -79,7 +79,7 @@ fn test_libnogg_vals() {
 	ensure_okay!("single-code-ordered.ogg");
 	cmp_output!("single-code-sparse.ogg", 0);
 	#[cfg(not(target_os = "macos"))]
-	cmp_output!("sketch008-floor0.ogg", 4);
+	cmp_output!("sketch008-floor0.ogg", 0);
 	cmp_output!("sketch008.ogg", 0);
 	cmp_output!("sketch039.ogg", 0);
 	cmp_output!("split-packet.ogg", 2);
@@ -131,7 +131,7 @@ fn test_xiph_vals_3() {
 	println!();
 
 	cmp_output!("lsp-test.ogg", 0);
-	cmp_output!("lsp-test2.ogg", 2);
+	cmp_output!("lsp-test2.ogg", 0);
 	cmp_output!("lsp-test3.ogg", 0);
 	cmp_output!("lsp-test4.ogg", 0);
 	cmp_output!("mono.ogg", 0);
@@ -162,8 +162,8 @@ fn test_xiph_vals_5() {
 
 	cmp_output!("singlemap-test.ogg", 0);
 	#[cfg(not(target_os = "macos"))]
-	cmp_output!("sleepzor.ogg", 9);
-	cmp_output!("test-short.ogg", 1);
+	cmp_output!("sleepzor.ogg", 0);
+	cmp_output!("test-short.ogg", 0);
 	cmp_output!("test-short2.ogg", 0);
 	// Contains an out of bounds mode index
 	ensure_malformed!("unused-mode-test.ogg", BadAudio(AudioBadFormat));
