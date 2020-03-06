@@ -123,20 +123,16 @@ pub enum VorbisError {
 	OggError(OggReadError),
 }
 
-impl std::error::Error for VorbisError {
-	fn description(&self) -> &str {
-		match self {
-			&VorbisError::BadAudio(_) => "Vorbis bitstream audio decode problem",
-			&VorbisError::BadHeader(_) => "Vorbis bitstream header decode problem",
-			#[cfg(feature = "ogg")]
-			&VorbisError::OggError(ref e) => e.description(),
-		}
-	}
-}
+impl std::error::Error for VorbisError {}
 
 impl std::fmt::Display for VorbisError {
 	fn fmt(&self, fmt: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-		write!(fmt, "{}", std::error::Error::description(self))
+		write!(fmt, "{}", match self {
+			VorbisError::BadAudio(_) => "Vorbis bitstream audio decode problem",
+			VorbisError::BadHeader(_) => "Vorbis bitstream header decode problem",
+			#[cfg(feature = "ogg")]
+			VorbisError::OggError(_) => "Ogg decode problem",
+		})
 	}
 }
 

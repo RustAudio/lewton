@@ -92,24 +92,21 @@ impl From<FromUtf8Error> for HeaderReadError {
 	}
 }
 
-impl error::Error for HeaderReadError {
-	fn description(&self) -> &str {
-		match self {
-			&HeaderReadError::EndOfPacket => "End of packet reached.",
-			&HeaderReadError::NotVorbisHeader => "The packet is not a vorbis header",
-			&HeaderReadError::UnsupportedVorbisVersion => "The vorbis version is not supported",
-			&HeaderReadError::HeaderBadFormat => "Invalid header",
-			&HeaderReadError::HeaderBadType(_) => "Invalid/unexpected header type",
-			&HeaderReadError::HeaderIsAudio => "Packet seems to be audio",
-			&HeaderReadError::Utf8DecodeError => "UTF-8 decoding error",
-			&HeaderReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
-		}
-	}
-}
+impl error::Error for HeaderReadError {}
 
 impl fmt::Display for HeaderReadError {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-		write!(fmt, "{}", error::Error::description(self))
+		let description = match self {
+			HeaderReadError::EndOfPacket => "End of packet reached.",
+			HeaderReadError::NotVorbisHeader => "The packet is not a vorbis header",
+			HeaderReadError::UnsupportedVorbisVersion => "The vorbis version is not supported",
+			HeaderReadError::HeaderBadFormat => "Invalid header",
+			HeaderReadError::HeaderBadType(_) => "Invalid/unexpected header type",
+			HeaderReadError::HeaderIsAudio => "Packet seems to be audio",
+			HeaderReadError::Utf8DecodeError => "UTF-8 decoding error",
+			HeaderReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
+		};
+		write!(fmt, "{}", description)
 	}
 }
 

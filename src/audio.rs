@@ -51,20 +51,17 @@ impl From<()> for AudioReadError {
 	}
 }
 
-impl error::Error for AudioReadError {
-	fn description(&self) -> &str {
-		match self {
-			&AudioReadError::EndOfPacket => "End of packet reached.",
-			&AudioReadError::AudioBadFormat => "Invalid audio packet",
-			&AudioReadError::AudioIsHeader => "The vorbis version is not supported",
-			&AudioReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
-		}
-	}
-}
+impl error::Error for AudioReadError {}
 
 impl fmt::Display for AudioReadError {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-		write!(fmt, "{}", error::Error::description(self))
+		let description = match self {
+			AudioReadError::EndOfPacket => "End of packet reached.",
+			AudioReadError::AudioBadFormat => "Invalid audio packet",
+			AudioReadError::AudioIsHeader => "The vorbis version is not supported",
+			AudioReadError::BufferNotAddressable => "Requested to create buffer of non-addressable size",
+		};
+		write!(fmt, "{}", description)
 	}
 }
 
@@ -120,7 +117,7 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		// This channel is unused in this frame,
 		// its all zeros.
 		return Err(FloorSpecialCase::Unused);
-	} 
+	}
 
 	let booknumber = try!(rdr.read_dyn_u32(
 		::ilog(fl.floor0_number_of_books as u64)));
@@ -268,7 +265,7 @@ fn extr_neighbor<F>(v :&[u32], max_idx :usize,
 	// the criterion of being "smaller" than bound
 	let min_idx = prefix.iter()
 		.position(|&val| smaller(val, bound))
-		.unwrap_or_else(|| 
+		.unwrap_or_else(||
 			panic!("No index y < {0} found where v[y] is {1} than v[{0}] = 0x{2:08x}!",
 				max_idx, relation, bound));
 
