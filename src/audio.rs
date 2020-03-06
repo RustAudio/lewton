@@ -416,13 +416,13 @@ fn floor_one_curve_compute_amplitude(floor1_y :&[u32], fl :&FloorTypeOne) -> (Ve
 			floor1_step2_flag.push(true);
 			floor1_final_y.push(if val >= room {
 				if highroom > lowroom {
-					(predicted + val - lowroom)
+					predicted + val - lowroom
 				} else {
-					(predicted - val + highroom - 1)
+					predicted - val + highroom - 1
 				}
 			} else {
-				(predicted + (if val % 2 == 1 {
-					- val - 1 } else { val } >> 1))
+				predicted + (if val % 2 == 1 {
+					- val - 1 } else { val } >> 1)
 			} as u32);
 		} else {
 			floor1_final_y.push(predicted as u32);
