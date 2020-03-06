@@ -4,6 +4,7 @@ publish = false
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
 authors = ["est31 <MTest31@outlook.com>"]
+edition = "2015"
 
 [dependencies]
 lewton = { path = "../../" }
