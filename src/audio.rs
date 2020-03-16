@@ -18,7 +18,7 @@ use std::error;
 use std::fmt;
 use std::cmp::min;
 use std::iter;
-use smallvec::SmallVec;
+use tinyvec::TinyVec;
 use ::ilog;
 use ::bitpacking::BitpackCursor;
 use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
@@ -932,7 +932,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 		&setup.codebooks, &setup.floors));
 
 	// Now calculate the no_residue vector
-	let mut no_residue = SmallVec::<[bool; 256]>::new();
+	let mut no_residue = TinyVec::<[bool; 32]>::new();
 	for fl in &decoded_floor_infos {
 		no_residue.push(fl.is_unused());
 	}
@@ -950,7 +950,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 	// Helper variable
 	let resid_vec_len = (n / 2) as usize;
 	for (i, &residue_number) in mapping.mapping_submap_residues.iter().enumerate() {
-		let mut do_not_decode_flag = SmallVec::<[bool; 256]>::new();
+		let mut do_not_decode_flag = TinyVec::<[bool; 32]>::new();
 		for (j, &mapping_mux_j) in mapping.mapping_mux.iter().enumerate() {
 			if mapping_mux_j as usize == i {
 				do_not_decode_flag.push(no_residue[j]);
