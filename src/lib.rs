@@ -20,7 +20,7 @@ modules.
 */
 
 extern crate byteorder;
-extern crate smallvec;
+extern crate tinyvec;
 #[cfg(feature = "ogg")]
 extern crate ogg;
 #[cfg(feature = "async_ogg")]

@@ -28,7 +28,7 @@ required-features = ["ogg"]
 
 [dependencies]
 byteorder = "1.0"
-smallvec = "1.1"
+tinyvec = { version = "0.3.2", features = ["alloc"] }
 ogg = { version = "0.7", optional = true }
 tokio-io = { version = "0.1", optional = true }
 futures = { version = "0.1", optional = true }
