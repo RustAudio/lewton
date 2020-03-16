@@ -1,5 +1,10 @@
 # Changes
 
+## Release 0.10.1 - March 16, 2020
+
+* Removed deprecated Error descriptions
+* Swapped smallvec for tinyvec. Thanks to [@Shnatsel](https://github.com/Shnatsel) for the contribution!
+
 ## Release 0.10.0 - January 30, 2020
 
 * MSRV increased to 1.36.0. This is mainly because smallvec needs 1.36.0 now.

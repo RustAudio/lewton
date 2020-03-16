@@ -3,7 +3,7 @@ members = ["dev/cmp"]
 
 [package]
 name = "lewton"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["est31 <MTest31@outlook.com>"]
 description = "Pure Rust vorbis decoder"
 license = "MIT OR Apache-2.0"
