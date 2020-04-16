@@ -27,4 +27,3 @@ take_source_hints = true
 trailing_comma = "Vertical"
 fn_args_density = "Compressed"
 where_density = "Compressed"
-match_block_trailing_comma = true
