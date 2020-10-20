@@ -2,10 +2,10 @@ use std::os::raw::c_int;
 use std::slice::from_raw_parts;
 use std::ptr::null_mut;
 
-use ::header::{read_header_setup, //read_header_comment,
+use crate::header::{read_header_setup, //read_header_comment,
 	read_header_ident, IdentHeader, //CommentHeader,
 	SetupHeader};
-use ::audio::{PreviousWindowRight, read_audio_packet_generic};
+use crate::audio::{PreviousWindowRight, read_audio_packet_generic};
 
 /// Main Decoder State
 ///

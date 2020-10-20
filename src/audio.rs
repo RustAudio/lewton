@@ -13,17 +13,17 @@ This module decodes the audio packets given to it.
 */
 
 #[allow(unused_imports)]
-use imdct;
+use crate::imdct;
 use std::error;
 use std::fmt;
 use std::cmp::min;
 use std::iter;
 use tinyvec::TinyVec;
-use ::ilog;
-use ::bitpacking::BitpackCursor;
-use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
+use crate::ilog;
+use crate::bitpacking::BitpackCursor;
+use crate::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
 	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
-use samples::Samples;
+use crate::samples::Samples;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AudioReadError {
@@ -95,7 +95,7 @@ impl From<()> for FloorSpecialCase {
 
 impl From<HuffmanVqReadErr> for FloorSpecialCase {
 	fn from(e :HuffmanVqReadErr) -> Self {
-		use ::header::HuffmanVqReadErr::*;
+		use crate::header::HuffmanVqReadErr::*;
 		use self::FloorSpecialCase::*;
 		match e {
 			EndOfPacket => Unused,
@@ -112,25 +112,25 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		fl :&FloorTypeZero) -> Result<(Vec<f32>, u64), FloorSpecialCase> {
 	// TODO this needs to become 128 bits wide, not just 64,
 	// as floor0_amplitude_bits can be up to 127.
-	let amplitude = try!(rdr.read_dyn_u64(fl.floor0_amplitude_bits));
+	let amplitude = (rdr.read_dyn_u64(fl.floor0_amplitude_bits))?;
 	if amplitude <= 0 {
 		// This channel is unused in this frame,
 		// its all zeros.
 		return Err(FloorSpecialCase::Unused);
 	}
 
-	let booknumber = try!(rdr.read_dyn_u32(
-		::ilog(fl.floor0_number_of_books as u64)));
+	let booknumber = (rdr.read_dyn_u32(
+		crate::ilog(fl.floor0_number_of_books as u64)))?;
 	match fl.floor0_book_list.get(booknumber as usize) {
 		// Undecodable per spec
-		None => try!(Err(FloorSpecialCase::PacketUndecodable)),
+		None => (Err(FloorSpecialCase::PacketUndecodable))?,
 		Some(codebook_idx) => {
 			let mut coefficients = Vec::with_capacity(fl.floor0_order as usize);
 			let mut last = 0.0;
 			let codebook = &codebooks[*codebook_idx as usize];
 			loop {
 				let mut last_new = last;
-				let temp_vector = try!(rdr.read_huffman_vq(codebook));
+				let temp_vector = (rdr.read_huffman_vq(codebook))?;
 				if temp_vector.len() + coefficients.len() < fl.floor0_order as usize {
 					// Little optimisation: we don't have to care about the >= case here
 					for &e in temp_vector {
@@ -218,15 +218,15 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		fl :&FloorTypeOne) -> Result<Vec<u32>, FloorSpecialCase> {
 	// TODO perhaps it means invalid audio packet if reading the nonzero
 	// flag doesn't succeed bc end of packet. Perhaps it does not.
-	if !try!(rdr.read_bit_flag()) {
-		try!(Err(()));
+	if !(rdr.read_bit_flag())? {
+		(Err(()))?;
 	}
 	let mut floor1_y = Vec::new();
 	let v = &[256, 128, 86, 64];
 	let range = v[(fl.floor1_multiplier - 1) as usize];
-	let b = ::ilog(range - 1);
-	floor1_y.push(try!(rdr.read_dyn_u8(b)) as u32);
-	floor1_y.push(try!(rdr.read_dyn_u8(b)) as u32);
+	let b =crate::ilog(range - 1);
+	floor1_y.push((rdr.read_dyn_u8(b))? as u32);
+	floor1_y.push((rdr.read_dyn_u8(b))? as u32);
 
 	for class in &fl.floor1_partition_class {
 		let uclass = *class as usize;
@@ -236,14 +236,14 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 		let mut cval = 0;
 		if cbits > 0 {
 			let cbook = fl.floor1_class_masterbooks[uclass] as usize;
-			cval = try!(rdr.read_huffman(&codebooks[cbook].codebook_huffman_tree));
+			cval = (rdr.read_huffman(&codebooks[cbook].codebook_huffman_tree))?;
 		}
 		for _ in 0 .. cdim {
 			let book = fl.floor1_subclass_books[uclass][(cval & csub) as usize];
 			cval >>= cbits;
 			if book >= 0 {
 				let tree = &codebooks[book as usize].codebook_huffman_tree;
-				floor1_y.push(try!(rdr.read_huffman(tree)));
+				floor1_y.push((rdr.read_huffman(tree))?);
 			} else {
 				floor1_y.push(0);
 			}
@@ -254,8 +254,8 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 
 fn extr_neighbor<F>(v :&[u32], max_idx :usize,
 		compare :F, relation :&str) -> (usize, u32)
-		where F :Fn(u32, u32) -> ::std::cmp::Ordering {
-	use ::std::cmp::Ordering;
+		where F :Fn(u32, u32) ->std::cmp::Ordering {
+	use std::cmp::Ordering;
 
 	let bound = v[max_idx];
 	let prefix = &v[..max_idx];
@@ -570,14 +570,14 @@ fn floor_decode<'a>(rdr :&mut BitpackCursor,
 				match floor_zero_decode(rdr, codebooks, fl) {
 					Ok((coeff, amp)) => DecodedFloor::TypeZero(coeff, amp, fl),
 					Err(Unused) => DecodedFloor::Unused,
-					Err(PacketUndecodable) => try!(Err(())),
+					Err(PacketUndecodable) => (Err(()))?,
 				}
 			},
 			&Floor::TypeOne(ref fl) => {
 				match floor_one_decode(rdr, codebooks, fl) {
 					Ok(dfl) => DecodedFloor::TypeOne(dfl, fl),
 					Err(Unused) => DecodedFloor::Unused,
-					Err(PacketUndecodable) => try!(Err(())),
+					Err(PacketUndecodable) => (Err(()))?,
 				}
 			},
 		};
@@ -592,7 +592,7 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 		let codebook_dimensions = codebook.codebook_dimensions as usize;
 		let step = resid.residue_partition_size as usize / codebook_dimensions;
 		for i in 0 .. step {
-			let entry_temp = try!(rdr.read_huffman_vq(codebook));
+			let entry_temp = (rdr.read_huffman_vq(codebook))?;
 			for (j, e) in entry_temp.iter().enumerate() {
 				vec_v[i + j * step] += *e;
 			}
@@ -602,7 +602,7 @@ fn residue_packet_read_partition(rdr :&mut BitpackCursor, codebook :&Codebook,
 		let partition_size = resid.residue_partition_size as usize;
 		let mut i = 0;
 		while i < partition_size {
-			let entries = try!(rdr.read_huffman_vq(codebook));
+			let entries = (rdr.read_huffman_vq(codebook))?;
 			let vs = if let Some(vs) = vec_v.get_mut(i..(i + entries.len())) {
 				vs
 			} else {
@@ -649,15 +649,15 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 	if classwords_per_codeword == 0 {
 		// A value of 0 would create an infinite loop.
 		// Therefore, throw an error in this case.
-		try!(Err(()));
+		(Err(()))?;
 	}
 
 	'pseudo_return: loop {
 		// ENdofpacketisnOrmal macro. Local replacement for try.
 		macro_rules! eno {
 			($expr:expr) => (match $expr {
-				$crate::std::result::Result::Ok(val) => val,
-				$crate::std::result::Result::Err(_) => break 'pseudo_return,
+				std::result::Result::Ok(val) => val,
+				std::result::Result::Err(_) => break 'pseudo_return,
 			})
 		}
 		let cl_stride :usize = partitions_to_read + classwords_per_codeword;
@@ -698,7 +698,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 									codebook, resid, vec_j_offs) {
 								Ok(_) => (),
 								Err(err) => {
-									use ::header::HuffmanVqReadErr::*;
+									use crate::header::HuffmanVqReadErr::*;
 									match err {
 										EndOfPacket => break 'pseudo_return,
 										NoVqLookupForCodebook =>
@@ -743,9 +743,9 @@ fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 			// Construct a do_not_decode flag array
 			let c_do_not_decode_flag = [false];
 
-			let vectors = try!(residue_packet_decode_inner(rdr,
+			let vectors = (residue_packet_decode_inner(rdr,
 				cur_blocksize * ch as u16, &c_do_not_decode_flag,
-				resid, codebooks));
+				resid, codebooks))?;
 
 			// Post decode step
 			let mut vectors_deinterleaved = Vec::with_capacity(ch * vec_size);
@@ -828,7 +828,7 @@ fn inverse_mdct_slow(buffer :&mut [f32]) {
 #[cfg(test)]
 #[test]
 fn test_imdct_slow() {
-	use imdct_test::*;
+	use crate::imdct_test::*;
 	let mut arr_1 = imdct_prepare(&IMDCT_INPUT_TEST_ARR_1);
 	inverse_mdct_slow(&mut arr_1);
 	let mismatches = fuzzy_compare_array(
@@ -864,15 +864,15 @@ This operation is very cheap and doesn't involve actual decoding of the packet.
 pub fn get_decoded_sample_count(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8])
 		-> Result<usize, AudioReadError> {
 	let mut rdr = BitpackCursor::new(packet);
-	if try!(rdr.read_bit_flag()) {
-		try!(Err(AudioReadError::AudioIsHeader));
+	if (rdr.read_bit_flag())? {
+		(Err(AudioReadError::AudioIsHeader))?;
 	}
-	let mode_number = try!(rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)));
+	let mode_number = (rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)))?;
 	let mode = &setup.modes[mode_number as usize];
 	let bs = if mode.mode_blockflag { ident.blocksize_1 } else { ident.blocksize_0 };
 	let n :u16 = 1 << bs;
 	let previous_next_window_flag = if mode.mode_blockflag {
-		Some((try!(rdr.read_bit_flag()), try!(rdr.read_bit_flag())))
+		Some(((rdr.read_bit_flag())?, (rdr.read_bit_flag())?))
 	} else {
 		None
 	};
@@ -910,26 +910,26 @@ from the ident header.
 pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8], pwr :&mut PreviousWindowRight)
 		-> Result<S, AudioReadError> {
 	let mut rdr = BitpackCursor::new(packet);
-	if try!(rdr.read_bit_flag()) {
-		try!(Err(AudioReadError::AudioIsHeader));
+	if (rdr.read_bit_flag())? {
+		(Err(AudioReadError::AudioIsHeader))?;
 	}
-	let mode_number = try!(rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)));
+	let mode_number = (rdr.read_dyn_u8(ilog(setup.modes.len() as u64 - 1)))?;
 	let mode = if let Some(mode) = setup.modes.get(mode_number as usize) {
 		mode
 	} else {
-		try!(Err(AudioReadError::AudioBadFormat))
+		(Err(AudioReadError::AudioBadFormat))?
 	};
 	let mapping = &setup.mappings[mode.mode_mapping as usize];
 	let bs = if mode.mode_blockflag { ident.blocksize_1 } else { ident.blocksize_0 };
 	let n :u16 = 1 << bs;
 	let previous_next_window_flag = if mode.mode_blockflag {
-		Some((try!(rdr.read_bit_flag()), try!(rdr.read_bit_flag())))
+		Some(((rdr.read_bit_flag())?, (rdr.read_bit_flag())?))
 	} else {
 		None
 	};
 	// Decode the floors
-	let decoded_floor_infos = try!(floor_decode(&mut rdr, ident, mapping,
-		&setup.codebooks, &setup.floors));
+	let decoded_floor_infos = (floor_decode(&mut rdr, ident, mapping,
+		&setup.codebooks, &setup.floors))?;
 
 	// Now calculate the no_residue vector
 	let mut no_residue = TinyVec::<[bool; 32]>::new();
@@ -1098,7 +1098,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 				if win_slope.len() < plen {
 					// According to fuzzing, code can trigger this case,
 					// so let's error gracefully instead of panicing.
-					try!(Err(AudioReadError::AudioBadFormat));
+					return Err(AudioReadError::AudioBadFormat);
 				}
 				let win_slope = &win_slope[0..plen];
 				(win_slope.iter(), win_slope.iter().rev())

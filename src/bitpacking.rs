@@ -22,7 +22,7 @@ This non-alignment to the spec is due to the fact that the rust language is high
 and doesn't even have a builtin single byte type.
 */
 
-use ::huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
+use crate::huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
 
 /// A Cursor on slices to read numbers and bitflags, bit aligned.
 pub struct BitpackCursor <'a> {
@@ -263,8 +263,8 @@ macro_rules! ik_reader {
 ( $fnname:ident, $rettype:ident, $bitnum_of_rettype:expr, $bitnum:expr, $octetnum:expr) => {
 	#[inline]
 	pub fn $fnname(&mut self) -> Result<$rettype, ()> {
-		Ok(sign_extend!(try!(
-			bpc_read_body!($rettype, $bitnum, $octetnum, self)),
+		Ok(sign_extend!((
+			bpc_read_body!($rettype, $bitnum, $octetnum, self))?,
 			$rettype, $bitnum_of_rettype, $bitnum))
 	}
 }
@@ -276,8 +276,8 @@ macro_rules! ik_dynamic_reader {
 	pub fn $fnname(&mut self, bit_num :u8) -> Result<$rettype, ()> {
 		let octet_num :usize = (bit_num / 8) as usize;
 		assert!(bit_num <= $bitnum_of_rettype);
-		Ok(sign_extend!(try!(
-			bpc_read_body!($rettype, bit_num, octet_num, self)),
+		Ok(sign_extend!((
+			bpc_read_body!($rettype, bit_num, octet_num, self))?,
 			$rettype, $bitnum_of_rettype, bit_num))
 	}
 }
@@ -396,7 +396,7 @@ impl <'a> BitpackCursor <'a> {
 	// Returning bool:
 	#[inline]
 	pub fn read_bit_flag(&mut self) -> Result<bool, ()> {
-		return Ok(try!(self.read_u1()) == 1);
+		return Ok(self.read_u1()? == 1);
 	}
 
 	// Unsigned dynamic reader methods
@@ -427,7 +427,7 @@ impl <'a> BitpackCursor <'a> {
 
 	/// Reads a single floating point number in the vorbis-float32 format
 	pub fn read_f32(&mut self) -> Result<f32, ()> {
-		let val = try!(self.read_u32());
+		let val = self.read_u32()?;
 		Ok(float32_unpack(val))
 	}
 
@@ -458,11 +458,11 @@ impl <'a> BitpackCursor <'a> {
 		let mut iter = match self.peek_u8() {
 			Ok(data) => match tree.lookup_peeked_data(8, data as u32) {
 				PeekedDataLookupResult::Iter(advance, iter) => {
-					try!(self.advance_dyn_u8(advance));
+					self.advance_dyn_u8(advance)?;
 					iter
 				},
 				PeekedDataLookupResult::PayloadFound(advance, payload) => {
-					try!(self.advance_dyn_u8(advance));
+					self.advance_dyn_u8(advance)?;
 					return Ok(payload);
 				},
 			},
@@ -470,7 +470,7 @@ impl <'a> BitpackCursor <'a> {
 		};
 
 		loop {
-			let b = try!(self.read_bit_flag());
+			let b = self.read_bit_flag()?;
 			/*
 			c +=1;
 			w >>= 1;

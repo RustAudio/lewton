@@ -12,7 +12,7 @@ keywords = ["ogg", "vorbis", "decoder", "audio"]
 categories = ["compression", "multimedia::audio", "multimedia::encoding"]
 documentation = "https://docs.rs/lewton"
 readme = "README.md"
-edition = "2015"
+edition = "2018"
 
 [features]
 default = ["ogg"]

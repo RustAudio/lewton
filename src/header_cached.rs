@@ -47,8 +47,8 @@ fn win_slope(x :u16, n :u16) -> f32 {
 	// as stb_vorbis shares the window slope generation function,
 	// The *other* possible reason is that we don't need the right
 	// window for anything. TODO investigate this more.
-	let v = (0.5 * ::std::f32::consts::PI * (x as f32 + 0.5) / n as f32).sin();
-	return (0.5 * ::std::f32::consts::PI * v * v ).sin();
+	let v = (0.5 *std::f32::consts::PI * (x as f32 + 0.5) / n as f32).sin();
+	return (0.5 *std::f32::consts::PI * v * v ).sin();
 }
 
 fn generate_window(n :u16) -> Vec<f32> {
@@ -72,9 +72,9 @@ fn compute_twiddle_factors(blocksize :u8) -> TwiddleFactors {
 
 	let mut k2 = 0;
 
-	let pi_4_n = 4.0 * ::std::f32::consts::PI / (n as f32);
-	let pi_05_n = 0.5 * ::std::f32::consts::PI / (n as f32);
-	let pi_2_n = 2.0 * ::std::f32::consts::PI / (n as f32);
+	let pi_4_n = 4.0 *std::f32::consts::PI / (n as f32);
+	let pi_05_n = 0.5 *std::f32::consts::PI / (n as f32);
+	let pi_2_n = 2.0 *std::f32::consts::PI / (n as f32);
 
 	for k in 0..n4 {
 		a.push( f32::cos((k as f32)      * pi_4_n));
@@ -102,7 +102,7 @@ fn compute_bitreverse(blocksize :u8) -> Vec<u32> {
 	let n8 = n >> 3;
 	let mut rev = Vec::with_capacity(n8);
 	for i in 0 .. n8 {
-		rev.push((::bit_reverse(i as u32) as u32 >> (32 - ld + 3)) << 2);
+		rev.push((crate::bit_reverse(i as u32) as u32 >> (32 - ld + 3)) << 2);
 	}
 	return rev;
 }
@@ -145,7 +145,7 @@ pub fn compute_bark_map_cos_omega(n :u16, floor0_rate :u16,
 	let foobar_const_part = floor0_bark_map_size as f32 / bark(hfl);
 	// Bark map size minus 1:
 	let bms_m1 = floor0_bark_map_size as f32 - 1.0;
-	let omega_factor = ::std::f32::consts::PI / floor0_bark_map_size as f32;
+	let omega_factor =std::f32::consts::PI / floor0_bark_map_size as f32;
 	for i in 0 .. n {
 		let foobar = (bark(i as f32 * hfl_dn) * foobar_const_part).floor();
 		let map_elem = foobar.min(bms_m1);

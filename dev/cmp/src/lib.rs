@@ -20,26 +20,26 @@ use std::io::{Cursor, Read, Seek};
 use vorbis::Decoder as NativeDecoder;
 
 pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
-	macro_rules! try {
+	macro_rules! try_or_panic {
 		($expr:expr) => (match $expr {
-			$crate::std::result::Result::Ok(val) => val,
-			$crate::std::result::Result::Err(err) => {
+			std::result::Result::Ok(val) => val,
+			std::result::Result::Err(err) => {
 				panic!("Error: {:?}", err)
 			}
 		})
 	}
 
 	// Read the file to memory to create fairer playing ground
-	let mut f = try!(File::open(file_path));
+	let mut f = try_or_panic!(File::open(file_path));
 	let mut file_buf = Vec::new();
-	try!(f.read_to_end(&mut file_buf));
+	try_or_panic!(f.read_to_end(&mut file_buf));
 
 	let r_n = Cursor::new(&file_buf);
 	let start_native_decode = Instant::now();
-	let dec = try!(NativeDecoder::new(r_n));
+	let dec = try_or_panic!(NativeDecoder::new(r_n));
 	let mut native_it = dec.into_packets();
 	loop {
-		try!(match native_it.next() {
+		try_or_panic!(match native_it.next() {
 			Some(v) => v,
 			None => break,
 		});
@@ -49,13 +49,13 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	let mut n = 0;
 	let r_r = Cursor::new(&file_buf);
 	let start_decode = Instant::now();
-	let mut ogg_rdr = try!(OggStreamReader::new(r_r));
+	let mut ogg_rdr = try_or_panic!(OggStreamReader::new(r_r));
 
 	// Reading and discarding the first empty packet
 	// The native decoder does this itself.
-	try!(ogg_rdr.read_dec_packet());
+	try_or_panic!(ogg_rdr.read_dec_packet());
 
-	while let Some(_) = try!(ogg_rdr.read_dec_packet()) {
+	while let Some(_) = try_or_panic!(ogg_rdr.read_dec_packet()) {
 		n += 1;
 	}
 	let decode_duration = Instant::now() - start_decode;
@@ -67,27 +67,27 @@ pub fn get_duration_seconds(dur :&Duration) -> f64 {
 }
 
 pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
-	macro_rules! try {
+	macro_rules! try_or_panic {
 		($expr:expr) => (match $expr {
-			$crate::std::result::Result::Ok(val) => val,
-			$crate::std::result::Result::Err(err) => {
+			std::result::Result::Ok(val) => val,
+			std::result::Result::Err(err) => {
 				panic!("Error: {:?}", err)
 			}
 		})
 	}
-	let f = try!(File::open(&file_path));
-	let f_2 = try!(File::open(&file_path));
-	try!(cmp_output(f, f_2, |u, v, _, _, _, _, _| (u, v)))
+	let f = try_or_panic!(File::open(&file_path));
+	let f_2 = try_or_panic!(File::open(&file_path));
+	try_or_panic!(cmp_output(f, f_2, |u, v, _, _, _, _, _| (u, v)))
 }
 
 pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		bool,
 		&IdentHeader, &CommentHeader, &SetupHeader)->T>(
 		rdr :R, rdr_2 :R, f :F) -> Result<T, String> {
-	macro_rules! try {
+	macro_rules! try_or_panic {
 		($expr:expr) => (match $expr {
-			$crate::std::result::Result::Ok(val) => val,
-			$crate::std::result::Result::Err(err) => {
+			std::result::Result::Ok(val) => val,
+			std::result::Result::Err(err) => {
 				return Err(format!("{:?}", err))
 			}
 		})
@@ -95,9 +95,9 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 	let f_n = rdr;
 	let f_r = rdr_2;
 
-	let dec = try!(NativeDecoder::new(f_n));
+	let dec = try_or_panic!(NativeDecoder::new(f_n));
 
-	let mut ogg_rdr = try!(OggStreamReader::new(f_r));
+	let mut ogg_rdr = try_or_panic!(OggStreamReader::new(f_r));
 	let stream_serial = ogg_rdr.stream_serial();
 
 	// Now the fun starts..
@@ -106,7 +106,7 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 
 	// Reading and discarding the first empty packet
 	// The native decoder does this itself.
-	try!(ogg_rdr.read_dec_packet());
+	try_or_panic!(ogg_rdr.read_dec_packet());
 
 	let mut pcks_with_diffs = 0;
 
@@ -127,10 +127,10 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 	loop {
 		n += 1;
 
-		let mut native_decoded = try!(match native_it.next() { Some(v) => v,
+		let mut native_decoded = try_or_panic!(match native_it.next() { Some(v) => v,
 			None => break,});
 		native_dec_data.extend_from_slice(&mut native_decoded.data);
-		let mut pck_decompressed = match try!(ogg_rdr.read_dec_packet_itl()) {
+		let mut pck_decompressed = match try_or_panic!(ogg_rdr.read_dec_packet_itl()) {
 			Some(v) => v,
 			None => break, // TODO tell calling code about this condition
 		};
@@ -183,7 +183,7 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		&ogg_rdr.ident_hdr, &ogg_rdr.comment_hdr, &ogg_rdr.setup_hdr));
 }
 
-/// Like try, but performs an action if an "expected" error
+/// Like try_or_panic, but performs an action if an "expected" error
 /// is intercepted
 #[macro_export]
 macro_rules! try_expected {

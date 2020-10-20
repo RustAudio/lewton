@@ -22,12 +22,12 @@ decoded in this mod.
 
 use std::error;
 use std::fmt;
-use ::bitpacking::BitpackCursor;
-use ::huffman_tree::{VorbisHuffmanTree, HuffmanError};
+use crate::bitpacking::BitpackCursor;
+use crate::huffman_tree::{VorbisHuffmanTree, HuffmanError};
 use std::io::{Cursor, ErrorKind, Read, Error};
 use byteorder::{ReadBytesExt, LittleEndian};
 use std::string::FromUtf8Error;
-use header_cached::{CachedBlocksizeDerived, compute_bark_map_cos_omega};
+use crate::header_cached::{CachedBlocksizeDerived, compute_bark_map_cos_omega};
 
 /// Errors that can occur during Header decoding
 #[derive(Debug)]
@@ -118,7 +118,7 @@ macro_rules! convert_to_usize {
 ( $val:expr, $val_type:ident ) => { {
 	let converted :usize = $val as usize;
 	if $val != converted as $val_type {
-		try!(Err(HeaderReadError::BufferNotAddressable));
+		return Err(HeaderReadError::BufferNotAddressable);
 	}
 	converted
 }}
@@ -130,22 +130,22 @@ macro_rules! convert_to_usize {
 // (you must check that n from 1,3,5)
 macro_rules! read_header_begin_body {
 ( $rdr:expr ) => { {
-	let res = try!($rdr.read_u8());
+	let res = $rdr.read_u8()?;
 	if res & 1 == 0 {
 		// This is an audio packet per vorbis spec, if anything.
 		// (audio packets have their first bit set to 0,
 		// header packets have it set to 1)
-		try!(Err(HeaderReadError::HeaderIsAudio));
+		return Err(HeaderReadError::HeaderIsAudio)?;
 	}
 	let is_vorbis =
-		try!($rdr.read_u8()) == 0x76 && // 'v'
-		try!($rdr.read_u8()) == 0x6f && // 'o'
-		try!($rdr.read_u8()) == 0x72 && // 'r'
-		try!($rdr.read_u8()) == 0x62 && // 'b'
-		try!($rdr.read_u8()) == 0x69 && // 'i'
-		try!($rdr.read_u8()) == 0x73;   // 's'
+		$rdr.read_u8()? == 0x76 && // 'v'
+		$rdr.read_u8()? == 0x6f && // 'o'
+		$rdr.read_u8()? == 0x72 && // 'r'
+		$rdr.read_u8()? == 0x62 && // 'b'
+		$rdr.read_u8()? == 0x69 && // 'i'
+		$rdr.read_u8()? == 0x73;   // 's'
 	if !is_vorbis {
-		try!(Err(HeaderReadError::NotVorbisHeader));
+		return Err(HeaderReadError::NotVorbisHeader);
 	}
 	return Ok(res);
 }}
@@ -219,27 +219,27 @@ doesn't match the ident header.
 */
 pub fn read_header_ident(packet :&[u8]) -> Result<IdentHeader, HeaderReadError> {
 	let mut rdr = BitpackCursor::new(packet);
-	let hd_id = try!(read_header_begin(&mut rdr));
+	let hd_id = read_header_begin(&mut rdr)?;
 	if hd_id != 1 {
-		try!(Err(HeaderReadError::HeaderBadType(hd_id)));
+		return Err(HeaderReadError::HeaderBadType(hd_id));
 	}
-	let vorbis_version = try!(rdr.read_u32());
+	let vorbis_version = rdr.read_u32()?;
 	if vorbis_version != 0 {
-		try!(Err(HeaderReadError::UnsupportedVorbisVersion));
+		return Err(HeaderReadError::UnsupportedVorbisVersion);
 	}
-	let audio_channels = try!(rdr.read_u8());
-	let audio_sample_rate = try!(rdr.read_u32());
-	let bitrate_maximum = try!(rdr.read_i32());
-	let bitrate_nominal = try!(rdr.read_i32());
-	let bitrate_minimum = try!(rdr.read_i32());
-	let blocksize_0 = try!(rdr.read_u4());
-	let blocksize_1 = try!(rdr.read_u4());
-	let framing = try!(rdr.read_u8());
+	let audio_channels = rdr.read_u8()?;
+	let audio_sample_rate = rdr.read_u32()?;
+	let bitrate_maximum = rdr.read_i32()?;
+	let bitrate_nominal = rdr.read_i32()?;
+	let bitrate_minimum = rdr.read_i32()?;
+	let blocksize_0 = rdr.read_u4()?;
+	let blocksize_1 = rdr.read_u4()?;
+	let framing = rdr.read_u8()?;
 	if blocksize_0 < 6 || blocksize_0 > 13 ||
 			blocksize_1 < 6 || blocksize_1 > 13 ||
 			(framing != 1) || blocksize_0 > blocksize_1 ||
 			audio_channels == 0 || audio_sample_rate == 0 {
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	let hdr :IdentHeader = IdentHeader {
 		audio_channels,
@@ -307,23 +307,23 @@ spec requires.
 */
 pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadError> {
 	let mut rdr = Cursor::new(packet);
-	let hd_id = try!(read_header_begin_cursor(&mut rdr));
+	let hd_id = read_header_begin_cursor(&mut rdr)?;
 	if hd_id != 3 {
-		try!(Err(HeaderReadError::HeaderBadType(hd_id)));
+		return Err(HeaderReadError::HeaderBadType(hd_id));
 	}
 	// First read the vendor string
-	let vendor_length = try!(rdr.read_u32::<LittleEndian>()) as usize;
+	let vendor_length = rdr.read_u32::<LittleEndian>()? as usize;
 	let mut vendor_buf = vec![0; vendor_length]; // TODO fix this, we initialize memory for NOTHING!!! Out of some reason, this is seen as "unsafe" by rustc.
-	try!(rdr.read_exact(&mut vendor_buf));
-	let vendor = try!(String::from_utf8(vendor_buf));
+	rdr.read_exact(&mut vendor_buf)?;
+	let vendor = String::from_utf8(vendor_buf)?;
 
 	// Now read the comments
-	let comment_count = try!(rdr.read_u32::<LittleEndian>()) as usize;
+	let comment_count = rdr.read_u32::<LittleEndian>()? as usize;
 	let mut comment_list = Vec::with_capacity(comment_count);
 	for _ in 0 .. comment_count {
-		let comment_length = try!(rdr.read_u32::<LittleEndian>()) as usize;
+		let comment_length = rdr.read_u32::<LittleEndian>()? as usize;
 		let mut comment_buf = vec![0; comment_length]; // TODO fix this, we initialize memory for NOTHING!!! Out of some reason, this is seen as "unsafe" by rustc.
-		try!(rdr.read_exact(&mut comment_buf));
+		rdr.read_exact(&mut comment_buf)?;
 		let comment = match String::from_utf8(comment_buf) {
 			Ok(comment) => comment,
 			// Uncomment for closer compliance with the spec.
@@ -341,15 +341,15 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 			// Uncomment for closer compliance with the spec.
 			// It appears that some ogg files have fields without a = sign in the comments.
 			// Well there is not much we can do but gracefully ignore their stuff.
-			None => continue // try!(Err(HeaderReadError::HeaderBadFormat))
+			None => continue // return Err(HeaderReadError::HeaderBadFormat)
 		};
 		let (key_eq, val) = comment.split_at(eq_idx + 1);
 		let (key, _) = key_eq.split_at(eq_idx);
 		comment_list.push((String::from(key), String::from(val)));
 	}
-	let framing = try!(rdr.read_u8());
+	let framing = rdr.read_u8()?;
 	if framing != 1 {
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	let hdr :CommentHeader = CommentHeader {
 		vendor,
@@ -446,7 +446,7 @@ impl ResidueBook {
 			if vals_used & (1 << i) == 0 {
 				continue;
 			}
-			let val_entry = try!(rdr.read_u8());
+			let val_entry = rdr.read_u8()?;
 			if match codebooks.get(val_entry as usize) {
 				Some(v) => v.codebook_vq_lookup_vec.is_none(),
 				None => true,
@@ -454,7 +454,7 @@ impl ResidueBook {
 				// Both of the cases are forbidden by spec
 				// (the codebook being out of bounds, or
 				// not having a value mapping)
-				try!(Err(HeaderReadError::HeaderBadFormat))
+				return Err(HeaderReadError::HeaderBadFormat)
 			}
 			val_i[i] = val_entry;
 		}
@@ -659,34 +659,34 @@ fn test_lookup1_values() {
 	assert_eq!(lookup1_values(1, 1), 1);
 	assert_eq!(lookup1_values(0, 15), 0);
 	assert_eq!(lookup1_values(0, 0), 0);
-	assert_eq!(lookup1_values(1, 0), ::std::u32::MAX);
-	assert_eq!(lookup1_values(400, 0), ::std::u32::MAX);
+	assert_eq!(lookup1_values(1, 0),std::u32::MAX);
+	assert_eq!(lookup1_values(400, 0),std::u32::MAX);
 }
 
 /// Reads a codebook which is part of the setup header packet.
 fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 
 	// 1. Read the sync pattern
-	let sync_pattern = try!(rdr.read_u24());
+	let sync_pattern = rdr.read_u24()?;
 	if sync_pattern != 0x564342 {
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 
 	// 2. Read the _dimension, _entries fields and the ordered bitflag
-	let codebook_dimensions = try!(rdr.read_u16());
-	let codebook_entries = try!(rdr.read_u24());
-	let ordered = try!(rdr.read_bit_flag());
+	let codebook_dimensions = rdr.read_u16()?;
+	let codebook_entries = rdr.read_u24()?;
+	let ordered = rdr.read_bit_flag()?;
 
 	// 3. Read the codeword lengths
 	let mut codebook_codeword_lengths = Vec::with_capacity(
 		convert_to_usize!(codebook_entries, u32));
 	if !ordered {
-		let sparse = try!(rdr.read_bit_flag());
+		let sparse = rdr.read_bit_flag()?;
 		for _ in 0 .. codebook_entries {
 			let length = if sparse {
-				let flag = try!(rdr.read_bit_flag());
+				let flag = rdr.read_bit_flag()?;
 				if flag {
-					try!(rdr.read_u5()) + 1
+					rdr.read_u5()? + 1
 				} else {
 					/* The spec here asks that we should mark that the
 					entry is unused. But 0 already fulfills this purpose,
@@ -695,41 +695,41 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 					0
 				}
 			} else {
-				try!(rdr.read_u5()) + 1
+				rdr.read_u5()? + 1
 			};
 			codebook_codeword_lengths.push(length);
 		}
 	} else {
 		let mut current_entry :u32 = 0;
-		let mut current_length = try!(rdr.read_u5()) + 1;
+		let mut current_length = rdr.read_u5()? + 1;
 		while current_entry < codebook_entries {
-			let number = try!(rdr.read_dyn_u32(
-				::ilog((codebook_entries - current_entry) as u64)));
+			let number = rdr.read_dyn_u32(
+				crate::ilog((codebook_entries - current_entry) as u64))?;
 			for _ in current_entry .. current_entry + number {
 				codebook_codeword_lengths.push(current_length);
 			}
 			current_entry += number;
 			current_length += 1;
 			if current_entry as u32 > codebook_entries {
-				try!(Err(HeaderReadError::HeaderBadFormat));
+				return Err(HeaderReadError::HeaderBadFormat);
 			}
 		}
 	}
 
 	// 4. Read the vector lookup table
-	let codebook_lookup_type = try!(rdr.read_u4());
+	let codebook_lookup_type = rdr.read_u4()?;
 	if codebook_lookup_type > 2 {
 		// Not decodable per vorbis spec
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	let codebook_lookup :Option<CodebookVqLookup> =
 	if codebook_lookup_type == 0 {
 		None
 	} else {
-		let codebook_minimum_value = try!(rdr.read_f32());
-		let codebook_delta_value = try!(rdr.read_f32());
-		let codebook_value_bits = try!(rdr.read_u4()) + 1;
-		let codebook_sequence_p = try!(rdr.read_bit_flag());
+		let codebook_minimum_value = rdr.read_f32()?;
+		let codebook_delta_value = rdr.read_f32()?;
+		let codebook_value_bits = rdr.read_u4()? + 1;
+		let codebook_sequence_p = rdr.read_bit_flag()?;
 		let codebook_lookup_values :u64 = if codebook_lookup_type == 1 {
 			 lookup1_values(codebook_entries, codebook_dimensions) as u64
 		} else {
@@ -738,14 +738,14 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 		let mut codebook_multiplicands = Vec::with_capacity(
 			convert_to_usize!(codebook_lookup_values, u64));
 		for _ in 0 .. codebook_lookup_values {
-			codebook_multiplicands.push(try!(rdr.read_dyn_u32(codebook_value_bits)));
+			codebook_multiplicands.push(rdr.read_dyn_u32(codebook_value_bits)?);
 		}
 		Some(CodebookVqLookup {
-			codebook_lookup_type : codebook_lookup_type,
-			codebook_minimum_value : codebook_minimum_value,
-			codebook_delta_value : codebook_delta_value,
-			codebook_sequence_p : codebook_sequence_p,
-			codebook_multiplicands : codebook_multiplicands,
+			codebook_lookup_type,
+			codebook_minimum_value,
+			codebook_delta_value,
+			codebook_sequence_p,
+			codebook_multiplicands,
 		})
 	};
 	let codebook_vq_lookup_vec = codebook_lookup.as_ref().map(|lup| {
@@ -757,7 +757,7 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 		codebook_dimensions,
 		codebook_entries,
 		codebook_vq_lookup_vec,
-		codebook_huffman_tree : try!(VorbisHuffmanTree::load_from_array(&codebook_codeword_lengths)),
+		codebook_huffman_tree : VorbisHuffmanTree::load_from_array(&codebook_codeword_lengths)?,
 	});
 }
 
@@ -765,29 +765,29 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 /// The `codebook_cnt` param is required to check for compliant streams
 fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) ->
 		Result<Floor, HeaderReadError> {
-	let floor_type = try!(rdr.read_u16());
+	let floor_type = rdr.read_u16()?;
 	match floor_type {
 		0 => {
-			let floor0_order = try!(rdr.read_u8());
-			let floor0_rate = try!(rdr.read_u16());
-			let floor0_bark_map_size = try!(rdr.read_u16());
-			let floor0_amplitude_bits = try!(rdr.read_u6());
+			let floor0_order = rdr.read_u8()?;
+			let floor0_rate = rdr.read_u16()?;
+			let floor0_bark_map_size = rdr.read_u16()?;
+			let floor0_amplitude_bits = rdr.read_u6()?;
 			if floor0_amplitude_bits > 64 {
 				// Unfortunately the audio decoder part
 				// doesn't support values > 64 because rust has no
 				// 128 bit integers yet.
 				// TODO when support is added, remove this
 				// check.
-				try!(Err(HeaderReadError::HeaderBadFormat));
+				return Err(HeaderReadError::HeaderBadFormat);
 			}
-			let floor0_amplitude_offset = try!(rdr.read_u8());
-			let floor0_number_of_books = try!(rdr.read_u4()) + 1;
+			let floor0_amplitude_offset = rdr.read_u8()?;
+			let floor0_number_of_books = rdr.read_u4()? + 1;
 			let mut floor0_book_list = Vec::with_capacity(
 				convert_to_usize!(floor0_number_of_books, u8));
 			for _ in 0 .. floor0_number_of_books {
-				let value = try!(rdr.read_u8());
+				let value = rdr.read_u8()?;
 				if value as u16 > codebook_cnt {
-					try!(Err(HeaderReadError::HeaderBadFormat));
+					return Err(HeaderReadError::HeaderBadFormat);
 				}
 				floor0_book_list.push(value);
 			}
@@ -808,12 +808,12 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 			}))
 		},
 		1 => {
-			let floor1_partitions = try!(rdr.read_u5());
+			let floor1_partitions = rdr.read_u5()?;
 			let mut maximum_class :i8 = -1;
 			let mut floor1_partition_class_list = Vec::with_capacity(
 				floor1_partitions as usize);
 			for _ in 0 .. floor1_partitions {
-				let cur_class = try!(rdr.read_u4());
+				let cur_class = rdr.read_u4()?;
 				maximum_class = if cur_class as i8 > maximum_class
 					{ cur_class as i8 } else { maximum_class };
 				floor1_partition_class_list.push(cur_class);
@@ -829,14 +829,14 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 
 			let mut floor1_class_masterbooks = Vec::with_capacity((maximum_class + 1) as usize);
 			for _ in 0 .. maximum_class + 1 {
-				floor1_class_dimensions.push(try!(rdr.read_u3()) + 1);
-				let cur_subclass = try!(rdr.read_u2());
+				floor1_class_dimensions.push(rdr.read_u3()? + 1);
+				let cur_subclass = rdr.read_u2()?;
 				floor1_class_subclasses.push(cur_subclass);
 				if cur_subclass != 0 {
-					let cur_masterbook = try!(rdr.read_u8());
+					let cur_masterbook = rdr.read_u8()?;
 					if cur_masterbook as u16 >= codebook_cnt {
 						// undecodable as per spec
-						try!(Err(HeaderReadError::HeaderBadFormat));
+						return Err(HeaderReadError::HeaderBadFormat);
 					}
 					floor1_class_masterbooks.push(cur_masterbook);
 				} else {
@@ -851,17 +851,17 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 					// The fact that we need i16 here (and shouldn't do
 					// wrapping sub) is only revealed if you read the
 					// "packet decode" part of the floor 1 spec...
-					let cur_book = (try!(rdr.read_u8()) as i16) - 1;
+					let cur_book = (rdr.read_u8()? as i16) - 1;
 					if cur_book >= codebook_cnt as i16 {
 						// undecodable as per spec
-						try!(Err(HeaderReadError::HeaderBadFormat));
+						return Err(HeaderReadError::HeaderBadFormat);
 					}
 					cur_books.push(cur_book);
 				}
 				floor1_subclass_books.push(cur_books);
 			}
-			let floor1_multiplier = try!(rdr.read_u2()) + 1;
-			let rangebits = try!(rdr.read_u4());
+			let floor1_multiplier = rdr.read_u2()? + 1;
+			let rangebits = rdr.read_u4()?;
 			let mut floor1_values :u16 = 2;
 			// Calculate the count before doing anything else
 			for cur_class_num in &floor1_partition_class_list {
@@ -869,14 +869,14 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 			}
 			if floor1_values > 65 {
 				// undecodable as per spec
-				try!(Err(HeaderReadError::HeaderBadFormat));
+				return Err(HeaderReadError::HeaderBadFormat);
 			}
 			let mut floor1_x_list = Vec::with_capacity(floor1_values as usize);
 			floor1_x_list.push(0);
 			floor1_x_list.push(1u32 << rangebits);
 			for cur_class_num in &floor1_partition_class_list {
 				for _ in 0 .. floor1_class_dimensions[*cur_class_num as usize] {
-					floor1_x_list.push(try!(rdr.read_dyn_u32(rangebits)));
+					floor1_x_list.push(rdr.read_dyn_u32(rangebits)?);
 				}
 			}
 			// Now do an uniqueness check on floor1_x_list
@@ -891,7 +891,7 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 				if el.1 == last {
 					// duplicate entry found
 					// undecodable as per spec
-					try!(Err(HeaderReadError::HeaderBadFormat));
+					return Err(HeaderReadError::HeaderBadFormat);
 				}
 				last = el.1;
 			}
@@ -918,32 +918,32 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 /// The `codebook_cnt` param is required to check for compliant streams
 fn read_residue(rdr :&mut BitpackCursor, codebooks :&[Codebook])
 		-> Result<Residue, HeaderReadError> {
-	let residue_type = try!(rdr.read_u16());
+	let residue_type = rdr.read_u16()?;
 	if residue_type > 2 {
 		// Undecodable by spec
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
-	let residue_begin = try!(rdr.read_u24());
-	let residue_end = try!(rdr.read_u24());
+	let residue_begin = rdr.read_u24()?;
+	let residue_end = rdr.read_u24()?;
 	if residue_begin > residue_end {
 		// If residue_begin < residue_end, we'll get
 		// errors in audio parsing code.
 		// As the idea of residue end being before begin
 		// sounds quite wrong anyway, we already error
 		// earlier, in header parsing code.
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
-	let residue_partition_size = try!(rdr.read_u24()) + 1;
-	let residue_classifications = try!(rdr.read_u6()) + 1;
-	let residue_classbook = try!(rdr.read_u8());
+	let residue_partition_size = rdr.read_u24()? + 1;
+	let residue_classifications = rdr.read_u6()? + 1;
+	let residue_classbook = rdr.read_u8()?;
 	// Read the bitmap pattern:
 	let mut residue_cascade = Vec::with_capacity(residue_classifications as usize);
 	for _ in 0 .. residue_classifications {
 		let mut high_bits = 0;
-		let low_bits = try!(rdr.read_u3());
-		let bitflag = try!(rdr.read_bit_flag());
+		let low_bits = rdr.read_u3()?;
+		let bitflag = rdr.read_bit_flag()?;
 		if bitflag {
-			high_bits = try!(rdr.read_u5());
+			high_bits = rdr.read_u5()?;
 		}
 		residue_cascade.push((high_bits << 3) | low_bits);
 	}
@@ -951,12 +951,12 @@ fn read_residue(rdr :&mut BitpackCursor, codebooks :&[Codebook])
 	let mut residue_books = Vec::with_capacity(residue_classifications as usize);
 	// Read the list of book numbers:
 	for cascade_entry in &residue_cascade {
-		residue_books.push(try!(
-			ResidueBook::read_book(rdr, *cascade_entry, codebooks)));
+		residue_books.push(
+			ResidueBook::read_book(rdr, *cascade_entry, codebooks)?);
 	}
 	if residue_classbook as usize >= codebooks.len() {
 		// Undecodable because residue_classbook must be valid index
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	/*
 	// Currently we check below condition in audio decode, following the spec,
@@ -965,7 +965,7 @@ fn read_residue(rdr :&mut BitpackCursor, codebooks :&[Codebook])
 	// residue in the header (which may never be used).
 	if codebooks[residue_classbook as usize].codebook_vq_lookup_vec.is_none() {
 		// Undecodable because residue_classbook must be valid index
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}*/
 	return Ok(Residue {
 		residue_type : residue_type as u8,
@@ -983,44 +983,44 @@ fn read_mapping(rdr :&mut BitpackCursor,
 		audio_chan_ilog :u8, audio_channels :u8,
 		floor_count :u8, residue_count :u8)
 		-> Result<Mapping, HeaderReadError> {
-	let mapping_type = try!(rdr.read_u16());
+	let mapping_type = rdr.read_u16()?;
 	if mapping_type > 0 {
 		// Undecodable per spec
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
-	let mapping_submaps = match try!(rdr.read_bit_flag()) {
-		true => try!(rdr.read_u4()) + 1,
+	let mapping_submaps = match rdr.read_bit_flag()? {
+		true => rdr.read_u4()? + 1,
 		false => 1,
 	};
-	let mapping_coupling_steps = match try!(rdr.read_bit_flag()) {
-		true => try!(rdr.read_u8()) as u16 + 1,
+	let mapping_coupling_steps = match rdr.read_bit_flag()? {
+		true => rdr.read_u8()? as u16 + 1,
 		false => 0,
 	};
 	let mut mapping_magnitudes = Vec::with_capacity(mapping_coupling_steps as usize);
 	let mut mapping_angles = Vec::with_capacity(mapping_coupling_steps as usize);
 	for _ in 0 .. mapping_coupling_steps {
-		let cur_mag = try!(rdr.read_dyn_u8(audio_chan_ilog));
-		let cur_angle = try!(rdr.read_dyn_u8(audio_chan_ilog));
+		let cur_mag = rdr.read_dyn_u8(audio_chan_ilog)?;
+		let cur_angle = rdr.read_dyn_u8(audio_chan_ilog)?;
 		if (cur_angle == cur_mag) || (cur_mag >= audio_channels)
 				|| (cur_angle >= audio_channels) {
 			// Undecodable per spec
-			try!(Err(HeaderReadError::HeaderBadFormat));
+			return Err(HeaderReadError::HeaderBadFormat);
 		}
 		mapping_magnitudes.push(cur_mag);
 		mapping_angles.push(cur_angle);
 	}
-	let reserved = try!(rdr.read_u2());
+	let reserved = rdr.read_u2()?;
 	if reserved != 0 {
 		// Undecodable per spec
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	let mapping_mux = if mapping_submaps > 1 {
 		let mut m = Vec::with_capacity(audio_channels as usize);
 		for _ in 0 .. audio_channels {
-			let val = try!(rdr.read_u4());
+			let val = rdr.read_u4()?;
 			if val >= mapping_submaps {
 				// Undecodable per spec
-				try!(Err(HeaderReadError::HeaderBadFormat));
+				return Err(HeaderReadError::HeaderBadFormat);
 			}
 			m.push(val);
 		};
@@ -1033,13 +1033,13 @@ fn read_mapping(rdr :&mut BitpackCursor,
 	for _ in 0 .. mapping_submaps {
 		// To whom those reserved bits may concern.
 		// I have discarded them!
-		try!(rdr.read_u8());
-		let cur_floor = try!(rdr.read_u8());
-		let cur_residue = try!(rdr.read_u8());
+		rdr.read_u8()?;
+		let cur_floor = rdr.read_u8()?;
+		let cur_residue = rdr.read_u8()?;
 		if cur_floor >= floor_count ||
 				cur_residue >= residue_count {
 			// Undecodable per spec
-			try!(Err(HeaderReadError::HeaderBadFormat));
+			return Err(HeaderReadError::HeaderBadFormat);
 		}
 		mapping_submap_floors.push(cur_floor);
 		mapping_submap_residues.push(cur_residue);
@@ -1056,16 +1056,16 @@ fn read_mapping(rdr :&mut BitpackCursor,
 
 /// Reads a ModeInfo which is part of the setup header packet.
 fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo, HeaderReadError> {
-	let mode_blockflag = try!(rdr.read_bit_flag());
-	let mode_windowtype = try!(rdr.read_u16());
-	let mode_transformtype = try!(rdr.read_u16());
-	let mode_mapping = try!(rdr.read_u8());
+	let mode_blockflag = rdr.read_bit_flag()?;
+	let mode_windowtype = rdr.read_u16()?;
+	let mode_transformtype = rdr.read_u16()?;
+	let mode_mapping = rdr.read_u8()?;
 	// Verifying ranges
 	if mode_windowtype != 0 ||
 			mode_transformtype != 0 ||
 			mode_mapping >= mapping_count {
 		// Undecodable per spec
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 	return Ok(ModeInfo {
 		mode_blockflag,
@@ -1080,66 +1080,66 @@ fn read_mode_info(rdr :&mut BitpackCursor, mapping_count :u8) -> Result<ModeInfo
 pub fn read_header_setup(packet :&[u8], audio_channels :u8, blocksizes :(u8, u8)) ->
 		Result<SetupHeader, HeaderReadError> {
 	let mut rdr = BitpackCursor::new(packet);
-	let hd_id = try!(read_header_begin(&mut rdr));
+	let hd_id = read_header_begin(&mut rdr)?;
 	if hd_id != 5 {
-		try!(Err(HeaderReadError::HeaderBadType(hd_id)));
+		return Err(HeaderReadError::HeaderBadType(hd_id));
 	}
 
 	// Little preparation -- needed later
-	let audio_chan_ilog = ::ilog((audio_channels - 1) as u64);
+	let audio_chan_ilog =crate::ilog((audio_channels - 1) as u64);
 
 	//::print_u8_slice(packet);
 
 	// 1. Read the codebooks
-	let vorbis_codebook_count :u16 = try!(rdr.read_u8()) as u16 + 1;
+	let vorbis_codebook_count :u16 = rdr.read_u8()? as u16 + 1;
 	let mut codebooks = Vec::with_capacity(vorbis_codebook_count as usize);
 	for _ in 0 .. vorbis_codebook_count {
-		codebooks.push(try!(read_codebook(&mut rdr)));
+		codebooks.push(read_codebook(&mut rdr)?);
 	}
 
 	// 2. Read the time domain transforms
-	let vorbis_time_count :u8 = try!(rdr.read_u6()) + 1;
+	let vorbis_time_count :u8 = rdr.read_u6()? + 1;
 	for _ in 0 .. vorbis_time_count {
-		if try!(rdr.read_u16()) != 0 {
-			try!(Err(HeaderReadError::HeaderBadFormat));
+		if rdr.read_u16()? != 0 {
+			return Err(HeaderReadError::HeaderBadFormat);
 		}
 	}
 
 	// 3. Read the floor values
-	let vorbis_floor_count :u8 = try!(rdr.read_u6()) + 1;
+	let vorbis_floor_count :u8 = rdr.read_u6()? + 1;
 	let mut floors = Vec::with_capacity(vorbis_floor_count as usize);
 	for _ in 0 .. vorbis_floor_count {
-		floors.push(try!(read_floor(&mut rdr, vorbis_codebook_count, blocksizes)));
+		floors.push(read_floor(&mut rdr, vorbis_codebook_count, blocksizes)?);
 	}
 
 	// 4. Read the residue values
-	let vorbis_residue_count :u8 = try!(rdr.read_u6()) + 1;
+	let vorbis_residue_count :u8 = rdr.read_u6()? + 1;
 	let mut residues = Vec::with_capacity(vorbis_residue_count as usize);
 	for _ in 0 .. vorbis_residue_count {
-		residues.push(try!(read_residue(&mut rdr, &codebooks)));
+		residues.push(read_residue(&mut rdr, &codebooks)?);
 	}
 
 	// 5. Read the mappings
-	let vorbis_mapping_count :u8 = try!(rdr.read_u6()) + 1;
+	let vorbis_mapping_count :u8 = rdr.read_u6()? + 1;
 	let mut mappings = Vec::with_capacity(vorbis_mapping_count as usize);
 	for _ in 0 .. vorbis_mapping_count {
-		mappings.push(try!(read_mapping(& mut rdr,
+		mappings.push(read_mapping(& mut rdr,
 			audio_chan_ilog, audio_channels,
-			vorbis_floor_count, vorbis_residue_count)));
+			vorbis_floor_count, vorbis_residue_count)?);
 	}
 
 	// 6. Read the modes
-	let vorbis_mode_count :u8 = try!(rdr.read_u6()) + 1;
+	let vorbis_mode_count :u8 = rdr.read_u6()? + 1;
 	let mut modes = Vec::with_capacity(vorbis_mode_count as usize);
 	for _ in 0 .. vorbis_mode_count {
-		modes.push(try!(read_mode_info(& mut rdr, vorbis_mapping_count)));
+		modes.push(read_mode_info(& mut rdr, vorbis_mapping_count)?);
 	}
 
 	// Now we only have to make sure the framing bit is set,
 	// and we can successfully return the setup header!
-	let framing :bool = try!(rdr.read_bit_flag());
+	let framing :bool = rdr.read_bit_flag()?;
 	if !framing {
-		try!(Err(HeaderReadError::HeaderBadFormat));
+		return Err(HeaderReadError::HeaderBadFormat);
 	}
 
 	return Ok(SetupHeader {

@@ -9,7 +9,7 @@
 // This file is a very close translation of the
 // implementation of the algorithm from stb_vorbis.
 
-use ::header_cached::CachedBlocksizeDerived;
+use crate::header_cached::CachedBlocksizeDerived;
 
 fn imdct_step3_iter0_loop(n :usize, e :&mut[f32], i_off :usize, k_off :isize, a :&[f32]) {
 	let mut a_offs = 0;
@@ -714,7 +714,7 @@ pub fn inverse_mdct_naive(cached_bd :&CachedBlocksizeDerived, buffer :&mut[f32])
 	}
 
 	// step 3
-	let ld :usize = (::ilog(n as u64) - 1) as usize;
+	let ld :usize = (crate::ilog(n as u64) - 1) as usize;
 	for l in 0 .. ld - 3 {
 		let k0 = n >> (l+2);
 		let k1 = 1 << (l+3);
@@ -742,7 +742,7 @@ pub fn inverse_mdct_naive(cached_bd :&CachedBlocksizeDerived, buffer :&mut[f32])
 
 	// step 4
 	for i in 0 .. n8 {
-		let j = (::bit_reverse(i as u32) >> (32-ld+3)) as usize;
+		let j = (crate::bit_reverse(i as u32) >> (32-ld+3)) as usize;
 		assert!(j < n8);
 		if i == j {
 			// paper bug: original code probably swapped in place; if copying,
@@ -814,7 +814,7 @@ pub fn inverse_mdct_naive(cached_bd :&CachedBlocksizeDerived, buffer :&mut[f32])
 #[cfg(test)]
 #[test]
 fn test_imdct_naive() {
-	use imdct_test::*;
+	use crate::imdct_test::*;
 	let mut arr_1 = imdct_prepare(&IMDCT_INPUT_TEST_ARR_1);
 	let cbd = CachedBlocksizeDerived::from_blocksize(8);
 	inverse_mdct_naive(&cbd, &mut arr_1);
@@ -831,7 +831,7 @@ fn test_imdct_naive() {
 #[cfg(test)]
 #[test]
 fn test_imdct() {
-	use imdct_test::*;
+	use crate::imdct_test::*;
 	let mut arr_1 = imdct_prepare(&IMDCT_INPUT_TEST_ARR_1);
 	let blocksize = 8;
 	let cbd = CachedBlocksizeDerived::from_blocksize(blocksize);
