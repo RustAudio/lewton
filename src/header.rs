@@ -600,7 +600,7 @@ fn exp_fast(base :u32, exponent: u8) -> u32 {
 }
 
 /// Returns, as defined in the vorbis spec:
-/// "the greatest integer value v for which v to the power of [codebook_dimensions] is less than or equal to [codebook_entries]"
+/// "the greatest integer for which to `[return_value]` the power of `[codebook_dimensions]` is less than or equal to `[codebook_entries]`"
 /// Essentially an "nth-root" algorithm.
 /// About the speed:
 /// Probably its super-optimized as it uses no floats,
