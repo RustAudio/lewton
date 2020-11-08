@@ -850,9 +850,13 @@ pub struct PreviousWindowRight {
 }
 
 impl PreviousWindowRight {
-	// Initialisation for new streams
+	/// Initialisation for new streams
 	pub fn new() -> Self {
 		return PreviousWindowRight{ data : None };
+	}
+	/// If the state is still uninitialized
+	pub fn is_empty(&self) -> bool {
+		self.data.is_none()
 	}
 }
 
@@ -860,6 +864,12 @@ impl PreviousWindowRight {
 Returns the per-channel sample count of a packet if it were decoded.
 
 This operation is very cheap and doesn't involve actual decoding of the packet.
+
+Note: for the first packet in a stream, or in other instances when
+the `PreviousWindowRight` is reset, the decoding functions will return
+0 samples for that packet, while this function returns a different number.
+Please use the `PreviousWindowRight::is_empty` function or other methods
+to check for this case.
 */
 pub fn get_decoded_sample_count(ident :&IdentHeader, setup :&SetupHeader, packet :&[u8])
 		-> Result<usize, AudioReadError> {
