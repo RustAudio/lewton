@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest, windows-latest]
-        toolchain: [stable, 1.36.0]
+        toolchain: [stable, 1.45.0, 1.36.0]
 
     runs-on: ${{ matrix.os }}
 
@@ -31,7 +31,7 @@ jobs:
         cargo test --verbose --all-features
         cargo doc --verbose --all-features
     - name: Run cmp tests
-      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.36.0'
+      if: matrix.os != 'macOS-latest' || matrix.toolchain == '1.45.0'
       run: |
         cd dev/cmp
         cargo test --verbose --release
