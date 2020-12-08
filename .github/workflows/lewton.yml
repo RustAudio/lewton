@@ -31,7 +31,7 @@ jobs:
         cargo test --verbose --all-features
         cargo doc --verbose --all-features
     - name: Run cmp tests
-      if: matrix.os != 'macOS-latest' || matrix.toolchain == '1.45.0'
+      if: matrix.toolchain == '1.45.0'
       run: |
         cd dev/cmp
         cargo test --verbose --release
