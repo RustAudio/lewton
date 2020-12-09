@@ -29,6 +29,10 @@ extern crate futures;
 #[cfg(feature = "async_ogg")]
 extern crate tokio_io;
 
+#[cfg(feature = "multiversion")]
+#[macro_use]
+extern crate multiversion;
+
 macro_rules! try {
 	($expr:expr) => (match $expr {
 		$crate::std::result::Result::Ok(val) => val,
