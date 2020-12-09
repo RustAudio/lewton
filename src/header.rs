@@ -659,8 +659,8 @@ fn test_lookup1_values() {
 	assert_eq!(lookup1_values(1, 1), 1);
 	assert_eq!(lookup1_values(0, 15), 0);
 	assert_eq!(lookup1_values(0, 0), 0);
-	assert_eq!(lookup1_values(1, 0), ::std::u32::MAX);
-	assert_eq!(lookup1_values(400, 0), ::std::u32::MAX);
+	assert_eq!(lookup1_values(1, 0), std::u32::MAX);
+	assert_eq!(lookup1_values(400, 0), std::u32::MAX);
 }
 
 /// Reads a codebook which is part of the setup header packet.

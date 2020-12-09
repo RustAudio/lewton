@@ -254,8 +254,8 @@ fn floor_one_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 
 fn extr_neighbor<F>(v :&[u32], max_idx :usize,
 		compare :F, relation :&str) -> (usize, u32)
-		where F :Fn(u32, u32) -> ::std::cmp::Ordering {
-	use ::std::cmp::Ordering;
+		where F :Fn(u32, u32) -> std::cmp::Ordering {
+	use std::cmp::Ordering;
 
 	let bound = v[max_idx];
 	let prefix = &v[..max_idx];
@@ -796,7 +796,7 @@ fn dct_iv_slow(buffer :&mut [f32]) {
 	let n = buffer.len();
 	let nmask = (n << 3) - 1;
 	let mcos = (0 .. 8 * n)
-		.map(|i| (::std::f32::consts::FRAC_PI_4 * (i as f32) / (n as f32)).cos())
+		.map(|i| (std::f32::consts::FRAC_PI_4 * (i as f32) / (n as f32)).cos())
 		.collect::<Vec<_>>();
 	for i in 0 .. n {
 		let mut acc = 0.;

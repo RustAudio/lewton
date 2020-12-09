@@ -173,8 +173,8 @@ pub fn cmp_output<R :Read + Seek, T, F :Fn(usize, usize, usize,
 		}
 
 		if ignore_packet_borders {
-			native_dec_data.drain(..::std::cmp::min(native_dec_len, dec_len));
-			dec_data.drain(..::std::cmp::min(native_dec_len, dec_len));
+			native_dec_data.drain(..std::cmp::min(native_dec_len, dec_len));
+			dec_data.drain(..std::cmp::min(native_dec_len, dec_len));
 		} else {
 			native_dec_data.truncate(0);
 			dec_data.truncate(0);
