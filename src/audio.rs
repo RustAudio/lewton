@@ -761,6 +761,7 @@ fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 	}
 }
 
+#[inline]
 fn inverse_couple(m :f32, a :f32) -> (f32, f32) {
 	if m > 0. {
 		if a > 0. {
