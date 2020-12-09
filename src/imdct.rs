@@ -11,6 +11,9 @@
 
 use ::header_cached::CachedBlocksizeDerived;
 
+#[cfg_attr(feature="multiversion", multiversion)]
+#[cfg_attr(feature="multiversion", clone(target = "[x86|x86_64]+avx+avx2+sse+sse2+sse3"))]
+#[cfg_attr(feature="multiversion", clone(target = "[arm|aarch64]+neon"))]
 fn imdct_step3_iter0_loop(n :usize, e :&mut[f32], i_off :usize, k_off :isize, a :&[f32]) {
 	let mut a_offs = 0;
 	let mut i_offs = i_off;
@@ -70,6 +73,9 @@ fn imdct_step3_iter0_loop(n :usize, e :&mut[f32], i_off :usize, k_off :isize, a 
 	}
 }
 
+#[cfg_attr(feature="multiversion", multiversion)]
+#[cfg_attr(feature="multiversion", clone(target = "[x86|x86_64]+avx+avx2+sse+sse2+sse3"))]
+#[cfg_attr(feature="multiversion", clone(target = "[arm|aarch64]+neon"))]
 fn imdct_step3_inner_r_loop(lim :usize, e :&mut [f32],
 		d0 :usize, k_off :isize, a :&[f32], k1 :usize) {
 	let mut a_offs = 0;
@@ -132,6 +138,9 @@ fn imdct_step3_inner_r_loop(lim :usize, e :&mut [f32],
 	}
 }
 
+#[cfg_attr(feature="multiversion", multiversion)]
+#[cfg_attr(feature="multiversion", clone(target = "[x86|x86_64]+avx+avx2+sse+sse2+sse3"))]
+#[cfg_attr(feature="multiversion", clone(target = "[arm|aarch64]+neon"))]
 fn imdct_step3_inner_s_loop(n :usize, e :&mut [f32], i_off :usize, k_off :isize,
 		a :&[f32], a_off :usize, k0 :usize) {
 	let a0 = a[0];
@@ -231,6 +240,9 @@ fn iter_54(zm7 :&mut [f32]) {
 	zm7[0] = k11 + k22;    // z1 - z5 - z2 + z6
 }
 
+#[cfg_attr(feature="multiversion", multiversion)]
+#[cfg_attr(feature="multiversion", clone(target = "[x86|x86_64]+avx+avx2+sse+sse2+sse3"))]
+#[cfg_attr(feature="multiversion", clone(target = "[arm|aarch64]+neon"))]
 fn imdct_step3_inner_s_loop_ld654(n :usize, e :&mut [f32], i_off :usize,
 	a :&[f32], base_n :usize)
 {
@@ -288,6 +300,9 @@ fn imdct_step3_inner_s_loop_ld654(n :usize, e :&mut [f32], i_off :usize,
 }
 
 #[allow(dead_code)]
+#[cfg_attr(feature="multiversion", multiversion)]
+#[cfg_attr(feature="multiversion", clone(target = "[x86|x86_64]+avx+avx2+sse+sse2+sse3"))]
+#[cfg_attr(feature="multiversion", clone(target = "[arm|aarch64]+neon"))]
 pub fn inverse_mdct(cached_bd :&CachedBlocksizeDerived, buffer :&mut [f32], bs :u8) {
 	let n = buffer.len();
 	// Pre-condition.
