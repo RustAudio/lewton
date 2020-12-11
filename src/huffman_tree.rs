@@ -301,8 +301,8 @@ impl VorbisHuffmanTree {
 
 		// Now we are done, return the result
 		return Ok(VorbisHuffmanTree {
-			desc_prog :desc_prog,
-			unrolled_entries :unrolled_entries,
+			desc_prog,
+			unrolled_entries,
 		});
 	}
 

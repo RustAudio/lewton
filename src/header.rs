@@ -741,11 +741,11 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 			codebook_multiplicands.push(try!(rdr.read_dyn_u32(codebook_value_bits)));
 		}
 		Some(CodebookVqLookup {
-			codebook_lookup_type : codebook_lookup_type,
-			codebook_minimum_value : codebook_minimum_value,
-			codebook_delta_value : codebook_delta_value,
-			codebook_sequence_p : codebook_sequence_p,
-			codebook_multiplicands : codebook_multiplicands,
+			codebook_lookup_type,
+			codebook_minimum_value,
+			codebook_delta_value,
+			codebook_sequence_p,
+			codebook_multiplicands,
 		})
 	};
 	let codebook_vq_lookup_vec = codebook_lookup.as_ref().map(|lup| {

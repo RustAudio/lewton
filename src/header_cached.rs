@@ -90,9 +90,9 @@ fn compute_twiddle_factors(blocksize :u8) -> TwiddleFactors {
 		k2 += 2;
 	}
 	return TwiddleFactors {
-		a : a,
-		b : b,
-		c : c,
+		a,
+		b,
+		c,
 	};
 }
 
