@@ -436,7 +436,7 @@ fn floor_one_curve_compute_amplitude(floor1_y :&[u32], fl :&FloorTypeOne) -> (Ve
 	return (floor1_final_y, floor1_step2_flag);
 }
 
-static FLOOR1_INVERSE_DB_TABLE :&'static[f32] = &[
+static FLOOR1_INVERSE_DB_TABLE :&[f32] = &[
 	1.0649863e-07, 1.1341951e-07, 1.2079015e-07, 1.2863978e-07,
 	1.3699951e-07, 1.4590251e-07, 1.5538408e-07, 1.6548181e-07,
 	1.7623575e-07, 1.8768855e-07, 1.9988561e-07, 2.1287530e-07,

@@ -554,7 +554,7 @@ impl <'a> BitpackCursor <'a> {
 	}
 }
 
-static MAX_BASES_WITHOUT_OVERFLOW : &'static[u32] = &[
+static MAX_BASES_WITHOUT_OVERFLOW : &[u32] = &[
 	0xffffffff, 0xffffffff, 0x0000ffff, 0x00000659,
 	0x000000ff, 0x00000054, 0x00000028, 0x00000017,
 	0x0000000f, 0x0000000b, 0x00000009, 0x00000007,
@@ -564,7 +564,7 @@ static MAX_BASES_WITHOUT_OVERFLOW : &'static[u32] = &[
 	0x00000002, 0x00000002, 0x00000002, 0x00000002,
 	0x00000002, 0x00000002, 0x00000002, 0x00000002];
 
-static MAX_BASE_MAX_BITS_WITHOUT_OVERFLOW : &'static[u8] = &[
+static MAX_BASE_MAX_BITS_WITHOUT_OVERFLOW : &[u8] = &[
 	0x1f, 0x1f, 0x0f, 0x0a,
 	0x07, 0x06, 0x05, 0x04,
 	0x03, 0x03, 0x03, 0x02,
