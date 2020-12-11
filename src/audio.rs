@@ -1103,7 +1103,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 				start..end
 			};
 
-			let prev = prev_chan[0..plen].into_iter();
+			let prev = prev_chan[0..plen].iter();
 
 			let (lhs, rhs) = {
 				if win_slope.len() < plen {
