@@ -589,7 +589,7 @@ fn exp_fast(base :u32, exponent: u8) -> u32 {
 			// Okay, now we have to find out
 			// whether this matters or not.
 			// Check whether selfmul would have been needed.
-			if i < 7 && (exponent >> i + 1) > 0 {
+			if i < 7 && (exponent >> (i + 1)) > 0 {
 				panic!("Overflow when squaring for exp_fast, \
 					precondition violated!");
 			}
