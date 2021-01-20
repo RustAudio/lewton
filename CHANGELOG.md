@@ -1,5 +1,11 @@
 # Changes
 
+## Release 0.10.2 - January 20, 2021
+
+* Updated ogg to 0.8
+* Updated tinyvec to 1.0
+* Testsuite fixes. Thanks to [@nico-abram](https://github.com/nico-abram) for their help!
+
 ## Release 0.10.1 - March 16, 2020
 
 * Removed deprecated Error descriptions
