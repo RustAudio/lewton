@@ -29,12 +29,12 @@ required-features = ["ogg"]
 [dependencies]
 byteorder = "1.0"
 tinyvec = { version = "1.0", features = ["alloc"] }
-ogg = { version = "0.7", optional = true }
+ogg = { version = "0.8", optional = true }
 tokio-io = { version = "0.1", optional = true }
 futures = { version = "0.1", optional = true }
 
 [dev-dependencies]
-ogg = "0.7"
+ogg = "0.8"
 alto = "3"
 
 [package.metadata.docs.rs]
