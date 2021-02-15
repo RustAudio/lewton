@@ -14,6 +14,7 @@ Traits for sample formats
 pub trait Samples {
 	fn num_samples(&self) -> usize;
 	fn truncate(&mut self, limit :usize);
+    fn truncate_begin(&mut self, len: usize);
 	fn from_floats(floats :Vec<Vec<f32>>) -> Self;
 }
 
@@ -28,6 +29,11 @@ impl<S :Sample> Samples for Vec<Vec<S>> {
 			}
 		}
 	}
+    fn truncate_begin(&mut self, len: usize) {
+        for samples in self.iter_mut() {
+            samples.drain(..samples.len().min(len));
+        }
+    }
 
 	fn from_floats(floats :Vec<Vec<f32>>) -> Self {
 		floats.into_iter()
@@ -52,6 +58,9 @@ impl<S :Sample> Samples for InterleavedSamples<S> {
 	fn truncate(&mut self, limit :usize) {
 		self.samples.truncate(limit * self.channel_count);
 	}
+    fn truncate_begin(&mut self, len: usize) {
+        self.samples.drain(..len * self.channel_count);
+    }
 	fn from_floats(floats :Vec<Vec<f32>>) -> Self {
 		let channel_count = floats.len();
 		// Note that a channel count of 0 is forbidden
