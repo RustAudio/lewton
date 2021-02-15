@@ -54,6 +54,8 @@ where
 	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
+	dbg!(setup_hdr.modes.len());
+
 	// The first audio packet must begin on a fresh page
 	// TODO: do we really need this?
 	rdr.delete_unread_packets();
@@ -189,18 +191,23 @@ impl<T: Read> OggStreamReader<T> {
 	/// The second packet must exist.
 	fn load_second_audio_packet(&mut self) -> Result<(), VorbisError> {
 		let second_packet = try!(read_expected_packet_with_stream_serial(&mut self.rdr, self.stream_serial));
-		let second_packet_sample_count =
-			try!(get_decoded_sample_count(&self.ident_hdr, &self.setup_hdr, &second_packet.data)) as u64;
 
-		// Since the third audio packet will start in a fresh page,
-		// we can always assume that the absgp for this page as that of the second one.
-		let skip_count = second_packet_sample_count.saturating_sub(second_packet.absgp_page());
-		let start_absgp = second_packet.absgp_page().saturating_sub(second_packet_sample_count);
-		assert_eq!(start_absgp + skip_count + second_packet_sample_count, second_packet.absgp_page());
+		// The spec requires that the third audio packet will start in a fresh page,
+		// and determine how many leading samples to drop.
+		// However, some real-world ogg files does not seem to obey this.
+		// In such case, we don't do such adjustment.
+		if second_packet.last_in_page() {
+			let second_packet_sample_count =
+				try!(get_decoded_sample_count(&self.ident_hdr, &self.setup_hdr, &second_packet.data)) as u64;
 
-		self.skip_count = skip_count;
-		self.start_absgp = start_absgp;
-		self.cur_absgp = start_absgp;
+			let skip_count = second_packet_sample_count.saturating_sub(second_packet.absgp_page());
+			let start_absgp = second_packet.absgp_page().saturating_sub(second_packet_sample_count);
+			assert_eq!(start_absgp + skip_count + second_packet_sample_count, second_packet.absgp_page());
+
+			self.skip_count = skip_count;
+			self.start_absgp = start_absgp;
+			self.cur_absgp = start_absgp;
+		}
 		self.next_packet = Some(second_packet);
 
 		Ok(())
@@ -278,11 +285,11 @@ impl<T: Read> OggStreamReader<T> {
 
 		self.cur_absgp += decoded_pck.num_samples() as u64;
 		if pck.last_in_page() {
-			if pck.absgp_page() != self.cur_absgp {
+			if self.cur_absgp != pck.absgp_page() {
 				// Should we do something else?
-				// At least, it may not be a good idea to panic,
-				// since the input file is subject to corruption.
-				eprintln!("cur_absgp does not match.  Provided: {}, calculated: {}", pck.absgp_page(), self.cur_absgp);
+				// At least, it is not a good idea to panic, since the input file is subject to corruption.
+				eprintln!("cur_absgp does not match.  Calculated: {}, provided: {}", pck.absgp_page(), self.cur_absgp);
+				self.cur_absgp = pck.absgp_page();
 			}
 		}
 
