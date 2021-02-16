@@ -385,6 +385,9 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 	pub fn inner_mut(&mut self) -> &mut OggStreamReader<T> {
 		&mut self.rdr
 	}
+	pub fn into_inner(self) -> OggStreamReader<T> {
+		self.rdr
+	}
 
 	/// Seeks to the specified absolute granule position, with a sample granularity.
 	///
