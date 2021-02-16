@@ -405,10 +405,10 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 	pub fn seek_absgp(&mut self, absgp :u64) -> Result<(), VorbisError> {
 		self.rdr.pwr = PreviousWindowRight::new();
 		let search_range = self.audio_packet_start_pos..try!(self.stream_end_pos());
-		let target_absgp = absgp.saturating_sub(1 << (self.rdr.ident_hdr.blocksize_1 as u64 - 1));
+		let target_absgp = absgp.saturating_sub(1 << self.rdr.ident_hdr.blocksize_1);
 		let seeked_absgp = try!(self.rdr.rdr.seek_absgp_new(
 				target_absgp, Some(self.rdr.stream_serial), search_range));
-		// dbg!(target_absgp, target_absgp, seeked_absgp);
+		// dbg!(target_absgp, seeked_absgp);
 
 		let first_packet = match try!(self.rdr.rdr.read_packet()).and_then(|packet| {
 			if packet.stream_serial() == self.rdr.stream_serial {
@@ -424,7 +424,7 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 				// We seeked to the end of logical stream.
 				self.rdr.state = ReaderState::Finished;
 				if let Some(seeked_absgp) = seeked_absgp {
-					// seeked_absgp is None only if there were no audio packet.
+					// seeked_absgp is None only if the logical stream has not a single audio packet.
 					self.rdr.cur_absgp = seeked_absgp;
 				}
 				return Ok(());
