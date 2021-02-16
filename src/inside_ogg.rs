@@ -382,6 +382,9 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 		})
 	}
 
+	pub fn inner(&self) -> &mut OggStreamReader<T> {
+		&self.rdr
+	}
 	pub fn inner_mut(&mut self) -> &mut OggStreamReader<T> {
 		&mut self.rdr
 	}
