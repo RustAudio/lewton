@@ -205,6 +205,10 @@ impl<T: Read> OggStreamReader<T> {
 			self.skip_count = skip_count;
 			self.start_absgp = start_absgp;
 			self.cur_absgp = start_absgp;
+		} else {
+			self.skip_count = 0;
+			self.start_absgp = 0;
+			self.cur_absgp = 0;
 		}
 		self.state = ReaderState::Processing;
 		self.next_packet = Some(second_packet);
@@ -408,7 +412,7 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 		let target_absgp = absgp.saturating_sub(1 << self.rdr.ident_hdr.blocksize_1);
 		let seeked_absgp = try!(self.rdr.rdr.seek_absgp_new(
 				target_absgp, Some(self.rdr.stream_serial), search_range));
-		// dbg!(target_absgp, seeked_absgp);
+		// dbg!(absgp, self.audio_packet_start_pos..try!(self.stream_end_pos()), target_absgp, seeked_absgp);
 
 		let first_packet = match try!(self.rdr.rdr.read_packet()).and_then(|packet| {
 			if packet.stream_serial() == self.rdr.stream_serial {
@@ -449,7 +453,7 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 				self.rdr.skip_count += absgp.saturating_sub(self.rdr.start_absgp);
 			}
 		};
-		// dbg!(first_packet_sample_count, self.rdr.skip_count);
+		// dbg!(self.rdr.skip_count);
 
 		Ok(())
 	}
