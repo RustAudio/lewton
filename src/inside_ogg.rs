@@ -54,8 +54,6 @@ where
 	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
 		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
 
-	dbg!(setup_hdr.modes.len());
-
 	// The first audio packet must begin on a fresh page
 	// TODO: do we really need this?
 	rdr.delete_unread_packets();
@@ -208,6 +206,7 @@ impl<T: Read> OggStreamReader<T> {
 			self.start_absgp = start_absgp;
 			self.cur_absgp = start_absgp;
 		}
+		self.state = ReaderState::Processing;
 		self.next_packet = Some(second_packet);
 
 		Ok(())
@@ -239,6 +238,13 @@ impl<T: Read> OggStreamReader<T> {
 	/// stream has been reached, or Some(packet_data),
 	/// with the data of the decompressed packet.
 	pub fn read_dec_packet_generic<S :Samples>(&mut self) -> Result<Option<S>, VorbisError> {
+	// 	self.read_dec_packet_generic_debug(false)
+	// }
+	// pub fn read_dec_packet_generic_debug<S :Samples>(&mut self, debug: bool) -> Result<Option<S>, VorbisError> {
+		if let ReaderState::Finished = self.state {
+			return Ok(None);
+		}
+
 		let pck = if let Some(next_packet) = self.next_packet.take() {
 			next_packet
 		} else {
@@ -268,6 +274,7 @@ impl<T: Read> OggStreamReader<T> {
 		let skip_count = self.skip_count.min(decoded_pck.num_samples() as u64);
 		self.skip_count -= skip_count;
 		decoded_pck.truncate_begin(skip_count as usize);
+		// if debug { dbg!(skip_count); }
 
 		if pck.last_in_stream() {
 			if self.skip_count == 0 {
@@ -277,6 +284,7 @@ impl<T: Read> OggStreamReader<T> {
 				let truncate_size = (self.cur_absgp + decoded_pck.num_samples() as u64)
 					.saturating_sub(pck.absgp_page());
 				decoded_pck.truncate(truncate_size as usize);
+				// if debug { dbg!(truncate_size); }
 			}
 			// If skip count is non-zero, then it means that a seek beyond
 
@@ -288,7 +296,7 @@ impl<T: Read> OggStreamReader<T> {
 			if self.cur_absgp != pck.absgp_page() {
 				// Should we do something else?
 				// At least, it is not a good idea to panic, since the input file is subject to corruption.
-				eprintln!("cur_absgp does not match.  Calculated: {}, provided: {}", pck.absgp_page(), self.cur_absgp);
+				// eprintln!("cur_absgp does not match.  Calculated: {}, provided: {}", self.cur_absgp, pck.absgp_page());
 				self.cur_absgp = pck.absgp_page();
 			}
 		}
@@ -391,9 +399,10 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 	pub fn seek_absgp(&mut self, absgp :u64) -> Result<(), VorbisError> {
 		self.rdr.pwr = PreviousWindowRight::new();
 		let search_range = self.audio_packet_start_pos..try!(self.stream_end_pos());
-		let target_absgp = absgp.saturating_sub(self.rdr.ident_hdr.blocksize_1 as u64/ 2);
+		let target_absgp = absgp.saturating_sub(1 << (self.rdr.ident_hdr.blocksize_1 as u64 - 1));
 		let seeked_absgp = try!(self.rdr.rdr.seek_absgp_new(
 				target_absgp, Some(self.rdr.stream_serial), search_range));
+		// dbg!(target_absgp, target_absgp, seeked_absgp);
 
 		let first_packet = match try!(self.rdr.rdr.read_packet()).and_then(|packet| {
 			if packet.stream_serial() == self.rdr.stream_serial {
@@ -434,6 +443,7 @@ impl <T: Read + Seek> SeekableOggStreamReader<T> {
 				self.rdr.skip_count += absgp.saturating_sub(self.rdr.start_absgp);
 			}
 		};
+		// dbg!(first_packet_sample_count, self.rdr.skip_count);
 
 		Ok(())
 	}
