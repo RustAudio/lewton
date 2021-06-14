@@ -8,6 +8,7 @@
 
 #![cfg_attr(not(cargo_c), forbid(unsafe_code))]
 #![cfg_attr(test, deny(warnings))]
+#![forbid(non_ascii_idents)]
 
 /*!
 A `vorbis` decoder, written in Rust.
