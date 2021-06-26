@@ -29,7 +29,7 @@ fn run() -> Result<(), VorbisError> {
 	let f = File::open(file_path).expect("Can't open file");
 
 	// Prepare the reading
-	let mut srr = try!(OggStreamReader::new(f));
+	let mut srr = OggStreamReader::new(f)?;
 
 	// Prepare the playback.
 	let al = Alto::load_default().expect("Could not load alto");
@@ -53,7 +53,7 @@ fn run() -> Result<(), VorbisError> {
 	let start_decode_time = Instant::now();
 	let sample_channels = srr.ident_hdr.audio_channels as f32 *
 		srr.ident_hdr.audio_sample_rate as f32;
-	while let Some(pck_samples) = try!(srr.read_dec_packet_itl()) {
+	while let Some(pck_samples) = srr.read_dec_packet_itl()? {
 		println!("Decoded packet no {}, with {} samples.", n, pck_samples.len());
 		n += 1;
 		let buf = match srr.ident_hdr.audio_channels {

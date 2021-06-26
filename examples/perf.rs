@@ -25,7 +25,7 @@ pub fn run() -> Result<(), VorbisError> {
 	println!("Opening file: {}", file_path);
 	let f = File::open(file_path).expect("Can't open file");
 
-	let mut srr = try!(OggStreamReader::new(f));
+	let mut srr = OggStreamReader::new(f)?;
 
 	println!("Sample rate: {}", srr.ident_hdr.audio_sample_rate);
 
@@ -33,7 +33,7 @@ pub fn run() -> Result<(), VorbisError> {
 	let mut n = 0;
 	let mut len_play = 0.0;
 	let start_decode_time = Instant::now();
-	while let Some(pck) = try!(srr.read_dec_packet()) {
+	while let Some(pck) = srr.read_dec_packet()? {
 		n += 1;
 		// This is guaranteed by the docs
 		assert_eq!(pck.len(), srr.ident_hdr.audio_channels as usize);

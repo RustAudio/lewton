@@ -396,7 +396,7 @@ impl <'a> BitpackCursor <'a> {
 	// Returning bool:
 	#[inline]
 	pub fn read_bit_flag(&mut self) -> Result<bool, ()> {
-		return Ok(try!(self.read_u1()) == 1);
+		return Ok(self.read_u1()? == 1);
 	}
 
 	// Unsigned dynamic reader methods
@@ -427,7 +427,7 @@ impl <'a> BitpackCursor <'a> {
 
 	/// Reads a single floating point number in the vorbis-float32 format
 	pub fn read_f32(&mut self) -> Result<f32, ()> {
-		let val = try!(self.read_u32());
+		let val = self.read_u32()?;
 		Ok(float32_unpack(val))
 	}
 
@@ -458,11 +458,11 @@ impl <'a> BitpackCursor <'a> {
 		let mut iter = match self.peek_u8() {
 			Ok(data) => match tree.lookup_peeked_data(8, data as u32) {
 				PeekedDataLookupResult::Iter(advance, iter) => {
-					try!(self.advance_dyn_u8(advance));
+					self.advance_dyn_u8(advance)?;
 					iter
 				},
 				PeekedDataLookupResult::PayloadFound(advance, payload) => {
-					try!(self.advance_dyn_u8(advance));
+					self.advance_dyn_u8(advance)?;
 					return Ok(payload);
 				},
 			},
@@ -470,7 +470,7 @@ impl <'a> BitpackCursor <'a> {
 		};
 
 		loop {
-			let b = try!(self.read_bit_flag());
+			let b = self.read_bit_flag()?;
 			/*
 			c +=1;
 			w >>= 1;

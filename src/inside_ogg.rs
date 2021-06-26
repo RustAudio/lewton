@@ -29,22 +29,22 @@ use ::samples::{Samples, InterleavedSamples};
 /// and use the `HeadersReader` struct instead.
 pub fn read_headers<'a, T: Read + Seek + 'a>(rdr: &mut PacketReader<T>) ->
 		Result<(HeaderSet, u32), VorbisError> {
-	let pck :Packet = try!(rdr.read_packet_expected());
-	let ident_hdr = try!(read_header_ident(&pck.data));
+	let pck :Packet = rdr.read_packet_expected()?;
+	let ident_hdr = read_header_ident(&pck.data)?;
 	let stream_serial = pck.stream_serial();
 
-	let mut pck :Packet = try!(rdr.read_packet_expected());
+	let mut pck :Packet = rdr.read_packet_expected()?;
 	while pck.stream_serial() != stream_serial {
-		pck = try!(rdr.read_packet_expected());
+		pck = rdr.read_packet_expected()?;
 	}
-	let comment_hdr = try!(read_header_comment(&pck.data));
+	let comment_hdr = read_header_comment(&pck.data)?;
 
-	let mut pck :Packet = try!(rdr.read_packet_expected());
+	let mut pck :Packet = rdr.read_packet_expected()?;
 	while pck.stream_serial() != stream_serial {
-		pck = try!(rdr.read_packet_expected());
+		pck = rdr.read_packet_expected()?;
 	}
-	let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
-		(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
+	let setup_hdr = read_header_setup(&pck.data, ident_hdr.audio_channels,
+		(ident_hdr.blocksize_0, ident_hdr.blocksize_1))?;
 
 	rdr.delete_unread_packets();
 	return Ok(((ident_hdr, comment_hdr, setup_hdr), pck.stream_serial()));
@@ -97,7 +97,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	pub fn from_ogg_reader(mut rdr :PacketReader<T>) ->
 			Result<Self, VorbisError> {
 		let ((ident_hdr, comment_hdr, setup_hdr), stream_serial) =
-			try!(read_headers(&mut rdr));
+			read_headers(&mut rdr)?;
 		return Ok(OggStreamReader {
 			rdr,
 			pwr : PreviousWindowRight::new(),
@@ -113,7 +113,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	}
 	fn read_next_audio_packet(&mut self) -> Result<Option<Packet>, VorbisError> {
 		loop {
-			let pck = match try!(self.rdr.read_packet()) {
+			let pck = match self.rdr.read_packet()? {
 				Some(p) => p,
 				None => return Ok(None),
 			};
@@ -121,14 +121,14 @@ impl<T: Read + Seek> OggStreamReader<T> {
 				if pck.first_in_stream() {
 					// We have a chained ogg file. This means we need to
 					// re-initialize the internal context.
-					let ident_hdr = try!(read_header_ident(&pck.data));
+					let ident_hdr = read_header_ident(&pck.data)?;
 
-					let pck :Packet = try!(self.rdr.read_packet_expected());
-					let comment_hdr = try!(read_header_comment(&pck.data));
+					let pck :Packet = self.rdr.read_packet_expected()?;
+					let comment_hdr = read_header_comment(&pck.data)?;
 
-					let pck :Packet = try!(self.rdr.read_packet_expected());
-					let setup_hdr = try!(read_header_setup(&pck.data, ident_hdr.audio_channels,
-						(ident_hdr.blocksize_0, ident_hdr.blocksize_1)));
+					let pck :Packet = self.rdr.read_packet_expected()?;
+					let setup_hdr = read_header_setup(&pck.data, ident_hdr.audio_channels,
+						(ident_hdr.blocksize_0, ident_hdr.blocksize_1))?;
 
 					// Update the context
 					self.pwr = PreviousWindowRight::new();
@@ -140,15 +140,15 @@ impl<T: Read + Seek> OggStreamReader<T> {
 
 					// Now, read the first audio packet to prime the pwr
 					// and discard the packet.
-					let pck = match try!(self.rdr.read_packet()) {
+					let pck = match self.rdr.read_packet()? {
 						Some(p) => p,
 						None => return Ok(None),
 					};
-					let _decoded_pck = try!(read_audio_packet(&self.ident_hdr,
-						&self.setup_hdr, &pck.data, &mut self.pwr));
+					let _decoded_pck = read_audio_packet(&self.ident_hdr,
+						&self.setup_hdr, &pck.data, &mut self.pwr)?;
 					self.cur_absgp = Some(pck.absgp_page());
 
-					return Ok(try!(self.rdr.read_packet()));
+					return Ok(self.rdr.read_packet()?);
 				} else {
 					// Ignore every packet that has a mismatching stream serial
 				}
@@ -166,7 +166,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// with the data of the decompressed packet.
 	pub fn read_dec_packet(&mut self) ->
 			Result<Option<Vec<Vec<i16>>>, VorbisError> {
-		let pck = try!(self.read_dec_packet_generic());
+		let pck = self.read_dec_packet_generic()?;
 		Ok(pck)
 	}
 	/// Reads and decompresses an audio packet from the stream (generic).
@@ -178,12 +178,12 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// with the data of the decompressed packet.
 	pub fn read_dec_packet_generic<S :Samples>(&mut self) ->
 			Result<Option<S>, VorbisError> {
-		let pck = match try!(self.read_next_audio_packet()) {
+		let pck = match self.read_next_audio_packet()? {
 			Some(p) => p,
 			None => return Ok(None),
 		};
-		let mut decoded_pck :S = try!(read_audio_packet_generic(&self.ident_hdr,
-			&self.setup_hdr, &pck.data, &mut self.pwr));
+		let mut decoded_pck :S = read_audio_packet_generic(&self.ident_hdr,
+			&self.setup_hdr, &pck.data, &mut self.pwr)?;
 
 		// If this is the last packet in the logical bitstream,
 		// we need to truncate it so that its ending matches
@@ -214,7 +214,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// interleaved samples.
 	pub fn read_dec_packet_itl(&mut self) ->
 			Result<Option<Vec<i16>>, VorbisError> {
-		let decoded_pck :InterleavedSamples<_> = match try!(self.read_dec_packet_generic()) {
+		let decoded_pck :InterleavedSamples<_> = match self.read_dec_packet_generic()? {
 			Some(p) => p,
 			None => return Ok(None),
 		};
@@ -244,7 +244,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 	/// In the case of ogg/vorbis, the absolute granule position is given
 	/// as number of PCM samples, on a per channel basis.
 	pub fn seek_absgp_pg(&mut self, absgp :u64) -> Result<(), VorbisError> {
-		try!(self.rdr.seek_absgp(None, absgp));
+		self.rdr.seek_absgp(None, absgp)?;
 		// Reset the internal state after the seek
 		self.cur_absgp = None;
 		self.pwr = PreviousWindowRight::new();
@@ -313,17 +313,17 @@ pub mod async_api {
 			}
 			if self.ident_hdr.is_none() {
 				let pck = rd_pck!();
-				self.ident_hdr = Some(try!(read_header_ident(&pck.data)));
+				self.ident_hdr = Some(read_header_ident(&pck.data)?);
 			}
 			if self.comment_hdr.is_none() {
 				let pck = rd_pck!();
-				self.comment_hdr = Some(try!(read_header_comment(&pck.data)));
+				self.comment_hdr = Some(read_header_comment(&pck.data)?);
 			}
 			let setup_hdr = {
 				let ident = self.ident_hdr.as_ref().unwrap();
 				let pck = rd_pck!();
-				try!(read_header_setup(&pck.data,
-					ident.audio_channels, (ident.blocksize_0, ident.blocksize_1)))
+				read_header_setup(&pck.data,
+					ident.audio_channels, (ident.blocksize_0, ident.blocksize_1))?
 			};
 			let ident_hdr = replace(&mut self.ident_hdr, None).unwrap();
 			let comment_hdr = replace(&mut self.comment_hdr, None).unwrap();
@@ -381,8 +381,8 @@ pub mod async_api {
 				Some(p) => p,
 				None => return Ok(Async::Ready(None)),
 			};
-			let decoded_pck = try!(read_audio_packet(&self.ident_hdr,
-				&self.setup_hdr, &pck.data, &mut self.pwr));
+			let decoded_pck = read_audio_packet(&self.ident_hdr,
+				&self.setup_hdr, &pck.data, &mut self.pwr)?;
 			self.absgp_of_last_read = Some(pck.absgp_page());
 			Ok(Async::Ready(Some(decoded_pck)))
 		}

@@ -192,7 +192,7 @@ impl VorbisHuffmanTree {
 			cnt += 1;
 			last_valid_idx = Some(i);
 			if !simple_tree.insert_rec(i as u32, codeword_length) {
-				try!(Err(HuffmanError::Overspecified)) /* Overspecified, can't be put into tree */
+				Err(HuffmanError::Overspecified)? /* Overspecified, can't be put into tree */
 			}
 		}
 		//println!("The tree:\n{:?}", simple_tree);
@@ -211,12 +211,12 @@ impl VorbisHuffmanTree {
 				});
 			} else {
 				// Single entry codebooks must have 1 as their only length entry
-				try!(Err(HuffmanError::InvalidSingleEntry))
+				Err(HuffmanError::InvalidSingleEntry)?
 			}
 		}
 
 		if !simple_tree.even_childs {
-			try!(Err(HuffmanError::Underpopulated)); /* Underpopulated */
+			Err(HuffmanError::Underpopulated)?; /* Underpopulated */
 		}
 
 		// Second step: generate the actual desc_prog
