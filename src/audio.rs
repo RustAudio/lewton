@@ -12,16 +12,14 @@ Audio packet decoding
 This module decodes the audio packets given to it.
 */
 
-#[allow(unused_imports)]
-use imdct;
 use std::error;
 use std::fmt;
 use std::cmp::min;
 use std::iter;
 use tinyvec::TinyVec;
-use ::ilog;
-use ::bitpacking::BitpackCursor;
-use ::header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
+use crate::ilog;
+use bitpacking::BitpackCursor;
+use header::{Codebook, Floor, FloorTypeZero, FloorTypeOne,
 	HuffmanVqReadErr, IdentHeader, Mapping, Residue, SetupHeader};
 use samples::Samples;
 
@@ -120,7 +118,7 @@ fn floor_zero_decode(rdr :&mut BitpackCursor, codebooks :&[Codebook],
 	}
 
 	let booknumber = try!(rdr.read_dyn_u32(
-		::ilog(fl.floor0_number_of_books as u64)));
+		ilog(fl.floor0_number_of_books as u64)));
 	match fl.floor0_book_list.get(booknumber as usize) {
 		// Undecodable per spec
 		None => try!(Err(FloorSpecialCase::PacketUndecodable)),
@@ -1048,8 +1046,8 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 		let ext = iter::repeat(0.).take(size);
 		spectrum.extend(ext);
 		let cached_bd = &ident.cached_bs_derived[mode.mode_blockflag as usize];
-		//imdct::inverse_mdct_naive(cached_bd, &mut spectrum[..]);
-		imdct::inverse_mdct(cached_bd, &mut spectrum[..], bs);
+		//::imdct::inverse_mdct_naive(cached_bd, &mut spectrum[..]);
+		::imdct::inverse_mdct(cached_bd, &mut spectrum[..], bs);
 		//inverse_mdct_slow(&mut spectrum[..]);
 	}
 

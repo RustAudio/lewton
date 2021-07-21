@@ -22,12 +22,12 @@ decoded in this mod.
 
 use std::error;
 use std::fmt;
-use ::bitpacking::BitpackCursor;
-use ::huffman_tree::{VorbisHuffmanTree, HuffmanError};
 use std::io::{Cursor, ErrorKind, Read, Error};
-use byteorder::{ReadBytesExt, LittleEndian};
 use std::string::FromUtf8Error;
+use byteorder::{ReadBytesExt, LittleEndian};
 use header_cached::{CachedBlocksizeDerived, compute_bark_map_cos_omega};
+use bitpacking::BitpackCursor;
+use huffman_tree::{VorbisHuffmanTree, HuffmanError};
 
 /// Errors that can occur during Header decoding
 #[derive(Debug)]

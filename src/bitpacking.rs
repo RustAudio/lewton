@@ -22,7 +22,7 @@ This non-alignment to the spec is due to the fact that the rust language is high
 and doesn't even have a builtin single byte type.
 */
 
-use ::huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
+use huffman_tree::{VorbisHuffmanTree, PeekedDataLookupResult};
 
 /// A Cursor on slices to read numbers and bitflags, bit aligned.
 pub struct BitpackCursor <'a> {
