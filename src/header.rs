@@ -360,7 +360,6 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 
 pub(crate) struct Codebook {
 	pub codebook_dimensions :u16,
-	pub codebook_entries :u32,
 
 	// None if codebook_lookup_type == 0
 	pub codebook_vq_lookup_vec :Option<Vec<f32>>,
@@ -755,7 +754,6 @@ fn read_codebook(rdr :&mut BitpackCursor) -> Result<Codebook, HeaderReadError> {
 
 	return Ok(Codebook {
 		codebook_dimensions,
-		codebook_entries,
 		codebook_vq_lookup_vec,
 		codebook_huffman_tree : try!(VorbisHuffmanTree::load_from_array(&codebook_codeword_lengths)),
 	});
