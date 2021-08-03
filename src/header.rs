@@ -378,7 +378,6 @@ pub(crate) struct Residue {
 }
 
 pub(crate) struct Mapping {
-	pub mapping_submaps :u8,
 	pub mapping_magnitudes :Vec<u8>,
 	pub mapping_angles :Vec<u8>,
 	pub mapping_mux :Vec<u8>,
@@ -1043,7 +1042,6 @@ fn read_mapping(rdr :&mut BitpackCursor,
 		mapping_submap_residues.push(cur_residue);
 	}
 	return Ok(Mapping {
-		mapping_submaps,
 		mapping_magnitudes,
 		mapping_angles,
 		mapping_mux,
