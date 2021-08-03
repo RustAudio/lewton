@@ -91,140 +91,140 @@ fn test_bmask_bits() {
 // The main macro to read bit aligned
 // Note that `$octetnum` is the number of octets in $bitnum ($bitnum / 8 rounded down)
 macro_rules! bpc_read_body {
-( $rettype:ident, $bitnum:expr, $octetnum:expr, $selfarg:expr ) => { {
-	let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
-	let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
-	let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
+	($rettype:ident, $bitnum:expr, $octetnum:expr, $selfarg:expr) => {{
+		let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
+		let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
+		let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
 
-	if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
-		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={}+1)",
-			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
-		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
-		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
-			$selfarg.byte_cursor, $selfarg.bit_cursor,
-			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
-			1 + octetnum_rounded_up]);// */
-		if $selfarg.byte_cursor + 1 + octetnum_rounded_up > $selfarg.inner.len() {
-			//println!(" => Out of bounds :\\");
-			return Err(());
-		}
-		let buf = &$selfarg.inner[$selfarg.byte_cursor
-			.. $selfarg.byte_cursor + 1 + octetnum_rounded_up];
-		let mut res :$rettype = buf[0] as $rettype;
-		res >>= $selfarg.bit_cursor;
-		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
-		for i in 1 .. octetnum_rounded_up {
-			res |= (buf[i] as $rettype) << cur_bit_cursor;
-			cur_bit_cursor += 8;
-		}
-		let last_bits = buf[octetnum_rounded_up] & mask_bits(bit_cursor_after);
-		res |= (last_bits as $rettype) << cur_bit_cursor;
-		$selfarg.byte_cursor += octetnum_rounded_up;
-		$selfarg.bit_cursor = bit_cursor_after;
-		//println!(" => {:?}", res);
-		Ok(res)
-	} else {
-		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={})",
-			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
-		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
-		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
-			$selfarg.byte_cursor, $selfarg.bit_cursor,
-			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
-			octetnum_rounded_up]);// */
-		if $selfarg.byte_cursor + octetnum_rounded_up > $selfarg.inner.len() {
-			//println!(" => Out of bounds :\\");
-			return Err(());
-		}
-		let buf = &$selfarg.inner[$selfarg.byte_cursor ..
-			$selfarg.byte_cursor + octetnum_rounded_up];
-		let mut res :$rettype = buf[0] as $rettype;
-		res >>= $selfarg.bit_cursor;
-		if $bitnum <= 8 {
-			res &= mask_bits($bitnum) as $rettype;
-		}
-		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
-		for i in 1 .. octetnum_rounded_up - 1 {
-			res |= (buf[i] as $rettype) << cur_bit_cursor;
-			cur_bit_cursor += 8;
-		}
-		if $bitnum > 8 {
-			let last_bits = buf[octetnum_rounded_up - 1] & bmask_bits(bit_cursor_after);
+		if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
+			/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={}+1)",
+				$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+			println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+			/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+				$selfarg.byte_cursor, $selfarg.bit_cursor,
+				&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+				1 + octetnum_rounded_up]);// */
+			if $selfarg.byte_cursor + 1 + octetnum_rounded_up > $selfarg.inner.len() {
+				//println!(" => Out of bounds :\\");
+				return Err(());
+			}
+			let buf = &$selfarg.inner[$selfarg.byte_cursor
+				.. $selfarg.byte_cursor + 1 + octetnum_rounded_up];
+			let mut res :$rettype = buf[0] as $rettype;
+			res >>= $selfarg.bit_cursor;
+			let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+			for i in 1 .. octetnum_rounded_up {
+				res |= (buf[i] as $rettype) << cur_bit_cursor;
+				cur_bit_cursor += 8;
+			}
+			let last_bits = buf[octetnum_rounded_up] & mask_bits(bit_cursor_after);
 			res |= (last_bits as $rettype) << cur_bit_cursor;
+			$selfarg.byte_cursor += octetnum_rounded_up;
+			$selfarg.bit_cursor = bit_cursor_after;
+			//println!(" => {:?}", res);
+			Ok(res)
+		} else {
+			/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={})",
+				$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+			println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+			/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+				$selfarg.byte_cursor, $selfarg.bit_cursor,
+				&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+				octetnum_rounded_up]);// */
+			if $selfarg.byte_cursor + octetnum_rounded_up > $selfarg.inner.len() {
+				//println!(" => Out of bounds :\\");
+				return Err(());
+			}
+			let buf = &$selfarg.inner[$selfarg.byte_cursor ..
+				$selfarg.byte_cursor + octetnum_rounded_up];
+			let mut res :$rettype = buf[0] as $rettype;
+			res >>= $selfarg.bit_cursor;
+			if $bitnum <= 8 {
+				res &= mask_bits($bitnum) as $rettype;
+			}
+			let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+			for i in 1 .. octetnum_rounded_up - 1 {
+				res |= (buf[i] as $rettype) << cur_bit_cursor;
+				cur_bit_cursor += 8;
+			}
+			if $bitnum > 8 {
+				let last_bits = buf[octetnum_rounded_up - 1] & bmask_bits(bit_cursor_after);
+				res |= (last_bits as $rettype) << cur_bit_cursor;
+			}
+			$selfarg.byte_cursor += $octetnum;
+			$selfarg.byte_cursor += ($selfarg.bit_cursor == 8 - ($bitnum % 8)) as usize;
+			$selfarg.bit_cursor = bit_cursor_after;
+			//println!(" => {:?}", res);
+			Ok(res)
 		}
-		$selfarg.byte_cursor += $octetnum;
-		$selfarg.byte_cursor += ($selfarg.bit_cursor == 8 - ($bitnum % 8)) as usize;
-		$selfarg.bit_cursor = bit_cursor_after;
-		//println!(" => {:?}", res);
-		Ok(res)
-	}
-} }
+	}};
 }
 
 // The main macro to peek bit aligned
 // Note that `$octetnum` is the number of octets in $bitnum ($bitnum / 8 rounded down)
 macro_rules! bpc_peek_body {
-( $rettype:ident, $bitnum:expr, $octetnum:expr, $selfarg:expr ) => { {
-	let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
-	let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
-	let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
+	($rettype:ident, $bitnum:expr, $octetnum:expr, $selfarg:expr) => {{
+		let last_octet_partial :usize = ($bitnum as i8 - $octetnum as i8 * 8 > 0) as usize;
+		let octetnum_rounded_up :usize = last_octet_partial + $octetnum;
+		let bit_cursor_after = ($selfarg.bit_cursor + $bitnum) % 8;
 
-	if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
-		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={}+1)",
-			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
-		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
-		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
-			$selfarg.byte_cursor, $selfarg.bit_cursor,
-			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
-			1 + octetnum_rounded_up]);// */
-		if $selfarg.byte_cursor + 1 + octetnum_rounded_up > $selfarg.inner.len() {
-			//println!(" => Out of bounds :\\");
-			return Err(());
-		}
-		let buf = &$selfarg.inner[$selfarg.byte_cursor
-			.. $selfarg.byte_cursor + 1 + octetnum_rounded_up];
-		let mut res :$rettype = buf[0] as $rettype;
-		res >>= $selfarg.bit_cursor;
-		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
-		for i in 1 .. octetnum_rounded_up {
-			res |= (buf[i] as $rettype) << cur_bit_cursor;
-			cur_bit_cursor += 8;
-		}
-		let last_bits = buf[octetnum_rounded_up] & mask_bits(bit_cursor_after);
-		res |= (last_bits as $rettype) << cur_bit_cursor;
-		//println!(" => {:?}", res);
-		Ok(res)
-	} else {
-		/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={})",
-			$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
-		println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
-		/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
-			$selfarg.byte_cursor, $selfarg.bit_cursor,
-			&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
-			octetnum_rounded_up]);// */
-		if $selfarg.byte_cursor + octetnum_rounded_up > $selfarg.inner.len() {
-			//println!(" => Out of bounds :\\");
-			return Err(());
-		}
-		let buf = &$selfarg.inner[$selfarg.byte_cursor ..
-			$selfarg.byte_cursor + octetnum_rounded_up];
-		let mut res :$rettype = buf[0] as $rettype;
-		res >>= $selfarg.bit_cursor;
-		if $bitnum <= 8 {
-			res &= mask_bits($bitnum) as $rettype;
-		}
-		let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
-		for i in 1 .. octetnum_rounded_up - 1 {
-			res |= (buf[i] as $rettype) << cur_bit_cursor;
-			cur_bit_cursor += 8;
-		}
-		if $bitnum > 8 {
-			let last_bits = buf[octetnum_rounded_up - 1] & bmask_bits(bit_cursor_after);
+		if ($selfarg.bit_cursor + $bitnum) as usize > 8 * octetnum_rounded_up {
+			/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={}+1)",
+				$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+			println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+			/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+				$selfarg.byte_cursor, $selfarg.bit_cursor,
+				&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+				1 + octetnum_rounded_up]);// */
+			if $selfarg.byte_cursor + 1 + octetnum_rounded_up > $selfarg.inner.len() {
+				//println!(" => Out of bounds :\\");
+				return Err(());
+			}
+			let buf = &$selfarg.inner[$selfarg.byte_cursor
+				.. $selfarg.byte_cursor + 1 + octetnum_rounded_up];
+			let mut res :$rettype = buf[0] as $rettype;
+			res >>= $selfarg.bit_cursor;
+			let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+			for i in 1 .. octetnum_rounded_up {
+				res |= (buf[i] as $rettype) << cur_bit_cursor;
+				cur_bit_cursor += 8;
+			}
+			let last_bits = buf[octetnum_rounded_up] & mask_bits(bit_cursor_after);
 			res |= (last_bits as $rettype) << cur_bit_cursor;
+			//println!(" => {:?}", res);
+			Ok(res)
+		} else {
+			/*println!("Reading {} bits (octetnum={}, last_partial={}, total_touched={})",
+				$bitnum, $octetnum, last_octet_partial, $octetnum + last_octet_partial);
+			println!("    byte_c={}; bit_c={}", $selfarg.byte_cursor, $selfarg.bit_cursor);// */
+			/*print!("Reading {} bits (byte_c={}; bit_c={}) [] = {:?}", $bitnum,
+				$selfarg.byte_cursor, $selfarg.bit_cursor,
+				&$selfarg.inner[$selfarg.byte_cursor .. $selfarg.byte_cursor +
+				octetnum_rounded_up]);// */
+			if $selfarg.byte_cursor + octetnum_rounded_up > $selfarg.inner.len() {
+				//println!(" => Out of bounds :\\");
+				return Err(());
+			}
+			let buf = &$selfarg.inner[$selfarg.byte_cursor ..
+				$selfarg.byte_cursor + octetnum_rounded_up];
+			let mut res :$rettype = buf[0] as $rettype;
+			res >>= $selfarg.bit_cursor;
+			if $bitnum <= 8 {
+				res &= mask_bits($bitnum) as $rettype;
+			}
+			let mut cur_bit_cursor = 8 - $selfarg.bit_cursor;
+			for i in 1 .. octetnum_rounded_up - 1 {
+				res |= (buf[i] as $rettype) << cur_bit_cursor;
+				cur_bit_cursor += 8;
+			}
+			if $bitnum > 8 {
+				let last_bits = buf[octetnum_rounded_up - 1] & bmask_bits(bit_cursor_after);
+				res |= (last_bits as $rettype) << cur_bit_cursor;
+			}
+			//println!(" => {:?}", res);
+			Ok(res)
 		}
-		//println!(" => {:?}", res);
-		Ok(res)
-	}
-} }
+	}};
 }
 
 // The main macro to advance bit aligned
@@ -251,54 +251,54 @@ macro_rules! bpc_advance_body {
 }
 
 macro_rules! uk_reader {
-( $fnname:ident, $rettype:ident, $bitnum:expr, $octetnum:expr) => {
-	#[inline]
-	pub fn $fnname(&mut self) -> Result<$rettype, ()> {
-		bpc_read_body!($rettype, $bitnum, $octetnum, self)
-	}
-}
+	($fnname:ident, $rettype:ident, $bitnum:expr, $octetnum:expr) => {
+		#[inline]
+		pub fn $fnname(&mut self) -> Result<$rettype, ()> {
+			bpc_read_body!($rettype, $bitnum, $octetnum, self)
+		}
+	};
 }
 
 macro_rules! ik_reader {
-( $fnname:ident, $rettype:ident, $bitnum_of_rettype:expr, $bitnum:expr, $octetnum:expr) => {
-	#[inline]
-	pub fn $fnname(&mut self) -> Result<$rettype, ()> {
-		Ok(sign_extend!(try!(
-			bpc_read_body!($rettype, $bitnum, $octetnum, self)),
-			$rettype, $bitnum_of_rettype, $bitnum))
-	}
-}
+	($fnname:ident, $rettype:ident, $bitnum_of_rettype:expr, $bitnum:expr, $octetnum:expr) => {
+		#[inline]
+		pub fn $fnname(&mut self) -> Result<$rettype, ()> {
+			Ok(sign_extend!(try!(
+				bpc_read_body!($rettype, $bitnum, $octetnum, self)),
+				$rettype, $bitnum_of_rettype, $bitnum))
+		}
+	};
 }
 
 macro_rules! ik_dynamic_reader {
-( $fnname:ident, $rettype:ident, $bitnum_of_rettype:expr) => {
-	#[inline]
-	pub fn $fnname(&mut self, bit_num :u8) -> Result<$rettype, ()> {
-		let octet_num :usize = (bit_num / 8) as usize;
-		assert!(bit_num <= $bitnum_of_rettype);
-		Ok(sign_extend!(try!(
-			bpc_read_body!($rettype, bit_num, octet_num, self)),
-			$rettype, $bitnum_of_rettype, bit_num))
+	($fnname:ident, $rettype:ident, $bitnum_of_rettype:expr) => {
+		#[inline]
+		pub fn $fnname(&mut self, bit_num :u8) -> Result<$rettype, ()> {
+			let octet_num :usize = (bit_num / 8) as usize;
+			assert!(bit_num <= $bitnum_of_rettype);
+			Ok(sign_extend!(try!(
+				bpc_read_body!($rettype, bit_num, octet_num, self)),
+				$rettype, $bitnum_of_rettype, bit_num))
+		}
 	}
-}
 }
 
 macro_rules! uk_dynamic_reader {
-( $fnname:ident, $rettype:ident, $bit_num_max:expr) => {
-	#[inline]
-	pub fn $fnname(&mut self, bit_num :u8) -> Result<$rettype, ()> {
-		let octet_num :usize = (bit_num / 8) as usize;
-		if bit_num == 0 {
-			// TODO: one day let bpc_read_body handle this,
-			// if its smartly doable in there.
-			// For why it is required, see comment in the
-			// test_bitpacking_reader_empty function.
-			return Ok(0);
+	($fnname:ident, $rettype:ident, $bit_num_max:expr) => {
+		#[inline]
+		pub fn $fnname(&mut self, bit_num :u8) -> Result<$rettype, ()> {
+			let octet_num :usize = (bit_num / 8) as usize;
+			if bit_num == 0 {
+				// TODO: one day let bpc_read_body handle this,
+				// if its smartly doable in there.
+				// For why it is required, see comment in the
+				// test_bitpacking_reader_empty function.
+				return Ok(0);
+			}
+			assert!(bit_num <= $bit_num_max);
+			bpc_read_body!($rettype, bit_num, octet_num, self)
 		}
-		assert!(bit_num <= $bit_num_max);
-		bpc_read_body!($rettype, bit_num, octet_num, self)
-	}
-}
+	};
 }
 
 fn float32_unpack(val :u32) -> f32 {
