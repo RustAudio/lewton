@@ -32,12 +32,12 @@ pub struct BitpackCursor <'a> {
 }
 
 macro_rules! sign_extend {
-( $num:expr, $desttype:ident, $bit_cnt_large:expr, $bit_cnt_small:expr) => { {
-	let n = $num;
-	let res :$desttype = n as $desttype;
-	let k :u8 = $bit_cnt_large - $bit_cnt_small;
-	res << k >> k
-} }
+	($num:expr, $desttype:ident, $bit_cnt_large:expr, $bit_cnt_small:expr) => {{
+		let n = $num;
+		let res :$desttype = n as $desttype;
+		let k :u8 = $bit_cnt_large - $bit_cnt_small;
+		res << k >> k
+	}};
 }
 
 #[test]
