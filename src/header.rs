@@ -397,8 +397,6 @@ pub(crate) enum Floor {
 
 pub(crate) struct FloorTypeZero {
 	pub floor0_order :u8,
-	pub floor0_rate :u16,
-	pub floor0_bark_map_size :u16,
 	pub floor0_amplitude_bits :u8,
 	pub floor0_amplitude_offset :u8,
 	pub floor0_number_of_books :u8,
@@ -790,8 +788,6 @@ fn read_floor(rdr :&mut BitpackCursor, codebook_cnt :u16, blocksizes :(u8, u8)) 
 			}
 			Ok(Floor::TypeZero(FloorTypeZero {
 				floor0_order,
-				floor0_rate,
-				floor0_bark_map_size,
 				floor0_amplitude_bits,
 				floor0_amplitude_offset,
 				floor0_number_of_books,
