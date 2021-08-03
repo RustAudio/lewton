@@ -246,22 +246,22 @@ pub fn get_asset_defs() -> [TestAssetDef; 6] {
 		TestAssetDef {
 			filename : format!("bwv_1043_vivace.ogg"),
 			hash : format!("839249e46220321e2bbb1106e30d0bef4acd800d3827a482743584f313c8c671"),
-			url : format!("https://upload.wikimedia.org/wikipedia/commons/e/e9/Johann_Sebastian_Bach_-_Concerto_for_Two_Violins_in_D_minor_-_1._Vivace.ogg"),
+			url : format!("https://github.com/RustAudio/lewton-test-assets/blob/master/wiki/bwv_1043_vivace.ogg?raw=true"),
 		},
 		TestAssetDef {
 			filename : format!("bwv_543_fuge.ogg"),
 			hash : format!("c5de55fe3613a88ba1622a1c931836c0af5e9bf3afae951418a07975a16e7421"),
-			url : format!("https://upload.wikimedia.org/wikipedia/commons/4/4e/BWV_543-fugue.ogg"),
+			url : format!("https://github.com/RustAudio/lewton-test-assets/blob/master/wiki/bwv_543_fuge.ogg?raw=true"),
 		},
 		TestAssetDef {
 			filename : format!("maple_leaf_rag.ogg"),
 			hash : format!("f66f18de6bc79126f13d96831619d68ddd56f9527e50e1058be0754b479ee350"),
-			url : format!("https://upload.wikimedia.org/wikipedia/commons/e/e9/Maple_Leaf_Rag_-_played_by_Scott_Joplin_1916_sample.ogg"),
+			url : format!("https://github.com/RustAudio/lewton-test-assets/blob/master/wiki/maple_leaf_rag.ogg?raw=true"),
 		},
 		TestAssetDef {
 			filename : format!("hoelle_rache.ogg"),
 			hash : format!("bbdf0a8d4c151aee5a21fb71ed86894b1aae5c7dba9ea767f7af6c0f752915c2"),
-			url : format!("https://upload.wikimedia.org/wikipedia/commons/7/7d/Der_Hoelle_Rache.ogg"),
+			url : format!("https://github.com/RustAudio/lewton-test-assets/blob/master/wiki/hoelle_rache.ogg?raw=true"),
 		},
 		TestAssetDef {
 			filename : format!("thingy-floor0.ogg"),
