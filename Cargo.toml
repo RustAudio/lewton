@@ -17,6 +17,7 @@ edition = "2015"
 [features]
 default = ["ogg"]
 async_ogg = ["ogg", "ogg/async", "futures", "tokio-io"]
+capi = []
 
 [[example]]
 name = "perf"
