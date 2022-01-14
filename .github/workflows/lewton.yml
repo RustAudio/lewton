@@ -15,23 +15,23 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install Rust
-      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.36.0'
+      if: matrix.os != 'macOS-latest'
       uses: actions-rs/toolchain@v1
       with:
         toolchain: ${{ matrix.toolchain }}
         override: true
     - name: Run no-default-features builds
-      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.36.0'
+      if: matrix.os != 'macOS-latest'
       run: |
         cargo test --verbose --no-default-features
         cargo doc --verbose --no-default-features
     - name: Run all-features builds
-      if: matrix.os != 'macOS-latest' || matrix.toolchain != '1.36.0'
+      if: matrix.os != 'macOS-latest'
       run: |
         cargo test --verbose --all-features
         cargo doc --verbose --all-features
     - name: Run cmp tests
-      if: matrix.toolchain == '1.45.0'
+      if: matrix.toolchain == '1.56.1'
       run: |
         cd dev/cmp
         cargo test --verbose --release
