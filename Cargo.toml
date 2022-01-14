@@ -13,6 +13,7 @@ categories = ["compression", "multimedia::audio", "multimedia::encoding"]
 documentation = "https://docs.rs/lewton"
 readme = "README.md"
 edition = "2015"
+rust-version = "1.56.0"
 
 [features]
 default = ["ogg"]
