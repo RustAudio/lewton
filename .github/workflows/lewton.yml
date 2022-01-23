@@ -33,5 +33,6 @@ jobs:
     - name: Run cmp tests
       if: matrix.toolchain == '1.56.1'
       run: |
-        cd dev/cmp
-        cargo test --verbose --release
+        sed -i.bak "/^vorb.*/d;s/#v/v/" dev/cmp/Cargo.toml
+        cargo update -p vorbis-sys:0.0.8
+        cargo test --verbose --release -p cmp

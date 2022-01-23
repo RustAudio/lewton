@@ -9,4 +9,7 @@ edition = "2015"
 [dependencies]
 lewton = { path = "../../" }
 vorbis = "0.1"
+# Workaround for test failure.
+# Apply branch of this PR: https://github.com/tomaka/vorbis-rs/pull/20
+#vorbis = { git = 'https://github.com/roderickvd/vorbis-rs', branch = 'fix-ub-panic' }
 test-assets = "0.2"
