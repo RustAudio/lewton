@@ -907,7 +907,6 @@ pub fn get_decoded_sample_count(ident :&IdentHeader, setup :&SetupHeader, packet
 	Ok((right_win_start - left_win_start) as usize)
 }
 
-#[allow(unused_variables)]
 /**
 Main audio packet decoding function
 
@@ -1055,7 +1054,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 
 	// Compute windowing info for left window
 	let window_center = n >> 1;
-	let (left_win_start, left_win_end, left_n, left_n_use_bs1) =
+	let (left_win_start, _left_win_end, _left_n, left_n_use_bs1) =
 		if previous_next_window_flag.map_or(true, |(prev_win_flag, _)| prev_win_flag) {
 			(0, window_center, n >> 1, mode.mode_blockflag)
 		} else {
@@ -1073,7 +1072,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 		};
 
 	/*println!("n={} prev_win_flag={:?} left_win_(start={}, end={}, n={}) right_win(start={}, end={})",
-		n, previous_next_window_flag, left_win_start, left_win_end, left_n,
+		n, previous_next_window_flag, left_win_start, _left_win_end, _left_n,
 		right_win_start, right_win_end); // */
 
 	// Overlap add and store last half
