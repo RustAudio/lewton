@@ -1140,8 +1140,8 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 		for chan in audio_spectri.iter_mut() {
 			let mut future_prev_half = Vec::with_capacity(
 				(right_win_end - right_win_start) as usize);
-			for i in right_win_start as usize .. right_win_end as usize {
-				future_prev_half.push(chan[i]);
+			for s in &chan[right_win_start as usize .. right_win_end as usize] {
+				future_prev_half.push(*s);
 			}
 			future_prev_halves.push(future_prev_half);
 			// If there is no previous window right, we have to discard
