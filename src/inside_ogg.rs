@@ -18,7 +18,7 @@ use std::io::{Read, Seek};
 use header::*;
 use VorbisError;
 use audio::{PreviousWindowRight, read_audio_packet,
-	read_audio_packet_generic};
+	get_decoded_sample_count, read_audio_packet_generic};
 use header::HeaderSet;
 use samples::{Samples, InterleavedSamples};
 
@@ -169,39 +169,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 		let pck = try!(self.read_dec_packet_generic());
 		Ok(pck)
 	}
-	/// Reads and decompresses an audio packet from the stream (generic).
-	///
-	/// On read errors, it returns Err(e) with the error.
-	///
-	/// On success, it either returns None, when the end of the
-	/// stream has been reached, or Some(packet_data),
-	/// with the data of the decompressed packet.
-	pub fn read_dec_packet_generic<S :Samples>(&mut self) ->
-			Result<Option<S>, VorbisError> {
-		let pck = match try!(self.read_next_audio_packet()) {
-			Some(p) => p,
-			None => return Ok(None),
-		};
-		let mut decoded_pck :S = try!(read_audio_packet_generic(&self.ident_hdr,
-			&self.setup_hdr, &pck.data, &mut self.pwr));
 
-		// If this is the last packet in the logical bitstream,
-		// we need to truncate it so that its ending matches
-		// the absgp of the current page.
-		// This is what the spec mandates and also the behaviour
-		// of libvorbis.
-		if let (Some(absgp), true) = (self.cur_absgp, pck.last_in_stream()) {
-			let target_length = pck.absgp_page().saturating_sub(absgp) as usize;
-			decoded_pck.truncate(target_length);
-		}
-		if pck.last_in_page() {
-			self.cur_absgp = Some(pck.absgp_page());
-		} else if let &mut Some(ref mut absgp) = &mut self.cur_absgp {
-			*absgp += decoded_pck.num_samples() as u64;
-		}
-
-		return Ok(Some(decoded_pck));
-	}
 	/// Reads and decompresses an audio packet from the stream (interleaved).
 	///
 	/// On read errors, it returns Err(e) with the error.
@@ -219,6 +187,99 @@ impl<T: Read + Seek> OggStreamReader<T> {
 			None => return Ok(None),
 		};
 		return Ok(Some(decoded_pck.samples));
+	}
+
+	/// Reads and decompresses an audio packet from the stream (generic).
+	///
+	/// On read errors, it returns Err(e) with the error.
+	///
+	/// On success, it either returns None, when the end of the
+	/// stream has been reached, or Some(packet_data),
+	/// with the data of the decompressed packet.
+	pub fn read_dec_packet_generic<S :Samples>(&mut self) ->
+			Result<Option<S>, VorbisError> {
+		let pck = match try!(self.read_next_audio_packet()) {
+			Some(p) => p,
+			None => return Ok(None),
+		};
+		self.dec_packet_generic(pck).map(Option::Some)
+	}
+
+	#[inline]
+	pub fn dec_packet_generic<S :Samples>(&mut self, pck :Packet) ->
+			Result<S, VorbisError> {
+		let mut decoded_pck :S = try!(read_audio_packet_generic(&self.ident_hdr,
+			&self.setup_hdr, &pck.data, &mut self.pwr));
+
+		// If this is the last packet in the logical bitstream,
+		// we need to truncate it so that its ending matches
+		// the absgp of the current page.
+		// This is what the spec mandates and also the behaviour
+		// of libvorbis.
+		if let (Some(absgp), true) = (self.cur_absgp, pck.last_in_stream()) {
+			let target_length = pck.absgp_page().saturating_sub(absgp) as usize;
+			decoded_pck.truncate(target_length);
+		}
+		if pck.last_in_page() {
+			self.cur_absgp = Some(pck.absgp_page());
+		} else if let &mut Some(ref mut absgp) = &mut self.cur_absgp {
+			*absgp += decoded_pck.num_samples() as u64;
+		}
+		return Ok(decoded_pck);
+	}
+	/// Skips the given number of samples
+	///
+	/// Skips multiple packets without decoding any but the last two, so that
+	/// the leftover number of samples to skip is lower than the length of the
+	/// returned packet.
+	///
+	/// The function runs a linear skip algorithm which means that instead of
+	/// logarithmic *seeking*, it inspects each packet for its length, and
+	/// subtracts the length from the length to skip. This function does no
+	/// packet decoding until it arrives at the destination, which makes it
+	/// way cheaper than just decoding all packets.
+	///
+	/// The absolute granule position is always increased in whole-package
+	/// increments.
+	pub fn skip_samples_linear<S :Samples>(&mut self, to_skip :usize) -> Result<(Option<S>, usize), VorbisError> {
+		let mut to_skip = to_skip;
+		let mut last_pck :Option<Packet> = None;
+		let mut next_pck;
+
+		loop {
+			if let Some(p) = try!(self.read_next_audio_packet()) {
+				next_pck = p;
+			} else {
+				return Ok((None, to_skip));
+			}
+			let mut sample_cnt = try!(get_decoded_sample_count(&self.ident_hdr, &self.setup_hdr, &next_pck.data));
+			// If this is the last packet in the logical bitstream,
+			// we need to truncate it so that its ending matches
+			// the absgp of the current page.
+			// This is what the spec mandates and also the behaviour
+			// of libvorbis.
+			if let (Some(absgp), true) = (self.cur_absgp, next_pck.last_in_stream()) {
+				last_pck = None;
+				let target_length = next_pck.absgp_page().saturating_sub(absgp) as usize;
+				sample_cnt = sample_cnt.min(target_length);
+			}
+			if to_skip < sample_cnt {
+				// We reached the end of our search.
+				if let Some(last_pck) = last_pck {
+					self.pwr = PreviousWindowRight::new();
+					let _decoded_pck :S = try!(read_audio_packet_generic(&self.ident_hdr,
+						&self.setup_hdr, &last_pck.data, &mut self.pwr));
+				}
+				let decoded_pck = try!(self.dec_packet_generic(next_pck));
+				return Ok((Some(decoded_pck), to_skip));
+			} else {
+				to_skip -= sample_cnt;
+			}
+			if let &mut Some(ref mut absgp) = &mut self.cur_absgp {
+				*absgp += sample_cnt as u64;
+			}
+			last_pck = Some(next_pck);
+		}
 	}
 
 	/// Returns the stream serial of the current stream
