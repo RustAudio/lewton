@@ -173,13 +173,7 @@ fn test_ilog() {
 }
 
 fn bit_reverse(n :u32) -> u32 {
-	// From the stb_vorbis implementation
-	let mut nn = n;
-	nn = ((nn & 0xAAAAAAAA) >> 1) | ((nn & 0x55555555) << 1);
-	nn = ((nn & 0xCCCCCCCC) >> 2) | ((nn & 0x33333333) << 2);
-	nn = ((nn & 0xF0F0F0F0) >> 4) | ((nn & 0x0F0F0F0F) << 4);
-	nn = ((nn & 0xFF00FF00) >> 8) | ((nn & 0x00FF00FF) << 8);
-	return (nn >> 16) | (nn << 16);
+	n.reverse_bits()
 }
 
 
