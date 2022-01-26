@@ -34,12 +34,12 @@ fn run_perf() {
 	let (decode_duration, native_decode_duration, n) = cmp_perf(&file_path);
 
 	println!("Time to decode {} packets with libvorbis: {} s",
-		n, get_duration_seconds(&native_decode_duration));
+		n, native_decode_duration.as_secs_f64());
 	println!("Time to decode {} packets with lewton: {} s",
-		n, get_duration_seconds(&decode_duration));
+		n, decode_duration.as_secs_f64());
 	println!("Ratio of difference: {:.2}x",
-		get_duration_seconds(&decode_duration) /
-		get_duration_seconds(&native_decode_duration));
+		decode_duration.as_secs_f64() /
+		native_decode_duration.as_secs_f64());
 }
 
 fn run_vals() {
@@ -67,12 +67,12 @@ fn run_bench() {
 			print!("Comparing speed for {} ", $str);
 			let (decode_duration, native_decode_duration, _) =
 				cmp_perf(&format!("test-assets/{}", $str));
-			let ratio = get_duration_seconds(&decode_duration) /
-				get_duration_seconds(&native_decode_duration);
+			let ratio = decode_duration.as_secs_f64() /
+				native_decode_duration.as_secs_f64();
 			println!("{}: libvorbis={:.04}s we={:.4}s difference={:.2}x",
 				$fill,
-				get_duration_seconds(&native_decode_duration),
-				get_duration_seconds(&decode_duration),
+				native_decode_duration.as_secs_f64(),
+				decode_duration.as_secs_f64(),
 				ratio);
 			total_native_time += native_decode_duration;
 			total_time += decode_duration;
@@ -85,10 +85,10 @@ fn run_bench() {
 	cmp_perf!("thingy-floor0.ogg", "  ");
 	println!("");
 	println!("Overall time spent for decoding by libvorbis: {:.04}s",
-		get_duration_seconds(&total_native_time));
+		total_native_time.as_secs_f64());
 	println!("Overall time spent for decoding by us: {:.04}s",
-		get_duration_seconds(&total_time));
+		total_time.as_secs_f64());
 	println!("Overall ratio of difference: {:.2}x",
-		get_duration_seconds(&total_time) /
-		get_duration_seconds(&total_native_time));
+		total_time.as_secs_f64() /
+		total_native_time.as_secs_f64());
 }

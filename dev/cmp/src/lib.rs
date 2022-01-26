@@ -62,12 +62,6 @@ pub fn cmp_perf(file_path :&str) -> (Duration, Duration, usize) {
 	return (decode_duration, native_decode_duration, n);
 }
 
-// TODO replace this with dur.as_secs_f64() once our MSRV
-// is 1.38.0
-pub fn get_duration_seconds(dur :&Duration) -> f64 {
-	return dur.as_secs() as f64 + (dur.subsec_nanos() as f64) / 1_000_000_000.0;
-}
-
 pub fn cmp_file_output(file_path :&str) -> (usize, usize) {
 	macro_rules! try {
 		($expr:expr) => (match $expr {
