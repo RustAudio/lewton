@@ -51,7 +51,7 @@ impl fmt::Debug for HuffTree {
 			}
 			if let Some(ref v) = s.r {
 				depth_print!(f, depth);
-				try!(write!(f, "RIGT "));
+				try!(write!(f, "RIGHT "));
 				try!(fmt_rec(&*v, f, depth + 1));
 			}
 			return Ok(());

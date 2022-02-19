@@ -331,7 +331,7 @@ pub fn inverse_mdct(cached_bd :&CachedBlocksizeDerived, buffer :&mut [f32], bs :
 	// once I combined the passes.
 
 	// so there's a missing 'times 2' here (for adding X to itself).
-	// this propogates through linearly to the end, where the numbers
+	// this propagates through linearly to the end, where the numbers
 	// are 1/2 too small, and need to be compensated for.
 
 	{
@@ -823,7 +823,7 @@ fn test_imdct_naive() {
 		0.00005, true);
 	let mismatches_limit = 0;
 	if mismatches > mismatches_limit {
-		panic!("Numer of mismatches {} was larger than limit of {}",
+		panic!("Number of mismatches {} was larger than limit of {}",
 			mismatches, mismatches_limit);
 	}
 }
@@ -841,7 +841,7 @@ fn test_imdct() {
 		0.00005, true);
 	let mismatches_limit = 0;
 	if mismatches > mismatches_limit {
-		panic!("Numer of mismatches {} was larger than limit of {}",
+		panic!("Number of mismatches {} was larger than limit of {}",
 			mismatches, mismatches_limit);
 	}
 }

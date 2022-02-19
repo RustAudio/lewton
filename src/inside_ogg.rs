@@ -317,7 +317,7 @@ impl<T: Read + Seek> OggStreamReader<T> {
 /**
 Support for async I/O
 
-This module provides support for asyncronous I/O.
+This module provides support for asynchronous I/O.
 */
 pub mod async_api {
 

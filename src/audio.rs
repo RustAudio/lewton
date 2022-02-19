@@ -717,7 +717,7 @@ fn residue_packet_decode_inner(rdr :&mut BitpackCursor, cur_blocksize :u16,
 }
 
 
-// Ok means "fine" (or end of packet, but thats "fine" too!),
+// Ok means "fine" (or end of packet, but that's "fine" too!),
 // Err means "not fine" -- the whole packet must be discarded
 fn residue_packet_decode(rdr :&mut BitpackCursor, cur_blocksize :u16,
 		do_not_decode_flag :&[bool], resid :&Residue, codebooks :&[Codebook]) -> Result<Vec<f32>, ()> {
@@ -835,7 +835,7 @@ fn test_imdct_slow() {
 		0.00005, true);
 	let mismatches_limit = 0;
 	if mismatches > mismatches_limit {
-		panic!("Numer of mismatches {} was larger than limit of {}",
+		panic!("Number of mismatches {} was larger than limit of {}",
 			mismatches, mismatches_limit);
 	}
 }
@@ -1105,7 +1105,7 @@ pub fn read_audio_packet_generic<S :Samples>(ident :&IdentHeader, setup :&SetupH
 			let (lhs, rhs) = {
 				if win_slope.len() < plen {
 					// According to fuzzing, code can trigger this case,
-					// so let's error gracefully instead of panicing.
+					// so let's error gracefully instead of panicking.
 					try!(Err(AudioReadError::AudioBadFormat));
 				}
 				let win_slope = &win_slope[0..plen];

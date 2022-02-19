@@ -81,7 +81,7 @@ impl From<Error> for HeaderReadError {
 	fn from(err :Error) -> HeaderReadError {
 		match err.kind() {
 			ErrorKind::UnexpectedEof => HeaderReadError::EndOfPacket,
-			_ => panic!("Non EOF Error occured when reading from Cursor<&[u8]>: {}", err),
+			_ => panic!("Non EOF Error occurred when reading from Cursor<&[u8]>: {}", err),
 		}
 	}
 }
@@ -527,7 +527,7 @@ fn lookup_vec_val_decode(lup :&CodebookVqLookup, codebook_entries :u32, codebook
 /// between the two cases of the enum. Esp. in some cases
 /// the decoder might have to reject packages with the
 /// NoVqLookupForCodebook variant, but have to treat EndOfPacket
-/// as normal occurence.
+/// as normal occurrence.
 pub(crate) enum HuffmanVqReadErr {
 	EndOfPacket,
 	NoVqLookupForCodebook,
