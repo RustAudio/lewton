@@ -360,6 +360,7 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 
 pub(crate) struct Codebook {
 	pub codebook_dimensions :u16,
+	#[allow(unused)]
 	pub codebook_entries :u32,
 
 	// None if codebook_lookup_type == 0
@@ -379,6 +380,7 @@ pub(crate) struct Residue {
 }
 
 pub(crate) struct Mapping {
+	#[allow(unused)]
 	pub mapping_submaps :u8,
 	pub mapping_magnitudes :Vec<u8>,
 	pub mapping_angles :Vec<u8>,
@@ -399,7 +401,9 @@ pub(crate) enum Floor {
 
 pub(crate) struct FloorTypeZero {
 	pub floor0_order :u8,
+	#[allow(unused)]
 	pub floor0_rate :u16,
+	#[allow(unused)]
 	pub floor0_bark_map_size :u16,
 	pub floor0_amplitude_bits :u8,
 	pub floor0_amplitude_offset :u8,
