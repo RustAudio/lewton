@@ -844,6 +844,7 @@ fn test_imdct_slow() {
 ///
 /// This is the only state that needs to be changed
 /// once the headers are read.
+#[derive(Clone)]
 pub struct PreviousWindowRight {
 	data :Option<Vec<Vec<f32>>>,
 }
