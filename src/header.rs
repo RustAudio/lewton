@@ -184,6 +184,7 @@ headers inside each vorbis stream.
 
 It covers basic information about the stream.
 */
+#[derive(Clone)]
 pub struct IdentHeader {
 	/// The number of audio channels in the stream
 	pub audio_channels :u8,
@@ -358,6 +359,7 @@ pub fn read_header_comment(packet :&[u8]) -> Result<CommentHeader, HeaderReadErr
 	return Ok(hdr);
 }
 
+#[derive(Clone)]
 pub(crate) struct Codebook {
 	pub codebook_dimensions :u16,
 
@@ -367,6 +369,7 @@ pub(crate) struct Codebook {
 	pub codebook_huffman_tree :VorbisHuffmanTree,
 }
 
+#[derive(Clone)]
 pub(crate) struct Residue {
 	pub residue_type :u8,
 	pub residue_begin :u32,
@@ -377,6 +380,7 @@ pub(crate) struct Residue {
 	pub residue_books :Vec<ResidueBook>,
 }
 
+#[derive(Clone)]
 pub(crate) struct Mapping {
 	pub mapping_magnitudes :Vec<u8>,
 	pub mapping_angles :Vec<u8>,
@@ -385,16 +389,19 @@ pub(crate) struct Mapping {
 	pub mapping_submap_residues :Vec<u8>,
 }
 
+#[derive(Clone)]
 pub(crate) struct ModeInfo {
 	pub mode_blockflag :bool,
 	pub mode_mapping :u8,
 }
 
+#[derive(Clone)]
 pub(crate) enum Floor {
 	TypeZero(FloorTypeZero),
 	TypeOne(FloorTypeOne),
 }
 
+#[derive(Clone)]
 pub(crate) struct FloorTypeZero {
 	pub floor0_order :u8,
 	pub floor0_amplitude_bits :u8,
@@ -404,6 +411,7 @@ pub(crate) struct FloorTypeZero {
 	pub cached_bark_cos_omega :[Vec<f32>; 2],
 }
 
+#[derive(Clone)]
 pub(crate) struct FloorTypeOne {
 	pub floor1_multiplier :u8,
 	pub floor1_partition_class :Vec<u8>,
@@ -415,6 +423,7 @@ pub(crate) struct FloorTypeOne {
 	pub floor1_x_list_sorted :Vec<(usize, u32)>,
 }
 
+#[derive(Clone)]
 pub(crate) struct ResidueBook {
 	vals_used :u8,
 	val_i :[u8; 8],
@@ -458,6 +467,7 @@ impl ResidueBook {
 	}
 }
 
+#[derive(Clone)]
 pub struct SetupHeader {
 	pub(crate) codebooks :Vec<Codebook>,
 	pub(crate) floors :Vec<Floor>,

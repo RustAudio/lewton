@@ -160,6 +160,7 @@ pub enum PeekedDataLookupResult<'l> {
 }
 
 /// Huffman tree representation
+#[derive(Clone)]
 pub struct VorbisHuffmanTree {
 	// Format: three bytes per non leaf node, one byte per leaf node.
 	// First byte is the payload container,

@@ -16,12 +16,14 @@ that's used later in the decode process.
 The caching is done to speed up decoding.
 */
 
+#[derive(Clone)]
 pub struct TwiddleFactors {
 	pub a :Vec<f32>,
 	pub b :Vec<f32>,
 	pub c :Vec<f32>,
 }
 
+#[derive(Clone)]
 pub struct CachedBlocksizeDerived {
 	pub twiddle_factors : TwiddleFactors,
 	pub window_slope : Vec<f32>,
