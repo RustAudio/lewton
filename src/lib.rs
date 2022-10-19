@@ -7,7 +7,6 @@
 // attached to this source distribution for details.
 
 #![cfg_attr(not(cargo_c), forbid(unsafe_code))]
-#![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, allow(unknown_lints))]
 #![forbid(non_ascii_idents)]
 
