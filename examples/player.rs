@@ -80,7 +80,7 @@ fn run() -> Result<(), VorbisError> {
 				str_src.play();
 				Duration::from_millis(0)
 			},
-			Some(t) => (Instant::now() - t)
+			Some(t) => Instant::now() - t,
 		};
 	println!("The piece is {} s long.", len_play);
 	sleep(sleep_duration);
