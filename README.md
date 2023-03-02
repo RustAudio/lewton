@@ -29,7 +29,7 @@ In fact, lib.rs contains the `#![forbid(unsafe_code)]` directive.
 
 ## About the history of this crate
 
-I've started started to work on this crate in December 2015.
+I started to work on this crate in December 2015.
 The goal was to learn more about Rust and audio processing,
 while also delivering something useful to the Rust ecosystem.
 
